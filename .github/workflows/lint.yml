@@ -28,6 +28,22 @@ jobs:
       - name: Run eslint
         working-directory: ./backend/question-service
         run: npm run lint
+  user-service:
+    runs-on: ubuntu-latest
+    name: User service
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setting node version
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install dependences
+        working-directory: ./backend/user-service
+        run: npm install
+      - name: Run eslint
+        working-directory: ./backend/user-service
+        run: npm run lint
   frontend:
     runs-on: ubuntu-latest
     name: Frontend

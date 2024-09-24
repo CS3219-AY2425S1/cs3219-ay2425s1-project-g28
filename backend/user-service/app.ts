@@ -56,7 +56,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.get("/", (req: Request, res: Response, next: NextFunction) => {
+app.get("/", (_req: Request, res: Response, _next: NextFunction) => {
   console.log("Sending Greetings!");
   res.json({
     message: "Hello World from user-service",
