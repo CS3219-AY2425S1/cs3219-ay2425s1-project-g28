@@ -1,0 +1,7 @@
+cd ./frontend && npm run lint && npm run test
+cd ..
+
+cd ./backend/user-service && npm run lint && npm run test
+cd ../..
+
+cd ./backend/question-service && npm run lint && npm run test

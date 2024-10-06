@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - "*"
+
+env:
+  NODE_VERSION: 20
+  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+  FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+  FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+  FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [frontend, backend/question-service, backend/user-service]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setting node version
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install dependencies
+        working-directory: ${{ matrix.service }}
+        run: npm install
+      - name: Linting
+        working-directory: ${{ matrix.service }}
+        run: npm run lint
+      - name: Set .env variables
+        working-directory: ${{ matrix.service }}
+        run: |
+          touch .env
+          echo "FIREBASE_PROJECT_ID=${{ env.FIREBASE_PROJECT_ID }}" >> .env
+          echo "FIREBASE_PRIVATE_KEY=${{ env.FIREBASE_PRIVATE_KEY }}" >> .env
+          echo "FIREBASE_CLIENT_EMAIL=${{ env.FIREBASE_CLIENT_EMAIL }}" >> .env
+          echo "FIREBASE_CLIENT_EMAIL=${{ env.FIREBASE_CLIENT_EMAIL }}" >> .env
+          echo "FIREBASE_STORAGE_BUCKET=${{ env.FIREBASE_STORAGE_BUCKET }}" >> .env
+          echo "JWT_SECRET=${{ env.JWT_SECRET }}" >> .env
+      - name: Tests
+        working-directory: ${{ matrix.service }}
+        run: npm test

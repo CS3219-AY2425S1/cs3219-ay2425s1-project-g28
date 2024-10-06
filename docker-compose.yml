@@ -1,0 +1,67 @@
+services:
+  user-service:
+    image: peerprep/user-service
+    build: ./backend/user-service
+    env_file: ./backend/user-service/.env
+    ports:
+      - 3001:3001
+    depends_on:
+      - mongo
+    networks:
+      - peerprep-network
+    restart: on-failure
+
+  question-service:
+    image: peerprep/question-service
+    build: ./backend/question-service
+    env_file: ./backend/question-service/.env
+    ports:
+      - 3000:3000
+    depends_on:
+      - mongo
+      - user-service
+    networks:
+      - peerprep-network
+    restart: on-failure
+
+  frontend:
+    image: peerprep/frontend
+    build: ./frontend
+    ports:
+      - 5173:5173
+    depends_on:
+      - user-service
+      - question-service
+    networks:
+      - peerprep-network
+    restart: on-failure
+
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    networks:
+      - peerprep-network
+    volumes:
+      - mongo-data:/data/db
+    env_file:
+      - ./backend/.env
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    networks:
+      - peerprep-network
+    depends_on:
+      - mongo
+    env_file: ./backend/.env
+
+volumes:
+  mongo-data:
+
+networks:
+  peerprep-network:
+    driver: bridge
