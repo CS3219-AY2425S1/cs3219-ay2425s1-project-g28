@@ -1,5 +1,4 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import "@testing-library/jest-dom";
 import axios from "axios";
 import { faker } from "@faker-js/faker";
 import * as hooks from "../../contexts/AuthContext";
@@ -46,6 +45,7 @@ describe("Navigation routes", () => {
       signup: jest.fn(),
       login: jest.fn(),
       logout: jest.fn(),
+      setUser: jest.fn(),
       loading: false,
       user: {
         id: "1",
@@ -76,6 +76,7 @@ describe("Unauthenticated user", () => {
       login: jest.fn(),
       logout: jest.fn(),
       loading: false,
+      setUser: jest.fn(),
       user: null,
     }));
     render(
@@ -92,6 +93,7 @@ describe("Unauthenticated user", () => {
       signup: jest.fn(),
       login: jest.fn(),
       logout: jest.fn(),
+      setUser: jest.fn(),
       loading: false,
       user: null,
     }));
@@ -133,6 +135,7 @@ describe("Authenticated user", () => {
       signup: jest.fn(),
       login: jest.fn(),
       logout: jest.fn(),
+      setUser: jest.fn(),
       loading: false,
       user: {
         id: "1",
@@ -182,6 +185,7 @@ describe("Authenticated user", () => {
       signup: jest.fn(),
       login: jest.fn(),
       logout: jest.fn(),
+      setUser: jest.fn(),
       loading: false,
       user: {
         id: "1",
@@ -235,6 +239,7 @@ describe("Authenticated user", () => {
       signup: jest.fn(),
       login: jest.fn(),
       logout: jest.fn(),
+      setUser: jest.fn(),
       loading: false,
       user: {
         id: "1",
@@ -287,6 +292,7 @@ describe("Authenticated user", () => {
       login: jest.fn(),
       logout: jest.fn(),
       loading: false,
+      setUser: jest.fn(),
       user: {
         id: "1",
         username,

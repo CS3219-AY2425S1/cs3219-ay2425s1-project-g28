@@ -1,5 +1,4 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import "@testing-library/jest-dom";
 import QuestionImage from ".";
 
 Object.assign(navigator, {
@@ -27,7 +26,7 @@ describe("Question Image", () => {
     fireEvent.click(copyButton);
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      `![image](${url})`,
+      `![image](${url})`
     );
   });
 

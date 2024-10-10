@@ -1,5 +1,4 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import "@testing-library/jest-dom";
 import QuestionImageContainer from ".";
 import { questionClient } from "../../utils/api";
 
@@ -27,7 +26,7 @@ describe("Question Image Container", () => {
     Object.defineProperty(window, "localStorage", {
       value: mockLocalStorage,
       writable: true,
-    }),
+    })
   );
 
   it("Question Image Container is rendered with no uploaded images", () => {
@@ -38,11 +37,11 @@ describe("Question Image Container", () => {
       <QuestionImageContainer
         uploadedImagesUrl={uploadedImagesUrl}
         setUploadedImagesUrl={setUploadedImagesUrl}
-      />,
+      />
     );
 
     const uploadImageMessage = screen.getByText(
-      "Click to upload images. The maximum image size accepted is 5MB.",
+      "Click to upload images. The maximum image size accepted is 5MB."
     );
     expect(uploadImageMessage).toBeInTheDocument();
   });
@@ -55,7 +54,7 @@ describe("Question Image Container", () => {
       <QuestionImageContainer
         uploadedImagesUrl={uploadedImagesUrl}
         setUploadedImagesUrl={setUploadedImagesUrl}
-      />,
+      />
     );
 
     const images = screen.getAllByAltText("question image");
@@ -70,7 +69,7 @@ describe("Question Image Container", () => {
       <QuestionImageContainer
         uploadedImagesUrl={uploadedImagesUrl}
         setUploadedImagesUrl={setUploadedImagesUrl}
-      />,
+      />
     );
 
     const image = screen.getByAltText("question image");
@@ -110,7 +109,7 @@ describe("Question Image Container", () => {
       <QuestionImageContainer
         uploadedImagesUrl={uploadedImagesUrl}
         setUploadedImagesUrl={setUploadedImagesUrl}
-      />,
+      />
     );
 
     const file = new File(["file"], "file.png", { type: "image/png" });
@@ -126,7 +125,7 @@ describe("Question Image Container", () => {
             Authorization: `Bearer ${mockLocalStorage.getItem("token")}`,
             "Content-Type": "multipart/form-data",
           },
-        }),
+        })
       );
 
       expect(setUploadedImagesUrl).toHaveBeenCalled();
@@ -141,7 +140,7 @@ describe("Question Image Container", () => {
       <QuestionImageContainer
         uploadedImagesUrl={uploadedImagesUrl}
         setUploadedImagesUrl={setUploadedImagesUrl}
-      />,
+      />
     );
 
     const file = new File(["file"], "file.txt", { type: "text/plain" });
@@ -159,7 +158,7 @@ describe("Question Image Container", () => {
       <QuestionImageContainer
         uploadedImagesUrl={uploadedImagesUrl}
         setUploadedImagesUrl={setUploadedImagesUrl}
-      />,
+      />
     );
 
     const input = screen.getByTestId("file-input");
@@ -185,7 +184,7 @@ describe("Question Image Container", () => {
       <QuestionImageContainer
         uploadedImagesUrl={uploadedImagesUrl}
         setUploadedImagesUrl={setUploadedImagesUrl}
-      />,
+      />
     );
 
     const file = new File(["file"], "file.png", { type: "image/png" });
@@ -205,7 +204,7 @@ describe("Question Image Container", () => {
       <QuestionImageContainer
         uploadedImagesUrl={uploadedImagesUrl}
         setUploadedImagesUrl={setUploadedImagesUrl}
-      />,
+      />
     );
 
     const input = screen.getByTestId("file-input");

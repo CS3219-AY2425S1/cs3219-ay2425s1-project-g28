@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import "@testing-library/jest-dom";
 import QuestionImageDialog from ".";
 
 describe("Question Image Dialog", () => {
@@ -12,7 +11,7 @@ describe("Question Image Dialog", () => {
         value={url}
         open={true}
         handleClose={mockHandleClose}
-      />,
+      />
     );
 
     const image = screen.getByAltText("question image enlarged");
@@ -27,7 +26,7 @@ describe("Question Image Dialog", () => {
         value={url}
         open={false}
         handleClose={mockHandleClose}
-      />,
+      />
     );
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -39,7 +38,7 @@ describe("Question Image Dialog", () => {
         value={url}
         open={true}
         handleClose={mockHandleClose}
-      />,
+      />
     );
 
     const closeButton = screen.getByRole("button", { name: "close" });

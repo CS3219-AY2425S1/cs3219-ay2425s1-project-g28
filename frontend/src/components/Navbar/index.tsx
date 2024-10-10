@@ -18,6 +18,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useState } from "react";
 import { USE_AUTH_ERROR_MESSAGE } from "../../utils/constants";
+import { isMatchingPage } from "../../utils/url";
 
 type NavbarItem = { label: string; link: string; needsLogin: boolean };
 
@@ -62,63 +63,76 @@ const Navbar: React.FC<NavbarProps> = (props) => {
       }}
     >
       <AppMargin>
-        <Toolbar sx={{ padding: 0 }}>
+        <Toolbar sx={{ padding: 0, justifyContent: "space-between" }}>
           <Typography
             component={Box}
             variant="h5"
-            sx={[{ flexGrow: 1, "&:hover": { cursor: "pointer" } }]}
+            sx={{ "&:hover": { cursor: "pointer" } }}
             onClick={() => navigate("/")}
           >
             PeerPrep
           </Typography>
-          <Stack direction={"row"} alignItems={"center"} spacing={2}>
-            {navbarItems
-              .filter((item) => !item.needsLogin || (item.needsLogin && user))
-              .map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.link}
-                  underline="none"
-                  sx={{ color: "common.black" }}
-                >
-                  {path == item.link ? <b>{item.label}</b> : item.label}
-                </Link>
-              ))}
-            {user ? (
-              <>
-                <Tooltip title={"Account settings"}>
-                  <IconButton onClick={handleClick} data-testid="profile">
-                    <Avatar src={user.profilePictureUrl}/>
-                  </IconButton>
-                </Tooltip>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={!!anchorEl}
-                  onClose={handleClose}
-                  onClick={handleClose}
-                >
-                  <MenuItem
-                    onClick={() => {
-                      handleClose();
-                      navigate(`/profile/${user.id}`);
-                    }}
+          {!isMatchingPage(path) ? (
+            <Stack direction={"row"} alignItems={"center"} spacing={2}>
+              {navbarItems
+                .filter((item) => !item.needsLogin || (item.needsLogin && user))
+                .map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.link}
+                    underline="none"
+                    sx={{ color: "common.black" }}
                   >
-                    Profile
-                  </MenuItem>
-                  <MenuItem onClick={logout}>Logout</MenuItem>
-                </Menu>
-              </>
-            ) : (
-              <>
-                <Button variant="contained" onClick={() => navigate("/signup")}>
-                  Sign up
-                </Button>
-                <Button variant="outlined" onClick={() => navigate("/login")}>
-                  Log in
-                </Button>
-              </>
-            )}
-          </Stack>
+                    {path == item.link ? <b>{item.label}</b> : item.label}
+                  </Link>
+                ))}
+              {user ? (
+                <>
+                  <Tooltip title={"Account settings"}>
+                    <IconButton onClick={handleClick} data-testid="profile">
+                      <Avatar src={user.profilePictureUrl} />
+                    </IconButton>
+                  </Tooltip>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={!!anchorEl}
+                    onClose={handleClose}
+                    onClick={handleClose}
+                  >
+                    <MenuItem
+                      onClick={() => {
+                        handleClose();
+                        navigate(`/profile/${user.id}`);
+                      }}
+                    >
+                      Profile
+                    </MenuItem>
+                    <MenuItem onClick={logout}>Logout</MenuItem>
+                  </Menu>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="contained"
+                    onClick={() => navigate("/signup")}
+                  >
+                    Sign up
+                  </Button>
+                  <Button variant="outlined" onClick={() => navigate("/login")}>
+                    Log in
+                  </Button>
+                </>
+              )}
+            </Stack>
+          ) : (
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => navigate("/home")}
+            >
+              Stop matching
+            </Button>
+          )}
         </Toolbar>
       </AppMargin>
     </AppBar>
