@@ -21,16 +21,18 @@ export async function createUser(
   username: string,
   email: string,
   password: string,
-  isAdmin: boolean = false
+  isAdmin: boolean = false,
+  isVerified: boolean = false
 ): Promise<IUser> {
-  return new UserModel({
+  const user = new UserModel({
     firstName,
     lastName,
     username,
     email,
     password,
     isAdmin,
-  }).save();
+  });
+  return user.save();
 }
 
 export async function findUserByEmail(email: string): Promise<IUser | null> {
@@ -92,6 +94,20 @@ export async function updateUserPrivilegeById(
     {
       $set: {
         isAdmin,
+      },
+    },
+    { new: true } // return the updated user
+  );
+}
+
+export async function updateUserVerification(
+  email: string
+): Promise<IUser | null> {
+  return UserModel.findOneAndUpdate(
+    { email },
+    {
+      $set: {
+        isVerified: true,
       },
     },
     { new: true } // return the updated user

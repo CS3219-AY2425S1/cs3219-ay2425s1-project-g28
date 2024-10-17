@@ -11,6 +11,7 @@ import {
 
 import classes from "./index.module.css";
 import AppMargin from "../../components/AppMargin";
+
 // import {
 //   complexityList,
 //   languageList,
@@ -52,7 +53,6 @@ const Home: React.FC = () => {
       >
         Start an interactive practice session today!
       </Typography>
-
       <Typography
         variant="subtitle1"
         textAlign={"center"}

@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
-import { bucket } from "../config/firebase";
+import { bucket, auth } from "../config/firebase";
+import { UserRecord } from "firebase-admin/lib/auth/user-record";
 
 export const uploadFileToFirebase = async (
   folderName: string,
@@ -30,6 +31,14 @@ export const uploadFileToFirebase = async (
 
     blobStream.end(file.buffer);
   });
+};
+
+export const createFirebaseUserWithEmailAndPassword = async (
+  uid: string,
+  email: string,
+  password: string
+): Promise<UserRecord> => {
+  return auth.createUser({ uid, email, password });
 };
 
 /*export const deleteFileFromFirebase = async (

@@ -11,6 +11,8 @@ export interface IUser extends Document {
   firstName: string;
   lastName: string;
   biography?: string;
+
+  isVerified: boolean;
 }
 
 const UserModelSchema: Schema<IUser> = new mongoose.Schema({
@@ -53,6 +55,11 @@ const UserModelSchema: Schema<IUser> = new mongoose.Schema({
     type: String,
     required: false,
     default: "Hello World!",
+  },
+  isVerified: {
+    type: Boolean,
+    required: true,
+    default: false,
   },
 });
 

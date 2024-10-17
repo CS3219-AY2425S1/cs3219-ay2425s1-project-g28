@@ -51,6 +51,8 @@ export const PASSWORD_MISMATCH_ERROR_MESSAGE = "Password does not match";
 /* Toast Messages */
 // Authentication
 export const SUCCESS_LOG_OUT = "Logged out successfully!";
+export const SUCCESSFUL_SIGNUP =
+  "User created successfully. Please verify your email address.";
 
 // Field Validation
 export const FILL_ALL_FIELDS = "Please fill in all fields";

@@ -9,6 +9,7 @@ services:
       - 3001:3001
     depends_on:
       - mongo
+      - redis
     networks:
       - peerprep-network
     volumes:
@@ -94,14 +95,14 @@ services:
       - mongo
     env_file: ./backend/.env
 
-  rabbitmq: 
+  rabbitmq:
     image: rabbitmq:4.0-management
     container_name: rabbitmq
     restart: always
     ports:
       - 5672:5672
       - 15672:15672
-    networks: 
+    networks:
       - peerprep-network
     env_file: ./backend/matching-service/.env
     healthcheck:
@@ -110,9 +111,40 @@ services:
       timeout: 10s
       retries: 10
 
+  redis:
+    image: redis:8.0-M01
+    container_name: redis
+    ports:
+      - 6379:6379
+    networks:
+      - peerprep-network
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    command: ["redis-server"]
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - 5540:5540
+    networks:
+      - peerprep-network
+    volumes:
+      - redis-insight-data:/db
+    depends_on:
+      redis:
+        condition: service_healthy
+        restart: true
 
 volumes:
   mongo-data:
+  redis-data:
+  redis-insight-data:
 
 networks:
   peerprep-network:

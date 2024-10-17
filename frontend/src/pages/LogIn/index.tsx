@@ -11,8 +11,6 @@ import LogInSvg from "../../assets/login.svg?react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { emailValidator } from "../../utils/validators";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { useForm } from "react-hook-form";
 import PasswordTextField from "../../components/PasswordTextField";
 import {
@@ -154,7 +152,6 @@ const LogIn: React.FC = () => {
       >
         <LogInSvg width="80%" height="80%" />
       </Box>
-      <ToastContainer position="bottom-right" />
     </Box>
   );
 };

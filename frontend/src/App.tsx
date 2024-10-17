@@ -17,6 +17,8 @@ import Matching from "./pages/Matching";
 import Layout from "./components/Layout";
 import AuthProvider from "./contexts/AuthContext";
 import ProfileContextProvider from "./contexts/ProfileContext";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
@@ -53,6 +55,7 @@ function App() {
         <Route path="signup" element={<SignUp />} />
         <Route path="login" element={<LogIn />} />
       </Routes>
+      <ToastContainer position="bottom-right" />
     </AuthProvider>
   );
 }

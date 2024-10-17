@@ -5,7 +5,7 @@ import { userClient } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Loader from "../components/Loader";
-import { SUCCESS_LOG_OUT } from "../utils/constants";
+import { SUCCESS_LOG_OUT, SUCCESSFUL_SIGNUP } from "../utils/constants";
 
 type User = {
   id: string;
@@ -75,7 +75,10 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         email: email,
         password: password,
       })
-      .then(() => login(email, password))
+      .then(() => {
+        login(email, password);
+        toast.success(SUCCESSFUL_SIGNUP);
+      })
       .catch((err) => {
         setUser(null);
         toast.error(err.response?.data.message || err.message);
@@ -112,7 +115,9 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   }
 
   return (
-    <AuthContext.Provider value={{ signup, login, logout, user, setUser, loading }}>
+    <AuthContext.Provider
+      value={{ signup, login, logout, user, setUser, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -11,4 +11,6 @@ admin.initializeApp({
 
 const bucket = admin.storage().bucket();
 
-export { bucket };
+const auth = admin.auth();
+
+export { bucket, auth };
