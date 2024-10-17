@@ -1,11 +1,23 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import AppMargin from "../../components/AppMargin";
 import { Button, Stack, Typography } from "@mui/material";
 import timeout from "../../assets/timeout.svg";
 import classes from "./index.module.css";
+import { useMatch } from "../../contexts/MatchContext";
+import { USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
 
 const Timeout: React.FC = () => {
   const navigate = useNavigate();
+
+  const match = useMatch();
+  if (!match) {
+    throw new Error(USE_MATCH_ERROR_MESSAGE);
+  }
+  const { retryMatch, matchCriteria } = match;
+
+  if (!matchCriteria) {
+    return <Navigate to="/home" replace />;
+  }
 
   return (
     <AppMargin classname={`${classes.fullheight} ${classes.center}`}>
@@ -23,15 +35,11 @@ const Timeout: React.FC = () => {
             variant="contained"
             color="secondary"
             fullWidth
-            onClick={() => navigate("/questions")}
+            onClick={() => navigate("/home", { replace: true })}
           >
             Exit
           </Button>
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={() => navigate("/matching")}
-          >
+          <Button variant="contained" fullWidth onClick={retryMatch}>
             Try Again
           </Button>
         </Stack>

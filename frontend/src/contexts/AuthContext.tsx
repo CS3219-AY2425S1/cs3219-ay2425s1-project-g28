@@ -6,18 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Loader from "../components/Loader";
 import { SUCCESS_LOG_OUT } from "../utils/constants";
-
-type User = {
-  id: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  biography?: string;
-  profilePictureUrl?: string;
-  createdAt: string;
-  isAdmin: boolean;
-};
+import { User } from "../types/types";
 
 type AuthContextType = {
   signup: (
@@ -112,7 +101,9 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   }
 
   return (
-    <AuthContext.Provider value={{ signup, login, logout, user, setUser, loading }}>
+    <AuthContext.Provider
+      value={{ signup, login, logout, user, setUser, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );

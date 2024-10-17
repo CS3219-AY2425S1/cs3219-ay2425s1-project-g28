@@ -1,20 +1,51 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import AppMargin from "../../components/AppMargin";
 import { Stack, Typography } from "@mui/material";
 import matching from "../../assets/matching.svg";
 import classes from "./index.module.css";
 import Timer from "../../components/Timer";
+import { useMatch } from "../../contexts/MatchContext";
+import {
+  minMatchTimeout,
+  USE_MATCH_ERROR_MESSAGE,
+} from "../../utils/constants";
+import { Navigate } from "react-router-dom";
 
 const Matching: React.FC = () => {
-  const totalTime = 30;
-  const [timeLeft, setTimeLeft] = React.useState(totalTime);
+  const match = useMatch();
+  if (!match) {
+    throw new Error(USE_MATCH_ERROR_MESSAGE);
+  }
+  const { matchingTimeout, matchCriteria } = match;
+  const timeout = matchCriteria?.timeout || minMatchTimeout;
+
+  const [timeLeft, setTimeLeft] = useState<number>(timeout);
 
   useEffect(() => {
+    const startTime = new Date().getTime();
+    const endTime = startTime + timeout * 1000;
+
     const timer = setInterval(() => {
-      setTimeLeft((prevTime) => (prevTime <= 0 ? 0 : prevTime - 1));
-    }, 1000);
+      const currentTime = new Date().getTime();
+      const remainingTime = Math.max(
+        0,
+        Math.round((endTime - currentTime) / 1000)
+      );
+      setTimeLeft(remainingTime);
+    });
+
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      matchingTimeout();
+    }
+  }, [timeLeft]);
+
+  if (!matchCriteria) {
+    return <Navigate to="/home" replace />;
+  }
 
   return (
     <AppMargin classname={`${classes.fullheight} ${classes.center}`}>
@@ -24,7 +55,7 @@ const Matching: React.FC = () => {
         </Typography>
         <img src={matching} style={{ height: 120, width: "auto" }} />
         <Timer
-          totalTime={totalTime}
+          totalTime={timeout}
           timeLeft={timeLeft}
           thickness={4.8}
           size={120}

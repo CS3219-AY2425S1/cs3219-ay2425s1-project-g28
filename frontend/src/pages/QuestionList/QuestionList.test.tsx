@@ -17,7 +17,9 @@ jest.mock("../../utils/api", () => ({
     get: jest.fn(),
   },
 }));
-const mockedGet = questionClient.get as jest.MockedFunction<typeof questionClient.get>;
+const mockedGet = questionClient.get as jest.MockedFunction<
+  typeof questionClient.get
+>;
 const questions = [
   {
     id: "1",
@@ -32,7 +34,7 @@ const questions = [
     description: "Description of Question 2",
     complexity: "Medium",
     categories: ["Algorithms", "Data Structures"],
-  }
+  },
 ];
 mockedGet.mockImplementation((url: string) => {
   switch (url) {
@@ -61,6 +63,8 @@ describe("Question List Components For All Users", () => {
       signup: jest.fn(),
       login: jest.fn(),
       logout: jest.fn(),
+      setUser: jest.fn(),
+      loading: false,
       user: null,
     }));
   });
@@ -87,9 +91,15 @@ describe("Question List Components For All Users", () => {
 
   it("Question table headers are rendered", async () => {
     render(<QuestionList />);
-    expect(await screen.findByRole("columnheader", { name: "Title" })).toBeInTheDocument();
-    expect(await screen.findByRole("columnheader", { name: "Complexity" })).toBeInTheDocument();
-    expect(await screen.findByRole("columnheader", { name: "Categories" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("columnheader", { name: "Title" })
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole("columnheader", { name: "Complexity" })
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole("columnheader", { name: "Categories" })
+    ).toBeInTheDocument();
   });
 
   it("Question table rows are rendered", async () => {
@@ -105,14 +115,20 @@ describe("Question List Components For All Users", () => {
 
   it("Question table pagination is rendered", async () => {
     render(<QuestionList />);
-    expect(await screen.findByRole("button", { name: /previous page/i })).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: /next page/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: /previous page/i })
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: /next page/i })
+    ).toBeInTheDocument();
   });
 
   it("Create button is not rendered", async () => {
     render(<QuestionList />);
     await waitFor(() => {
-      expect(screen.queryByRole("button", { name: "Create" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Create" })
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -131,6 +147,8 @@ describe("Question List Components for Admin", () => {
       signup: jest.fn(),
       login: jest.fn(),
       logout: jest.fn(),
+      setUser: jest.fn(),
+      loading: false,
       user: {
         id: "1",
         firstName: "Admin",
@@ -161,10 +179,12 @@ describe("Question List Components for Admin", () => {
     editDeleteMenu.forEach((button) => {
       expect(button).toBeInTheDocument();
     });
-    
+
     fireEvent.click(editDeleteMenu[0]);
     expect(screen.getByRole("menuitem", { name: "Edit" })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: "Delete" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Delete" })
+    ).toBeInTheDocument();
   });
 
   it("Edit button redirects to edit question page", async () => {

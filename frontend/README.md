@@ -1,4 +1,4 @@
-# PeerPrep Frontend
+# Frontend Guide
 
 ## Running Frontend
 
@@ -8,4 +8,4 @@
 
 3. Run `npm run dev` for development mode, which includes features like automatic server restart when you make code changes.
 
-4. The application is available at http://localhost:5173.
+4. The application is available at http://localhost:5173. If you would like to run the application on a different URL, please update the `ORIGINS` variable in the various `.env` files located in the backend directory.

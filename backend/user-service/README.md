@@ -1,6 +1,6 @@
 # User Service Guide
 
-> If you have not set-up either a local or cloud MongoDB, as well as Firebase, visit [this](../README.md) before proceeding.
+> Please ensure that you have completed the backend set-up [here](../README.md) before proceeding.
 
 ## Setting-up User Service
 
@@ -14,13 +14,11 @@
 
 ## Running User Service without Docker
 
-1. Follow the instructions [here](https://nodejs.org/en/download/package-manager) to set up Node v20.
+1. Open Command Line/Terminal and navigate into the `user-service` directory.
 
-2. Open Command Line/Terminal and navigate into the `user-service` directory.
+2. Run the command: `npm install`. This will install all the necessary dependencies.
 
-3. Run the command: `npm install`. This will install all the necessary dependencies.
-
-4. Run the command `npm start` to start the User Service in production mode, or use `npm run dev` for development mode, which includes features like automatic server restart when you make code changes.
+3. Run the command `npm start` to start the User Service in production mode, or use `npm run dev` for development mode, which includes features like automatic server restart when you make code changes.
 
 ## After running
 

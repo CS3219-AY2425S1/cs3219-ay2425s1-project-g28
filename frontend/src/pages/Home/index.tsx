@@ -1,40 +1,54 @@
 import {
-  // Autocomplete,
-  // Button,
-  // Card,
-  // FormControl,
-  // Grid2,
-  // TextField,
+  Autocomplete,
+  Box,
+  Button,
+  Card,
+  FormControl,
+  Grid2,
+  TextField,
   Typography,
 } from "@mui/material";
-// import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 
 import classes from "./index.module.css";
 import AppMargin from "../../components/AppMargin";
-// import {
-//   complexityList,
-//   languageList,
-//   maxMatchTimeout,
-//   minMatchTimeout,
-// } from "../../utils/constants";
-// import reducer, {
-//   getQuestionCategories,
-//   initialState,
-// } from "../../reducers/questionReducer";
-// import CustomChip from "../../components/CustomChip";
-// import homepageImage from "/homepage_image.svg";
+import {
+  complexityList,
+  languageList,
+  maxMatchTimeout,
+  minMatchTimeout,
+  USE_MATCH_ERROR_MESSAGE,
+} from "../../utils/constants";
+import reducer, {
+  getQuestionCategories,
+  initialState as initialState,
+} from "../../reducers/questionReducer";
+import CustomChip from "../../components/CustomChip";
+import homepageImage from "/homepage_image.svg";
+import { useMatch } from "../../contexts/MatchContext";
+import Loader from "../../components/Loader";
 
 const Home: React.FC = () => {
-  // const [complexity, setComplexity] = useState<string[]>([]);
-  // const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  // const [language, setLanguage] = useState<string[]>([]);
-  // const [timeout, setTimeout] = useState<number>(30);
+  const [complexities, setComplexities] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [timeout, setTimeout] = useState<number | undefined>(30);
 
-  // const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
-  // useEffect(() => {
-  //   getQuestionCategories(dispatch);
-  // }, []);
+  const match = useMatch();
+  if (!match) {
+    throw new Error(USE_MATCH_ERROR_MESSAGE);
+  }
+  const { findMatch, loading } = match;
+
+  useEffect(() => {
+    getQuestionCategories(dispatch);
+  }, []);
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <AppMargin
@@ -65,7 +79,7 @@ const Home: React.FC = () => {
         Specify your question preferences and sit back as we find you the best
         match.
       </Typography>
-      {/* <Box
+      <Box
         component="img"
         src={homepageImage}
         alt="Interview Practice Buddy"
@@ -77,8 +91,8 @@ const Home: React.FC = () => {
           height: "auto",
           objectFit: "contain",
         }}
-      /> */}
-      {/* <Card
+      />
+      <Card
         sx={{
           padding: 4,
           width: "100%",
@@ -107,7 +121,7 @@ const Home: React.FC = () => {
                 disableCloseOnSelect
                 options={complexityList}
                 onChange={(_, selectedOptions) => {
-                  setComplexity(selectedOptions);
+                  setComplexities(selectedOptions);
                 }}
                 renderInput={(params) => <TextField {...params} />}
                 renderTags={(tagValue, getTagProps) =>
@@ -147,7 +161,7 @@ const Home: React.FC = () => {
                 disableCloseOnSelect
                 options={state.questionCategories}
                 onChange={(_, selectedOptions) => {
-                  setSelectedCategories(selectedOptions);
+                  setCategories(selectedOptions);
                 }}
                 renderInput={(params) => <TextField {...params} />}
                 renderTags={(tagValue, getTagProps) =>
@@ -187,7 +201,7 @@ const Home: React.FC = () => {
                 disableCloseOnSelect
                 options={languageList}
                 onChange={(_, selectedOptions) => {
-                  setLanguage(selectedOptions);
+                  setLanguages(selectedOptions);
                 }}
                 renderInput={(params) => <TextField {...params} />}
                 renderTags={(tagValue, getTagProps) =>
@@ -221,17 +235,16 @@ const Home: React.FC = () => {
               required
               fullWidth
               type="number"
-              value={timeout}
+              onKeyDown={(event) => event.key === "e" && event.preventDefault()}
+              value={timeout !== undefined ? timeout : ""}
               onChange={(event) => {
-                const value = parseInt(event.target.value, 10);
-                setTimeout(value);
-              }}
-              InputProps={{
-                inputProps: { min: minMatchTimeout, max: maxMatchTimeout },
+                const value = event.target.value;
+                const newTimeout = value ? parseInt(value, 10) : undefined;
+                setTimeout(newTimeout);
               }}
               helperText={`Set a timeout between ${minMatchTimeout} to ${maxMatchTimeout} seconds`}
               error={
-                isNaN(timeout) ||
+                !timeout ||
                 timeout < minMatchTimeout ||
                 timeout > maxMatchTimeout
               }
@@ -253,22 +266,20 @@ const Home: React.FC = () => {
           fullWidth
           sx={{ marginTop: 2 }}
           disabled={
-            isNaN(timeout) ||
+            !timeout ||
             timeout < minMatchTimeout ||
             timeout > maxMatchTimeout ||
-            complexity.length == 0 ||
-            selectedCategories.length == 0 ||
-            language.length == 0
+            complexities.length == 0 ||
+            categories.length == 0 ||
+            languages.length == 0
           }
-          onClick={() => {
-            alert(
-              `${complexity}, ${selectedCategories}, ${language}, ${timeout}`
-            );
-          }}
+          onClick={() =>
+            findMatch(complexities, categories, languages, timeout!)
+          }
         >
           Find my match!
         </Button>
-      </Card> */}
+      </Card>
     </AppMargin>
   );
 };

@@ -7,6 +7,8 @@ export const USE_AUTH_ERROR_MESSAGE =
   "useAuth() must be used within AuthProvider";
 export const USE_PROFILE_ERROR_MESSAGE =
   "useProfile() must be used within ProfileContextProvider";
+export const USE_MATCH_ERROR_MESSAGE =
+  "useMatch() must be used within MatchProvider";
 
 /* Name Validation */
 export const NAME_REQUIRED_ERROR_MESSAGE = "Name is required";
@@ -76,7 +78,21 @@ export const FAILED_PW_UPDATE_MESSAGE = "Failed to update password";
 export const SUCCESS_PROFILE_UPDATE_MESSAGE = "Profile updated successfully";
 export const FAILED_PROFILE_UPDATE_MESSAGE = "Failed to update profile";
 
-// Image paths
+// Match
+export const MATCH_REQUEST_EXISTS_MESSAGE =
+  "You can only have 1 match at a time!";
+export const FAILED_MATCH_REQUEST_MESSAGE =
+  "Failed to send match request! Please try again from the home page.";
+export const MATCH_UNSUCCESSFUL_MESSAGE =
+  "Unfortunately, your partner did not accept the match.";
+export const MATCH_ENDED_MESSAGE = "Your partner has left the match.";
+export const MATCH_LOGIN_REQUIRED_MESSAGE =
+  "Please login first to find a match.";
+export const MATCH_OFFER_TIMEOUT_MESSAGE = "Match offer timeout!";
+export const MATCH_CONNECTION_ERROR =
+  "Connection error! Please try again later.";
+
+/* Image paths */
 export const FIND_MATCH_FORM_PATH = "/find_match_form.png";
 export const MATCH_FOUND_PATH = "/match_found.png";
 export const QUESTIONS_LIST_PATH = "/questions_list.png";

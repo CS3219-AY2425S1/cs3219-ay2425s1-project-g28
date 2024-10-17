@@ -27,6 +27,8 @@ describe("Log In Components", () => {
       signup: jest.fn(),
       login: jest.fn(),
       logout: jest.fn(),
+      setUser: jest.fn(),
+      loading: false,
       user: null,
     }));
   });
@@ -76,6 +78,8 @@ describe("Log In Events", () => {
         });
       },
       logout: jest.fn(),
+      setUser: jest.fn(),
+      loading: false,
       user: null,
     }));
   });

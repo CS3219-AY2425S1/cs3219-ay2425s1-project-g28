@@ -6,6 +6,8 @@
 
 2. Set-up Firebase.
 
+3. Follow the instructions [here](https://nodejs.org/en/download/package-manager) to set up Node v20.
+
 ## Setting-up local MongoDB (only if you are using Docker)
 
 1. In the `backend` directory, create a copy of the `.env.sample` file and name it `.env`.
