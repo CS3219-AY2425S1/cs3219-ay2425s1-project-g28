@@ -67,8 +67,6 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       .then(() => userClient.post("users/send-verification-email", { email }))
       .then((res) => {
         navigate(`/auth/verifyEmail/${res.data.data.id}`);
-        // navigate("/login");
-        // toast.success(res.data.message);
       })
       .catch((err) => {
         setUser(null);
@@ -89,6 +87,9 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         navigate("/home");
       })
       .catch((err) => {
+        if (err.response?.data.message === "User not verified.") {
+          navigate(`/auth/verifyEmail`);
+        }
         setUser(null);
         toast.error(err.response?.data.message || err.message);
       });

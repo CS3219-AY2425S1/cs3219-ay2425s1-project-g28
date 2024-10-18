@@ -4,6 +4,8 @@ import supertest from "supertest";
 import app from "../app";
 import UserModel from "../model/user-model";
 
+jest.setTimeout(10000);
+
 const request = supertest(app);
 
 const AUTH_BASE_URL = "/api/auth";
@@ -25,6 +27,7 @@ const insertAdminUser = async () => {
     email,
     password: hashedPassword,
     isAdmin: true,
+    isVerified: true,
   }).save();
 
   return { email, password };
@@ -37,6 +40,7 @@ const insertNonAdminUser = async () => {
     lastName,
     email,
     password: hashedPassword,
+    isVerified: true,
   }).save();
 
   return { email, password };

@@ -7,7 +7,7 @@ import classes from "./index.module.css";
 import { toast } from "react-toastify";
 
 const EmailVerification: React.FC = () => {
-  const { userId } = useParams<{ userId: string }>();
+  const { userId } = useParams<{ userId?: string }>();
   const [token, setToken] = useState("");
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
@@ -19,16 +19,17 @@ const EmailVerification: React.FC = () => {
         setEmail(res.data.data.email);
       })
       .catch((err) => console.error(err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleResend = () => {
+  const handleSendEmail = () => {
     userClient
       .post(`/users/send-verification-email`, { email })
+      .then((res) => toast.success(res.data.message))
       .catch((err) => console.error(err));
   };
 
-  const handleVerify = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleVerifyAcc = () => {
     userClient
       .get(`/users/verify-email/${email}/${token}`)
       .then((res) => {
@@ -59,35 +60,51 @@ const EmailVerification: React.FC = () => {
           })}
         >
           <Typography variant="h5">Verify your email address</Typography>
-          <Typography sx={(theme) => ({ margin: theme.spacing(2, 0) })}>
-            An account verification token has been sent to your email.
-          </Typography>
-          <form onSubmit={handleVerify}>
-            <TextField
+          {userId ? (
+            <Typography sx={(theme) => ({ margin: theme.spacing(2, 0) })}>
+              An account verification token has been sent to your email.
+            </Typography>
+          ) : (
+            <Typography sx={(theme) => ({ margin: theme.spacing(2, 0) })}>
+              An account verification token will be sent to your email.
+            </Typography>
+          )}
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            slotProps={{
+              input: {
+                endAdornment: <Button onClick={handleSendEmail}>Send</Button>,
+              },
+            }}
+          />
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Token"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+          />
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={(theme) => ({ marginTop: theme.spacing(4) })}
+          >
+            <Button
               fullWidth
-              margin="normal"
-              label="Token"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-            />
-            <Stack
-              direction="row"
-              spacing={2}
-              sx={(theme) => ({ marginTop: theme.spacing(4) })}
+              variant="contained"
+              color="secondary"
+              onClick={handleSendEmail}
             >
-              <Button
-                fullWidth
-                variant="contained"
-                color="secondary"
-                onClick={handleResend}
-              >
-                Resend
-              </Button>
-              <Button fullWidth variant="contained" type="submit">
-                Verify
-              </Button>
-            </Stack>
-          </form>
+              Resend
+            </Button>
+            <Button fullWidth variant="contained" onClick={handleVerifyAcc}>
+              Verify
+            </Button>
+          </Stack>
         </Box>
       </AppMargin>
     </Box>

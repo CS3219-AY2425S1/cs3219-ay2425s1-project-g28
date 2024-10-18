@@ -31,6 +31,7 @@ export async function createUser(
     email,
     password,
     isAdmin,
+    isVerified,
   });
   return user.save();
 }

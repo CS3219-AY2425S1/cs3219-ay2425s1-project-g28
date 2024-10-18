@@ -155,12 +155,10 @@ export const verifyUser = async (
 
     const updatedUser = await _updateUserVerification(email);
     if (!updatedUser) {
-      return res.status(404).json({ message: `User ${email} not verified.` });
+      return res.status(404).json({ message: `User not verified.` });
     }
 
-    return res
-      .status(200)
-      .json({ message: `User ${email} verified successfully.` });
+    return res.status(200).json({ message: `User verified successfully.` });
   } catch (error) {
     return res
       .status(500)

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import NewQuestion from "./pages/NewQuestion";
 import QuestionDetail from "./pages/QuestionDetail";
@@ -64,10 +64,14 @@ function App() {
             </Route>
             <Route path="*" element={<PageNotFound />} />
           </Route>
-          <Route path="/auth">
+          <Route path="auth">
+            <Route index element={<Navigate to="/auth/login" />} />
             <Route path="signup" element={<SignUp />} />
             <Route path="login" element={<LogIn />} />
-            <Route path="verifyEmail/:userId" element={<EmailVerification />} />
+            <Route
+              path="verifyEmail/:userId?"
+              element={<EmailVerification />}
+            />
           </Route>
         </Routes>
       </MatchProvider>

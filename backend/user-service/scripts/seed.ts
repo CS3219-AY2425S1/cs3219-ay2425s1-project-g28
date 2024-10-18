@@ -38,6 +38,7 @@ export async function seedAdminAccount() {
       adminUsername,
       adminEmail,
       hashedPassword,
+      true,
       true
     );
     console.log("Admin account created successfully.");
