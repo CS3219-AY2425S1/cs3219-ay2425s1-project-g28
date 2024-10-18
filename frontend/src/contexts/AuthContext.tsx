@@ -107,7 +107,14 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
   return (
     <AuthContext.Provider
-      value={{ signup, login, logout, user, setUser, loading }}
+      value={{
+        signup,
+        login,
+        logout,
+        user,
+        setUser,
+        loading,
+      }}
     >
       {children}
     </AuthContext.Provider>

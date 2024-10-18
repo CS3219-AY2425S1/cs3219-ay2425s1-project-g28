@@ -1,7 +1,6 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import Handlebars from "handlebars";
-import { ACCOUNT_VERIFICATION_TEMPLATE } from "./constants";
 
 dotenv.config();
 
@@ -14,13 +13,14 @@ const transporter = nodemailer.createTransport({
   auth: { user: USER, pass: PASS },
 });
 
-export const sendAccVerificationMail = async (
+export const sendMail = async (
   to: string,
   subject: string,
   username: string,
+  htmlTemplate: string,
   token: string
 ) => {
-  const template = Handlebars.compile(ACCOUNT_VERIFICATION_TEMPLATE);
+  const template = Handlebars.compile(htmlTemplate);
   const replacement = { username, token };
   const html = template(replacement);
   const options = {

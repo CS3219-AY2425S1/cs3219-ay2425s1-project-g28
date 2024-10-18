@@ -10,12 +10,15 @@ import {
   updateUser,
   updateUserPrivilege,
   verifyUser,
+  sendResetPasswordMail,
+  resetPassword,
 } from "../controller/user-controller";
 import {
   verifyAccessToken,
   verifyIsAdmin,
   verifyIsOwnerOrAdmin,
 } from "../middleware/basic-access-control";
+import { send } from "process";
 
 const router = express.Router();
 
@@ -33,6 +36,10 @@ router.post("/", createUser);
 router.post("/images", createImageLink);
 
 router.post("/send-verification-email", sendVerificationMail);
+
+router.post("/send-reset-password-email", sendResetPasswordMail);
+
+router.post("/reset-password", resetPassword);
 
 router.get("/:id", getUser);
 

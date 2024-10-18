@@ -31,6 +31,7 @@ export async function createUser(
     email,
     password,
     isAdmin,
+    isVerified,
   });
   return user.save();
 }
@@ -108,6 +109,21 @@ export async function updateUserVerification(
     {
       $set: {
         isVerified: true,
+      },
+    },
+    { new: true } // return the updated user
+  );
+}
+
+export async function updateUserPassword(
+  email: string,
+  password: string
+): Promise<IUser | null> {
+  return UserModel.findOneAndUpdate(
+    { email },
+    {
+      $set: {
+        password,
       },
     },
     { new: true } // return the updated user

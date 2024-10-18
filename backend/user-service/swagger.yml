@@ -71,9 +71,20 @@ components:
         password:
           type: string
           required: true
-    EmailVerification:
+    Email:
       properties:
         email:
+          type: string
+          required: true
+    ResetPassword:
+      properties:
+        email:
+          type: string
+          required: true
+        token:
+          type: string
+          required: true
+        password:
           type: string
           required: true
     UserResponse:
@@ -347,7 +358,73 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EmailVerification"
+              $ref: "#/components/schemas/Email"
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerErrorResponse"
+  /api/users/send-reset-password-email:
+    post:
+      summary: Send reset password email
+      tags:
+        - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Email"
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerErrorResponse"
+  /api/users/reset-password:
+    post:
+      summary: Reset password
+      tags:
+        - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPassword"
       responses:
         200:
           description: Successful Response
