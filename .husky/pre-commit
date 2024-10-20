@@ -1,0 +1,14 @@
+cd ./frontend
+npm run lint
+npm run test -- --maxWorkers=50%
+cd .. 
+
+cd ./backend/user-service 
+npm run lint
+npm run test -- --maxWorkers=50%
+cd ../..  
+
+cd ./backend/question-service
+npm run lint
+npm run test -- --maxWorkers=50%
+cd ../..
