@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import fs from "fs";
 import yaml from "yaml";
 import swaggerUi from "swagger-ui-express";
+import cors from "cors";
 
 import collabRoutes from "./src/routes/collabRoutes.ts";
 
@@ -16,6 +17,10 @@ const file = fs.readFileSync("./swagger.yml", "utf-8");
 const swaggerDocument = yaml.parse(file);
 
 const app = express();
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
+
+app.options("*", cors({ origin: allowedOrigins, credentials: true }));
 
 app.use(express.json());
 
