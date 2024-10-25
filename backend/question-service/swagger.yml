@@ -353,7 +353,7 @@ paths:
   /api/questions/images:
     post:
       summary: Publish image to firebase storage
-      tags: 
+      tags:
         - questions
       security:
         - bearerAuth: []
