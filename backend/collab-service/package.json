@@ -2,6 +2,7 @@
   "name": "collab-service",
   "version": "1.0.0",
   "main": "server.ts",
+  "type": "module",
   "scripts": {
     "start": "tsx server.ts",
     "dev": "tsx watch server.ts",
