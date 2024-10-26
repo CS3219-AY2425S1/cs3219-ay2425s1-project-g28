@@ -18,7 +18,7 @@ const CollabSandbox: React.FC = () => {
     verifyMatchStatus();
 
     // TODO
-    // connect to collab service using getMatchId()
+    // use getMatchId() as the room id in the collab service
     console.log(getMatchId());
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

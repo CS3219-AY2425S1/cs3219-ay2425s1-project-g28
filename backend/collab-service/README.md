@@ -34,7 +34,7 @@
    - Select the `Socket.IO` option and set URL to `http://localhost:3003`. Click `Connect`.
    ![image1.png](docs/image1.png)
    
-   - Add the follow events in the `Events` tab and listen to them.
+   - Add the following events in the `Events` tab and listen to them.
    ![image2.png](docs/image2.png)
    
    - To send a message, go to the `Message` tab and ensure that your message is being parsed as `JSON`.
