@@ -1,0 +1,23 @@
+openapi: 3.0.0
+
+info:
+  title: Code Execution Service
+  version: 1.0.0
+
+paths:
+  /:
+    get:
+      tags:
+        - root
+      summary: Root
+      description: Ping the server
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
