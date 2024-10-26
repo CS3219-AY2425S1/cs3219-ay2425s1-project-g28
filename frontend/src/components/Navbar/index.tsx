@@ -83,7 +83,15 @@ const Navbar: React.FC<NavbarProps> = (props) => {
             PeerPrep
           </Typography>
           {isCollabPage(path) ? (
-            <></>
+            <Stack direction={"row"} alignItems={"center"} spacing={2}>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => stopMatch()}
+              >
+                Stop matching
+              </Button>
+            </Stack>
           ) : !isMatchingPage(path) ? (
             <Stack direction={"row"} alignItems={"center"} spacing={2}>
               {navbarItems
