@@ -9,7 +9,7 @@ import collabRoutes from "./src/routes/collabRoutes.ts";
 
 dotenv.config();
 
-const allowedOrigins = process.env.ORIGINS
+export const allowedOrigins = process.env.ORIGINS
   ? process.env.ORIGINS.split(",")
   : ["http://localhost:5173", "http://127.0.0.1:5173"];
 

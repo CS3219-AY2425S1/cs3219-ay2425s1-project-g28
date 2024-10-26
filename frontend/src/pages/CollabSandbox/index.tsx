@@ -6,13 +6,14 @@ import { USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
 import { useEffect } from "react";
 import Loader from "../../components/Loader";
 import ServerError from "../../components/ServerError";
+import CodeEditor from "../../components/CodeEditor";
 
 const CollabSandbox: React.FC = () => {
   const match = useMatch();
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
-  const { stopMatch, verifyMatchStatus, partner, loading } = match;
+  const { stopMatch, verifyMatchStatus, matchUser, partner, loading } = match;
 
   useEffect(() => {
     verifyMatchStatus();
@@ -23,7 +24,7 @@ const CollabSandbox: React.FC = () => {
     return <Loader />;
   }
 
-  if (!partner) {
+  if (!matchUser || !partner) {
     return (
       <ServerError
         title="Oops, match ended..."
@@ -36,6 +37,7 @@ const CollabSandbox: React.FC = () => {
     <AppMargin classname={`${classes.fullheight} ${classes.center}`}>
       <Stack spacing={2} alignItems={"center"}>
         <Typography variant="h1">Successfully matched!</Typography>
+        <CodeEditor username={matchUser.username} />
         <Button variant="outlined" color="error" onClick={() => stopMatch()}>
           End Session
         </Button>
