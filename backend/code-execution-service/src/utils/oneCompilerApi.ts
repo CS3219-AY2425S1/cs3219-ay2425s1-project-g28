@@ -3,11 +3,25 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+interface FileType {
+  name: String;
+  content: String;
+}
+
 export const oneCompilerApi = async (
   language: String,
   stdin: String,
-  files: String
+  userCode: String
 ) => {
+  let files: FileType[] = [];
+  if (language === "python") {
+    files = [{ name: "main.py", content: userCode }];
+  } else if (language === "java") {
+    files = [{ name: "Main.java", content: userCode }];
+  } else if (language === "c") {
+    files = [{ name: "main.c", content: userCode }];
+  }
+
   const response = await axios.post(
     process.env.ONE_COMPILER_URL ||
       "https://onecompiler-apis.p.rapidapi.com/api/v1/run",

@@ -8,6 +8,9 @@ type QuestionDetail = {
   description: string;
   complexity: string;
   categories: Array<string>;
+  pythonTemplate?: string;
+  javaTemplate?: string;
+  cTemplate?: string;
 };
 
 type QuestionList = {
