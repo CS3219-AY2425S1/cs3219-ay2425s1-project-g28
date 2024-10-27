@@ -12,9 +12,10 @@ enum CollabEvents {
   // Send
   ROOM_FULL = "room_full",
   CONNECTED = "connected",
+  NEW_USER_CONNECTED = "new_user_connected",
   CODE_CHANGE = "code_change",
-  LEFT = "left",
-  DISCONNECTED = "disconnected",
+  PARTNER_LEFT = "partner_left",
+  PARTNER_DISCONNECTED = "partner_disconnected",
 }
 
 const EXPIRY_TIME = 3600;
@@ -34,13 +35,12 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
     socket.join(roomId);
     socket.data.roomId = roomId;
 
-    // in case of disconnect, send the code to the user when rejoin
+    // in case of disconnect, send the code to the user when he rejoins
     const code = await redisClient.get(`collaboration:${roomId}`);
-    if (code) {
-      io.to(roomId).emit(CollabEvents.CONNECTED, { code });
-    } else {
-      io.to(roomId).emit(CollabEvents.CONNECTED);
-    }
+    socket.emit(CollabEvents.CONNECTED, { code: code ? code : "" });
+
+    // inform the other user that a new user has joined
+    socket.to(roomId).emit(CollabEvents.NEW_USER_CONNECTED);
   });
 
   socket.on(CollabEvents.CHANGE, async ({ roomId, code }) => {
@@ -51,7 +51,7 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
     await redisClient.set(`collaboration:${roomId}`, code, {
       EX: EXPIRY_TIME,
     });
-    io.to(roomId).emit(CollabEvents.CODE_CHANGE, { code });
+    socket.to(roomId).emit(CollabEvents.CODE_CHANGE, { code });
   });
 
   socket.on(CollabEvents.LEAVE, ({ roomId }) => {
@@ -60,13 +60,13 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
     }
 
     socket.leave(roomId);
-    socket.to(roomId).emit(CollabEvents.LEFT);
+    socket.to(roomId).emit(CollabEvents.PARTNER_LEFT);
   });
 
   socket.on(CollabEvents.DISCONNECT, () => {
     const { roomId } = socket.data;
     if (roomId) {
-      socket.to(roomId).emit(CollabEvents.DISCONNECTED);
+      socket.to(roomId).emit(CollabEvents.PARTNER_DISCONNECTED);
     }
   });
 };
