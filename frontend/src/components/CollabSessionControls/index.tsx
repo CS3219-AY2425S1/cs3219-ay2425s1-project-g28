@@ -1,0 +1,68 @@
+import { Button, Stack } from "@mui/material";
+import Stopwatch from "../Stopwatch";
+import { useMatch } from "../../contexts/MatchContext";
+import { USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
+import { useEffect, useState } from "react";
+import {
+  extractHoursFromTime,
+  extractMinutesFromTime,
+  extractSecondsFromTime,
+} from "../../utils/sessionTime";
+
+const CollabSessionControls: React.FC = () => {
+  const [time, setTime] = useState<number>(0);
+
+  useEffect(() => {
+    let intervalId = setInterval(
+      () => setTime((prevTime) => prevTime + 1),
+      1000
+    );
+
+    return () => clearInterval(intervalId);
+  }, [time]);
+
+  const match = useMatch();
+  if (!match) {
+    throw new Error(USE_MATCH_ERROR_MESSAGE);
+  }
+  const { stopMatch } = match;
+
+  return (
+    <Stack direction={"row"} alignItems={"center"} spacing={2}>
+      <Stopwatch time={time} />
+      <Button
+        sx={{
+          border: 1.5,
+          borderRadius: 4,
+        }}
+        variant="outlined"
+        color="success"
+        onClick={() => {
+          stopMatch();
+          console.log(
+            `Time taken: ${extractHoursFromTime(
+              time
+            )} hrs ${extractMinutesFromTime(
+              time
+            )} mins ${extractSecondsFromTime(time)} secs`
+          );
+        }} // TODO: change to submit function with time taken pop-up
+      >
+        Submit
+      </Button>
+      <Button
+        sx={{
+          border: 1.5,
+          borderRadius: 4,
+        }}
+        variant="outlined"
+        color="error"
+        onClick={() => stopMatch()}
+      >
+        End Session
+      </Button>
+    </Stack>
+  );
+};
+
+export default CollabSessionControls;
