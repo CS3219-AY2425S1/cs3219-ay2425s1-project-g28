@@ -17,7 +17,7 @@ const CollabSandbox: React.FC = () => {
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
-  const { verifyMatchStatus, partner, loading, questionId } = match;
+  const { verifyMatchStatus, getMatchId, partner, loading, questionId } = match;
   const [state, dispatch] = useReducer(reducer, initialState);
   const { selectedQuestion } = state;
 
@@ -28,6 +28,11 @@ const CollabSandbox: React.FC = () => {
       return;
     }
     getQuestionById(questionId, dispatch);
+
+    // TODO
+    // use getMatchId() as the room id in the collab service
+    console.log(getMatchId());
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

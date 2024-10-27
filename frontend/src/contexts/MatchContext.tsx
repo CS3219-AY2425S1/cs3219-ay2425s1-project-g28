@@ -81,6 +81,7 @@ type MatchContextType = {
   matchingTimeout: () => void;
   matchOfferTimeout: () => void;
   verifyMatchStatus: () => void;
+  getMatchId: () => string | null;
   matchUser: MatchUser | null;
   matchCriteria: MatchCriteria | null;
   partner: MatchUser | null;
@@ -480,6 +481,10 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     );
   };
 
+  const getMatchId = () => {
+    return matchId;
+  };
+
   return (
     <MatchContext.Provider
       value={{
@@ -491,6 +496,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         matchingTimeout,
         matchOfferTimeout,
         verifyMatchStatus,
+        getMatchId,
         matchUser,
         matchCriteria,
         partner,
