@@ -12,10 +12,15 @@ const CollabSandbox: React.FC = () => {
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
-  const { stopMatch, verifyMatchStatus, partner, loading } = match;
+  const { stopMatch, verifyMatchStatus, getMatchId, partner, loading } = match;
 
   useEffect(() => {
     verifyMatchStatus();
+
+    // TODO
+    // use getMatchId() as the room id in the collab service
+    console.log(getMatchId());
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
