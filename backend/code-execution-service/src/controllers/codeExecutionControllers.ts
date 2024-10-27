@@ -1,5 +1,13 @@
 import { Request, Response } from "express";
 import { oneCompilerApi } from "../utils/oneCompilerApi";
+import {
+  SUPPORTED_LANGUAGES,
+  ERROR_MISSING_REQUIRED_FIELDS_MESSAGE,
+  ERROR_UNSUPPORTED_LANGUAGE_MESSAGE,
+  ERROR_FAILED_TO_EXECUTE_MESSAGE,
+  ERROR_NOT_SAME_LENGTH_MESSAGE,
+  SUCCESS_MESSAGE,
+} from "../utils/constants";
 
 interface CompilerResult {
   status: string;
@@ -20,21 +28,27 @@ export const executeCode = async (req: Request, res: Response) => {
 
   if (!language || !code || !stdinList || !expectedStdoutList) {
     res.status(400).json({
-      error:
-        "Missing required fields: language, code, stdinList, or stdoutList",
+      message: ERROR_MISSING_REQUIRED_FIELDS_MESSAGE,
     });
+  }
+
+  if (!SUPPORTED_LANGUAGES.includes(language)) {
+    res.status(400).json({
+      message: ERROR_UNSUPPORTED_LANGUAGE_MESSAGE,
+    });
+    return;
   }
 
   if (stdinList.length !== expectedStdoutList.length) {
     res.status(400).json({
-      error: "The length of stdinList and stdoutList must be the same.",
+      message: ERROR_NOT_SAME_LENGTH_MESSAGE,
     });
   }
 
   try {
     const response = await oneCompilerApi(language, stdinList, code);
 
-    const results = (response.data as CompilerResult[]).map((result, index) => {
+    const data = (response.data as CompilerResult[]).map((result, index) => {
       const {
         status,
         exception,
@@ -61,11 +75,10 @@ export const executeCode = async (req: Request, res: Response) => {
     });
 
     res.status(200).json({
-      message: "Code executed successfully",
-      results,
+      message: SUCCESS_MESSAGE,
+      data,
     });
-  } catch (error) {
-    console.error("Error executing code:", error);
-    res.status(500).json({ error: "Failed to execute code" });
+  } catch {
+    res.status(500).json({ message: ERROR_FAILED_TO_EXECUTE_MESSAGE });
   }
 };

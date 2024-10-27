@@ -279,6 +279,8 @@ export const readQuestionIndiv = async (
       questionId: id,
     });
 
+    console.log(questionTemplate, "!!!!")
+
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
       question: formatQuestionIndivResponse(

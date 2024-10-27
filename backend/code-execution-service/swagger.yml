@@ -4,6 +4,45 @@ info:
   title: Code Execution Service
   version: 1.0.0
 
+definitions:
+  CodeExecutionOutput:
+    properties:
+      stdin:
+        type: string
+        required: true
+      expectedStdout:
+        type: string
+        required: true
+      actualStdout:
+        type: string
+      isMatch:
+        type: boolean
+      status:
+        type: string
+      exception:
+        type: string
+        nullable: true
+      stderr:
+        type: string
+        nullable: true
+      executionTime:
+        type: integer
+
+components:
+  schemas:
+    CodeExecutionResponse:
+      properties:
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/definitions/CodeExecutionOutput"
+    ErrorResponse:
+      properties:
+        message:
+          type: string
+
 paths:
   /:
     get:
@@ -43,7 +82,7 @@ paths:
                 code:
                   type: string
                   description: The source code to execute.
-                  example: "name = input()\nage = input()\nprint('Hello ' + name + '. You are ' + age + '?')\n\n"
+                  example: "name = input()\nage = input()\nprint('Hello ' + name + '. You are ' + age + ' years old this year?')\n\n"
                 stdinList:
                   type: array
                   description: List of standard input values to pass to the code.
@@ -56,31 +95,26 @@ paths:
                   items:
                     type: string
                   example:
-                    ["Hello Alice. You are 21?\n", "Hello Peter. You are 22?\n"]
+                    [
+                      "Hello Alice. You are 21 years old this year?\n",
+                      "Hello Peter. You are 22 years old this year?\n",
+                    ]
       responses:
         200:
           description: Execution Result
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/CodeExecutionResponse"
         400:
-          description: Bad Request - Missing Required Fields
+          description: Bad Request
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Missing required fields: language, code, stdinList, or stdoutList"
+                $ref: "#/components/schemas/ErrorResponse"
         500:
           description: Internal Server Error
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to execute code"
+                $ref: "#/components/schemas/ErrorResponse"
