@@ -240,6 +240,7 @@ export const readQuestionIndiv = async (
 };
 
 export const readRandomQuestion = async (
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
   req: Request<any, any, any, RandomQnCriteria>,
   res: Response,
 ): Promise<void> => {
