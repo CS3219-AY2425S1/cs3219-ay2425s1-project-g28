@@ -279,8 +279,6 @@ export const readQuestionIndiv = async (
       questionId: id,
     });
 
-    console.log(questionTemplate, "!!!!")
-
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
       question: formatQuestionIndivResponse(
@@ -336,8 +334,8 @@ const formatQuestionIndivResponse = (
     description: question.description,
     complexity: question.complexity,
     categories: question.category,
-    pythonTemplate: questionTemplate.pythonTemplate,
-    javaTemplate: questionTemplate.javaTemplate,
-    cTemplate: questionTemplate.cTemplate,
+    pythonTemplate: questionTemplate ? questionTemplate.pythonTemplate : "",
+    javaTemplate: questionTemplate ? questionTemplate.javaTemplate : "",
+    cTemplate: questionTemplate ? questionTemplate.cTemplate : "",
   };
 };

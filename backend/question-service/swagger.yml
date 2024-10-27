@@ -29,6 +29,32 @@ components:
             type: string
           description: Categories
 
+    QuestionIndiv:
+      properties:
+        title:
+          type: string
+          description: Title
+        description:
+          type: string
+          description: Description
+        complexity:
+          type: string
+          description: Complexity - Easy, Medium, Hard
+        category:
+          type: array
+          items:
+            type: string
+          description: Categories
+        pythonTemplate:
+          type: string
+          description: Code template in Python
+        javaTemplate:
+          type: string
+          description: Code template in Java
+        cTemplate:
+          type: string
+          description: Code template in C
+
 definitions:
   Question:
     type: object
@@ -50,6 +76,44 @@ definitions:
         items:
           type: string
         description: Categories
+      createdAt:
+        type: string
+        description: Date of creation
+      updatedAt:
+        type: string
+        description: Latest update
+      __v:
+        type: string
+        description: Document version
+  QuestionIndiv:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: Question id
+      title:
+        type: string
+        description: Title
+      description:
+        type: string
+        description: Description
+      complexity:
+        type: string
+        description: Complexity - Easy, Medium, Hard
+      category:
+        type: array
+        items:
+          type: string
+        description: Categories
+      pythonTemplate:
+        type: string
+        description: Code template in Python
+      javaTemplate:
+        type: string
+        description: Code template in Java
+      cTemplate:
+        type: string
+        description: Code template in C
       createdAt:
         type: string
         description: Date of creation
@@ -106,7 +170,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Question"
+              $ref: "#/components/schemas/QuestionIndiv"
       responses:
         201:
           description: Created
@@ -119,7 +183,7 @@ paths:
                     type: string
                     description: Message
                   question:
-                    $ref: "#/definitions/Question"
+                    $ref: "#/definitions/QuestionIndiv"
         400:
           description: Bad Request
           content:
@@ -224,7 +288,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Question"
+              $ref: "#/components/schemas/QuestionIndiv"
       responses:
         200:
           description: Successful Response
@@ -237,7 +301,7 @@ paths:
                     type: string
                     description: Message
                   question:
-                    $ref: "#/definitions/Question"
+                    $ref: "#/definitions/QuestionIndiv"
         404:
           description: Question Not Found
           content:
@@ -309,7 +373,7 @@ paths:
                     type: string
                     description: Message
                   question:
-                    $ref: "#/definitions/Question"
+                    $ref: "#/definitions/QuestionIndiv"
         404:
           description: Question Not Found
           content:
