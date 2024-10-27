@@ -4,14 +4,14 @@ import dotenv from "dotenv";
 dotenv.config();
 
 interface FileType {
-  name: String;
-  content: String;
+  name: string;
+  content: string;
 }
 
 export const oneCompilerApi = async (
-  language: String,
-  stdin: String,
-  userCode: String
+  language: string,
+  stdin: string,
+  userCode: string
 ) => {
   let files: FileType[] = [];
   if (language === "python") {
