@@ -30,6 +30,7 @@ export const executeCode = async (req: Request, res: Response) => {
     res.status(400).json({
       message: ERROR_MISSING_REQUIRED_FIELDS_MESSAGE,
     });
+    return;
   }
 
   if (!SUPPORTED_LANGUAGES.includes(language)) {
@@ -43,6 +44,7 @@ export const executeCode = async (req: Request, res: Response) => {
     res.status(400).json({
       message: ERROR_NOT_SAME_LENGTH_MESSAGE,
     });
+    return;
   }
 
   try {
