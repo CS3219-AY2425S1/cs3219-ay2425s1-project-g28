@@ -205,6 +205,50 @@ paths:
             application/json:
               schema:
                 $ref: "#/definitions/ServerError"
+  /api/questions/random:
+    get:
+      tags:
+        - questions
+      summary: Get a random question based on specified criteria
+      description: Get a random question based on specified criteria
+      parameters:
+        - in: query
+          name: complexity
+          schema:
+            type: string
+          required: true
+          description: Question complexity filter
+        - in: query
+          name: category
+          schema:
+            type: string
+          required: true
+          description: Question category filter
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message
+                  question:
+                    $ref: "#/definitions/Question"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/Error"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/ServerError"
   /api/questions/{id}:
     put:
       tags:
