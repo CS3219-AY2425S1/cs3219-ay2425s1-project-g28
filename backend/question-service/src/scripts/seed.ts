@@ -1,5 +1,5 @@
 import { exit } from "process";
-import connectDB from "../../config/db";
+import connectDB from "../config/db";
 import Question from "../models/Question";
 
 export async function seedQuestions() {
