@@ -87,6 +87,7 @@ type MatchContextType = {
   partner: MatchUser | null;
   matchPending: boolean;
   loading: boolean;
+  questionId: string | null;
 };
 
 const requestTimeoutDuration = 5000;
@@ -111,6 +112,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const [partner, setPartner] = useState<MatchUser | null>(null);
   const [matchPending, setMatchPending] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [questionId, setQuestionId] = useState<string | null>(null);
 
   const navigator = useContext(UNSAFE_NavigationContext).navigator as History;
 
@@ -270,9 +272,10 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const initMatchedListeners = () => {
-    matchSocket.on(MatchEvents.MATCH_SUCCESSFUL, () => {
+    matchSocket.on(MatchEvents.MATCH_SUCCESSFUL, (id: string) => {
       setMatchPending(false);
       appNavigate(MatchPaths.COLLAB);
+      setQuestionId(id);
     });
 
     matchSocket.on(MatchEvents.MATCH_UNSUCCESSFUL, () => {
@@ -357,6 +360,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const stopMatch = () => {
+    setQuestionId(null);
     switch (location.pathname) {
       case MatchPaths.TIMEOUT:
         appNavigate(MatchPaths.HOME);
@@ -498,6 +502,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         partner,
         matchPending,
         loading,
+        questionId,
       }}
     >
       {children}

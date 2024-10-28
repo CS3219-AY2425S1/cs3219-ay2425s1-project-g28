@@ -19,6 +19,7 @@ import {
 
 import { upload } from "../config/multer.ts";
 import { uploadFileToFirebase } from "../utils/utils";
+import { QnListSearchFilterParams, RandomQnCriteria } from "../utils/types.ts";
 
 export const createQuestion = async (
   req: Request,
@@ -157,14 +158,6 @@ export const deleteQuestion = async (
   }
 };
 
-interface QnListSearchFilterParams {
-  page: string;
-  qnLimit: string;
-  title?: string;
-  complexities?: string | string[];
-  categories?: string | string[];
-}
-
 export const readQuestionsList = async (
   req: Request<unknown, unknown, unknown, QnListSearchFilterParams>,
   res: Response,
@@ -240,6 +233,35 @@ export const readQuestionIndiv = async (
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
       question: formatQuestionResponse(questionDetails),
+    });
+  } catch (error) {
+    res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
+  }
+};
+
+export const readRandomQuestion = async (
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+  req: Request<any, any, any, RandomQnCriteria>,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { category, complexity } = req.query;
+
+    const randomQuestion = await Question.aggregate([
+      {
+        $match: { $and: [{ category }, { complexity: { $in: [complexity] } }] },
+      },
+      { $sample: { size: 1 } },
+    ]);
+
+    if (!randomQuestion) {
+      res.status(404).json({ message: QN_NOT_FOUND_MESSAGE });
+      return;
+    }
+
+    res.status(200).json({
+      message: QN_RETRIEVED_MESSAGE,
+      question: formatQuestionResponse(randomQuestion[0]),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
