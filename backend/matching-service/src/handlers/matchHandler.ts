@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { sendToQueue } from "../../config/rabbitmq";
+import { sendToQueue } from "../config/rabbitmq";
 import { sendMatchFound } from "./websocketHandler";
 
 interface Match {

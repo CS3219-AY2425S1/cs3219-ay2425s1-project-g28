@@ -8,7 +8,7 @@ import {
   MatchUser,
   getMatchByUid,
 } from "./matchHandler";
-import { io } from "../../server";
+import { io } from "../server";
 import { v4 as uuidv4 } from "uuid";
 
 enum MatchEvents {

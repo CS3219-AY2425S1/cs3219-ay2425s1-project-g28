@@ -1,6 +1,6 @@
 import http from "http";
 import app, { allowedOrigins } from "./app.ts";
-import { handleWebsocketMatchEvents } from "./src/handlers/websocketHandler.ts";
+import { handleWebsocketMatchEvents } from "./handlers/websocketHandler.ts";
 import { Server } from "socket.io";
 import { connectToRabbitMq } from "./config/rabbitmq.ts";
 

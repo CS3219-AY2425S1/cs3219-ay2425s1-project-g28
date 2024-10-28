@@ -1,4 +1,4 @@
-import { getPendingRequests } from "../../config/rabbitmq";
+import { getPendingRequests } from "../config/rabbitmq";
 import { createMatch, MatchRequestItem } from "../handlers/matchHandler";
 import { isActiveRequest, isUserConnected } from "../handlers/websocketHandler";
 
