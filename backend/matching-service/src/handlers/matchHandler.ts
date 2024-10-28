@@ -6,6 +6,9 @@ interface Match {
   matchUser1: MatchUser;
   matchUser2: MatchUser;
   accepted: boolean;
+  complexity: string;
+  category: string;
+  language: string;
 }
 
 export interface MatchUser {
@@ -53,7 +56,10 @@ export const sendMatchRequest = async (
 
 export const createMatch = (
   requestItem1: MatchRequestItem,
-  requestItem2: MatchRequestItem
+  requestItem2: MatchRequestItem,
+  complexity: string,
+  category: string,
+  language: string
 ) => {
   const matchId = uuidv4();
   const matchUser1 = requestItem1.user;
@@ -63,6 +69,9 @@ export const createMatch = (
     matchUser1: matchUser1,
     matchUser2: matchUser2,
     accepted: false,
+    complexity,
+    category,
+    language,
   });
 
   sendMatchFound(matchId, matchUser1, matchUser2);
@@ -102,4 +111,8 @@ export const getMatchByUid = (
     }
   }
   return null;
+};
+
+export const getMatchById = (matchId: string): Match | undefined => {
+  return matches.get(matchId);
 };

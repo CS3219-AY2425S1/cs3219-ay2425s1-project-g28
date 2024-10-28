@@ -7,6 +7,7 @@ import {
   readQuestionsList,
   readQuestionIndiv,
   readCategories,
+  readRandomQuestion,
 } from "../controllers/questionController.ts";
 import { verifyAdminToken } from "../middlewares/basicAccessControl.ts";
 
@@ -21,6 +22,8 @@ router.put("/:id", verifyAdminToken, updateQuestion);
 router.get("/categories", readCategories);
 
 router.get("/", readQuestionsList);
+
+router.get("/random", readRandomQuestion);
 
 router.get("/:id", readQuestionIndiv);
 
