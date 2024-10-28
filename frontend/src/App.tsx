@@ -69,10 +69,10 @@ function App() {
             <Route index element={<Navigate to="/auth/login" />} />
             <Route path="signup" element={<SignUp />} />
             <Route path="login" element={<LogIn />} />
-            <Route
-              path="verifyEmail/:userId?"
-              element={<EmailVerification />}
-            />
+            <Route path="verify-email">
+              <Route index element={<EmailVerification />} />
+              <Route path=":userId" element={<EmailVerification />} />
+            </Route>
             <Route path="forget-password" element={<ForgetPassword />} />
             <Route path="*" element={<Navigate to="/auth/login" />} />
           </Route>

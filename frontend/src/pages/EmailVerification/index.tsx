@@ -77,7 +77,7 @@ const EmailVerification: React.FC = () => {
             onChange={(e) => setEmail(e.target.value)}
             slotProps={{
               input: {
-                endAdornment: <Button onClick={handleSendEmail}>Send</Button>,
+                endAdornment: <Button onClick={handleSendEmail}>Resend</Button>,
               },
             }}
           />
@@ -93,14 +93,6 @@ const EmailVerification: React.FC = () => {
             spacing={2}
             sx={(theme) => ({ marginTop: theme.spacing(4) })}
           >
-            <Button
-              fullWidth
-              variant="contained"
-              color="secondary"
-              onClick={handleSendEmail}
-            >
-              Resend
-            </Button>
             <Button fullWidth variant="contained" onClick={handleVerifyAcc}>
               Verify
             </Button>
