@@ -23,6 +23,7 @@ import {
 } from "../../utils/constants";
 import { isMatchingPage, isCollabPage } from "../../utils/url";
 import { useMatch } from "../../contexts/MatchContext";
+import CollabSessionControls from "../CollabSessionControls";
 
 type NavbarItem = { label: string; link: string; needsLogin: boolean };
 
@@ -83,15 +84,9 @@ const Navbar: React.FC<NavbarProps> = (props) => {
             PeerPrep
           </Typography>
           {isCollabPage(path) ? (
-            <Stack direction={"row"} alignItems={"center"} spacing={2}>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => stopMatch()}
-              >
-                Stop matching
-              </Button>
-            </Stack>
+            <>
+              <CollabSessionControls />
+            </>
           ) : !isMatchingPage(path) ? (
             <Stack direction={"row"} alignItems={"center"} spacing={2}>
               {navbarItems

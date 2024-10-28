@@ -1,5 +1,13 @@
 import AppMargin from "../../components/AppMargin";
-import { Box } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
 import classes from "./index.module.css";
 import { useMatch } from "../../contexts/MatchContext";
 import { USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
@@ -17,7 +25,17 @@ const CollabSandbox: React.FC = () => {
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
-  const { verifyMatchStatus, getMatchId, partner, loading, questionId } = match;
+
+  const {
+    verifyMatchStatus,
+    getMatchId,
+    handleRejectEndSession,
+    handleConfirmEndSession,
+    partner,
+    loading,
+    isEndSessionModalOpen,
+    questionId,
+  } = match;
   const [state, dispatch] = useReducer(reducer, initialState);
   const { selectedQuestion } = state;
 
@@ -53,10 +71,54 @@ const CollabSandbox: React.FC = () => {
     <AppMargin classname={`${classes.fullheight} ${classes.flex}`}>
       {/* <Stack spacing={2} alignItems={"center"}>
         <Typography variant="h1">Successfully matched!</Typography>
-        <Button variant="outlined" color="error" onClick={() => stopMatch()}>
-          End Session
-        </Button>
       </Stack> */}
+      <Dialog
+        sx={{
+          "& .MuiDialog-paper": {
+            padding: "20px",
+          },
+        }}
+        open={isEndSessionModalOpen}
+        onClose={handleRejectEndSession}
+      >
+        <DialogTitle sx={{ textAlign: "center", fontSize: 20 }}>
+          {"End Session?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ textAlign: "center", fontSize: 16 }}>
+            Are you sure you want to end session?
+            <br />
+            You will lose your current progress.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            justifyContent: "center",
+            paddingBottom: "20px",
+          }}
+        >
+          <Button
+            sx={{
+              width: "250px",
+            }}
+            variant="contained"
+            color="secondary"
+            onClick={handleRejectEndSession}
+          >
+            Back
+          </Button>
+          <Button
+            sx={{
+              width: "250px",
+            }}
+            variant="contained"
+            onClick={handleConfirmEndSession}
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Box sx={{ display: "flex", flex: 1 }}>
         <Box sx={(theme) => ({ flex: 1, marginRight: theme.spacing(2) })}>
           <QuestionDetailComponent
