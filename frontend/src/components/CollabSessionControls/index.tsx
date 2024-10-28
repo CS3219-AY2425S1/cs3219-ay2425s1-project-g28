@@ -25,7 +25,7 @@ const CollabSessionControls: React.FC = () => {
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
-  const { stopMatch } = match;
+  const { handleEndSessionClick } = match;
 
   return (
     <Stack direction={"row"} alignItems={"center"} spacing={2}>
@@ -38,7 +38,6 @@ const CollabSessionControls: React.FC = () => {
         variant="outlined"
         color="success"
         onClick={() => {
-          stopMatch();
           console.log(
             `Time taken: ${extractHoursFromTime(
               time
@@ -46,7 +45,7 @@ const CollabSessionControls: React.FC = () => {
               time
             )} mins ${extractSecondsFromTime(time)} secs`
           );
-        }} // TODO: change to submit function with time taken pop-up
+        }} // TODO: implement submit function with time taken pop-up
       >
         Submit
       </Button>
@@ -57,7 +56,7 @@ const CollabSessionControls: React.FC = () => {
         }}
         variant="outlined"
         color="error"
-        onClick={() => stopMatch()}
+        onClick={() => handleEndSessionClick()}
       >
         End Session
       </Button>

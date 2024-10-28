@@ -82,11 +82,15 @@ type MatchContextType = {
   matchOfferTimeout: () => void;
   verifyMatchStatus: () => void;
   getMatchId: () => string | null;
+  handleEndSessionClick: () => void;
+  handleRejectEndSession: () => void;
+  handleConfirmEndSession: () => void;
   matchUser: MatchUser | null;
   matchCriteria: MatchCriteria | null;
   partner: MatchUser | null;
   matchPending: boolean;
   loading: boolean;
+  isEndSessionModalOpen: boolean;
 };
 
 const requestTimeoutDuration = 5000;
@@ -111,6 +115,9 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const [partner, setPartner] = useState<MatchUser | null>(null);
   const [matchPending, setMatchPending] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
+    useState<boolean>(false);
 
   const navigator = useContext(UNSAFE_NavigationContext).navigator as History;
 
@@ -481,6 +488,19 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     return matchId;
   };
 
+  const handleEndSessionClick = () => {
+    setIsEndSessionModalOpen(true);
+  }
+
+  const handleRejectEndSession = () => {
+    setIsEndSessionModalOpen(false);
+  };
+
+  const handleConfirmEndSession = () => {
+    stopMatch();
+    setIsEndSessionModalOpen(false);
+  };
+
   return (
     <MatchContext.Provider
       value={{
@@ -493,11 +513,15 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         matchOfferTimeout,
         verifyMatchStatus,
         getMatchId,
+        handleEndSessionClick,
+        handleRejectEndSession,
+        handleConfirmEndSession,
         matchUser,
         matchCriteria,
         partner,
         matchPending,
         loading,
+        isEndSessionModalOpen,
       }}
     >
       {children}

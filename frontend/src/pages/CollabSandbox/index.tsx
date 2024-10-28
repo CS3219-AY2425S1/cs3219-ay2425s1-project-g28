@@ -1,5 +1,14 @@
 import AppMargin from "../../components/AppMargin";
-import { Button, Stack, Typography } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Stack,
+  Typography,
+} from "@mui/material";
 import classes from "./index.module.css";
 import { useMatch } from "../../contexts/MatchContext";
 import { USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
@@ -12,7 +21,15 @@ const CollabSandbox: React.FC = () => {
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
-  const { stopMatch, verifyMatchStatus, getMatchId, partner, loading } = match;
+  const {
+    verifyMatchStatus,
+    getMatchId,
+    handleRejectEndSession,
+    handleConfirmEndSession,
+    partner,
+    loading,
+    isEndSessionModalOpen,
+  } = match;
 
   useEffect(() => {
     verifyMatchStatus();
@@ -41,10 +58,53 @@ const CollabSandbox: React.FC = () => {
     <AppMargin classname={`${classes.fullheight} ${classes.center}`}>
       <Stack spacing={2} alignItems={"center"}>
         <Typography variant="h1">Successfully matched!</Typography>
-        <Button variant="outlined" color="error" onClick={() => stopMatch()}>
-          End Session
-        </Button>
       </Stack>
+      <Dialog
+        sx={{
+          "& .MuiDialog-paper": {
+            padding: "20px",
+          },
+        }}
+        open={isEndSessionModalOpen}
+        onClose={handleRejectEndSession}
+      >
+        <DialogTitle sx={{ textAlign: "center", fontSize: 20 }}>
+          {"End Session?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ textAlign: "center", fontSize: 16 }}>
+            Are you sure you want to end session?
+            <br />
+            You will lose your current progress.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            justifyContent: "center",
+            paddingBottom: "20px",
+          }}
+        >
+          <Button
+            sx={{
+              width: "250px",
+            }}
+            variant="contained"
+            color="secondary"
+            onClick={handleRejectEndSession}
+          >
+            Back
+          </Button>
+          <Button
+            sx={{
+              width: "250px",
+            }}
+            variant="contained"
+            onClick={handleConfirmEndSession}
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AppMargin>
   );
 };
