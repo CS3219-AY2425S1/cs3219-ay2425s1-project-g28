@@ -5,7 +5,7 @@ import yaml from "yaml";
 import swaggerUi from "swagger-ui-express";
 import cors from "cors";
 
-import collabRoutes from "./src/routes/collabRoutes.ts";
+import collabRoutes from "./routes/collabRoutes.ts";
 
 dotenv.config();
 
