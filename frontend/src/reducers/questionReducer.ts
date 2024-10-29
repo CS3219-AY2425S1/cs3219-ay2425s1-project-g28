@@ -106,6 +106,9 @@ export const createQuestion = async (
         description: question.description,
         complexity: question.complexity,
         category: question.categories,
+        pythonTemplate: question.pythonTemplate,
+        cTemplate: question.cTemplate,
+        javaTemplate: question.javaTemplate,
       },
       {
         headers: {
