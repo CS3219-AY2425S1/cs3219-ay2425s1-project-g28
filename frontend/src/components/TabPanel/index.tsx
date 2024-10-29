@@ -16,7 +16,7 @@ const TabPanel: React.FC<TabPanelProps & BoxProps> = ({
     <div
       role="tabpanel"
       style={{
-        display: selected !== value ? "flex" : "none",
+        display: selected === value ? "flex" : "none",
         flexDirection: "column",
       }}
     >

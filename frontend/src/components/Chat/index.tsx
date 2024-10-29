@@ -85,7 +85,6 @@ const Chat: React.FC = () => {
     };
   }, []);
 
-  console.log(messages);
   return (
     <>
       <Box>
