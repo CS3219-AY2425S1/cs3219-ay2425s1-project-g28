@@ -13,15 +13,17 @@ const TabPanel: React.FC<TabPanelProps & BoxProps> = ({
   ...others
 }) => {
   return (
-    <div
+    <Box
       role="tabpanel"
-      style={{
+      {...others}
+      sx={(theme) => ({
         display: selected === value ? "flex" : "none",
         flexDirection: "column",
-      }}
+        padding: theme.spacing(0, 2),
+      })}
     >
-      {value === selected && <Box {...others}>{children}</Box>}
-    </div>
+      {children}
+    </Box>
   );
 };
 

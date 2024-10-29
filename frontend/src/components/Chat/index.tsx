@@ -87,7 +87,13 @@ const Chat: React.FC = () => {
 
   return (
     <>
-      <Box>
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+          padding: 2,
+        }}
+      >
         {messages.map((msg, id) =>
           msg.type === "bot_generated" ? (
             <Box
@@ -114,6 +120,7 @@ const Chat: React.FC = () => {
             </Box>
           ) : msg.from === user?.username ? (
             <Box
+              key={id}
               sx={(theme) => ({
                 display: "flex",
                 justifyContent: "flex-end",
@@ -133,6 +140,7 @@ const Chat: React.FC = () => {
             </Box>
           ) : (
             <Box
+              key={id}
               sx={(theme) => ({
                 display: "flex",
                 justifyContent: "flex-start",
@@ -155,7 +163,7 @@ const Chat: React.FC = () => {
       </Box>
       <TextField
         placeholder="Type message..."
-        margin="normal"
+        margin="none"
         multiline
         fullWidth
         value={inputValue}
@@ -171,7 +179,13 @@ const Chat: React.FC = () => {
             setInputValue("");
           }
         }}
-        sx={{ position: "sticky", bottom: 0, zIndex: 10, background: "white" }}
+        sx={(theme) => ({
+          position: "sticky",
+          bottom: 0,
+          zIndex: 10,
+          background: "white",
+          paddingBottom: theme.spacing(4),
+        })}
       />
     </>
   );

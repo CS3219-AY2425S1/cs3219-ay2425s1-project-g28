@@ -139,8 +139,8 @@ const CollabSandbox: React.FC = () => {
           }}
           size={6}
         >
-          <Box sx={{ flex: 1, maxHeight: "50vw" }}>Code Editor</Box>
-          <Box sx={{ flex: 1, maxHeight: "50vw", overflow: "auto" }}>
+          <Box sx={{ flex: 1, maxHeight: "50vh" }}>Code Editor</Box>
+          <Box sx={{ flex: 1, maxHeight: "50vh", overflow: "auto" }}>
             <Tabs
               value={selectedTab}
               onChange={(_, value) => setSelectedTab(value)}
