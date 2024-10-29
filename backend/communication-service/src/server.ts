@@ -14,7 +14,7 @@ export const io = new Server(server, {
 
 io.on("connection", handleWebsocketCommunicationEvents);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(
     `Communication service server listening on port http://localhost:${PORT}`
   );
