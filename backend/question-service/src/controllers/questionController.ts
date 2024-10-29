@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
 import Question, { IQuestion } from "../models/Question.ts";
+import QuestionTemplate, {
+  IQuestionTemplate,
+} from "../models/QuestionTemplate.ts";
 import { checkIsExistingQuestion, sortAlphabetically } from "../utils/utils.ts";
 import {
   DUPLICATE_QUESTION_MESSAGE,
@@ -26,7 +29,15 @@ export const createQuestion = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const { title, description, complexity, category } = req.body;
+    const {
+      title,
+      description,
+      complexity,
+      category,
+      pythonTemplate,
+      javaTemplate,
+      cTemplate,
+    } = req.body;
 
     const existingQuestion = await checkIsExistingQuestion(title);
     if (existingQuestion) {
@@ -52,9 +63,18 @@ export const createQuestion = async (
 
     await newQuestion.save();
 
+    const newQuestionTemplate = new QuestionTemplate({
+      questionId: newQuestion._id,
+      pythonTemplate,
+      javaTemplate,
+      cTemplate,
+    });
+
+    await newQuestionTemplate.save();
+
     res.status(201).json({
       message: QN_CREATED_MESSAGE,
-      question: formatQuestionResponse(newQuestion),
+      question: formatQuestionIndivResponse(newQuestion, newQuestionTemplate),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -81,7 +101,6 @@ export const createImageLink = async (
 
       const uploadPromises = files.map((file) => uploadFileToFirebase(file));
       const imageUrls = await Promise.all(uploadPromises);
-      console.log(imageUrls);
       return res
         .status(200)
         .json({ message: "Images uploaded successfully", imageUrls });
@@ -97,7 +116,11 @@ export const updateQuestion = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { title, description } = req.body;
+
+    const { pythonTemplate, javaTemplate, cTemplate, ...questionBody } =
+      req.body;
+
+    const { title, description } = questionBody;
 
     if (!id.match(MONGO_OBJ_ID_FORMAT)) {
       res.status(400).json({ message: MONGO_OBJ_ID_MALFORMED_MESSAGE });
@@ -126,13 +149,26 @@ export const updateQuestion = async (
       return;
     }
 
-    const updatedQuestion = await Question.findByIdAndUpdate(id, req.body, {
+    const updatedQuestion = await Question.findByIdAndUpdate(id, questionBody, {
       new: true,
     });
 
+    const updatedQuestionTemplate = await QuestionTemplate.findOneAndUpdate(
+      { questionId: id },
+      {
+        ...(pythonTemplate !== undefined && { pythonTemplate }),
+        ...(javaTemplate !== undefined && { javaTemplate }),
+        ...(cTemplate !== undefined && { cTemplate }),
+      },
+      { new: true },
+    );
+
     res.status(200).json({
       message: "Question updated successfully",
-      question: formatQuestionResponse(updatedQuestion as IQuestion),
+      question: formatQuestionIndivResponse(
+        updatedQuestion as IQuestion,
+        updatedQuestionTemplate as IQuestionTemplate,
+      ),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -152,6 +188,8 @@ export const deleteQuestion = async (
     }
 
     await Question.findByIdAndDelete(id);
+    await QuestionTemplate.findOneAndDelete({ questionId: id });
+
     res.status(200).json({ message: QN_DELETED_MESSAGE });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -230,9 +268,16 @@ export const readQuestionIndiv = async (
       return;
     }
 
+    const questionTemplate = await QuestionTemplate.findOne({
+      questionId: id,
+    });
+
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
-      question: formatQuestionResponse(questionDetails),
+      question: formatQuestionIndivResponse(
+        questionDetails,
+        questionTemplate as IQuestionTemplate,
+      ),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -273,12 +318,6 @@ export const readCategories = async (
   res: Response,
 ): Promise<void> => {
   try {
-    // const uniqueCats = await Question.distinct("category");
-
-    // res.status(200).json({
-    //   message: CATEGORIES_RETRIEVED_MESSAGE,
-    //   categories: sortAlphabetically(uniqueCats),
-    // });
     res.status(200).json({
       message: CATEGORIES_RETRIEVED_MESSAGE,
       categories: sortAlphabetically([
@@ -304,5 +343,21 @@ const formatQuestionResponse = (question: IQuestion) => {
     description: question.description,
     complexity: question.complexity,
     categories: question.category,
+  };
+};
+
+const formatQuestionIndivResponse = (
+  question: IQuestion,
+  questionTemplate: IQuestionTemplate,
+) => {
+  return {
+    id: question._id,
+    title: question.title,
+    description: question.description,
+    complexity: question.complexity,
+    categories: question.category,
+    pythonTemplate: questionTemplate ? questionTemplate.pythonTemplate : "",
+    javaTemplate: questionTemplate ? questionTemplate.javaTemplate : "",
+    cTemplate: questionTemplate ? questionTemplate.cTemplate : "",
   };
 };

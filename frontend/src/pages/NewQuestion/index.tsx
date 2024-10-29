@@ -41,6 +41,10 @@ const NewQuestion = () => {
   const [uploadedImagesUrl, setUploadedImagesUrl] = useState<string[]>([]);
   const [isPreviewQuestion, setIsPreviewQuestion] = useState<boolean>(false);
 
+  const [pythonTemplate, setPythonTemplate] = useState<string>("");
+  const [javaTemplate, setJavaTemplate] = useState<string>("");
+  const [cTemplate, setCTemplate] = useState<string>("");
+
   const handleBack = () => {
     if (
       title ||
@@ -72,6 +76,9 @@ const NewQuestion = () => {
         description: markdownText,
         complexity: selectedComplexity,
         categories: selectedCategories,
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       },
       dispatch
     );
@@ -133,6 +140,23 @@ const NewQuestion = () => {
           <QuestionMarkdown
             markdownText={markdownText}
             setMarkdownText={setMarkdownText}
+          />
+
+          {/* for the FE ppl to redesign... */}
+          <input
+            placeholder="Python Template"
+            value={pythonTemplate}
+            onChange={(e) => setPythonTemplate(e.target.value)}
+          />
+          <input
+            placeholder="Java Template"
+            value={javaTemplate}
+            onChange={(e) => setJavaTemplate(e.target.value)}
+          />
+          <input
+            placeholder="C Template"
+            value={cTemplate}
+            onChange={(e) => setCTemplate(e.target.value)}
           />
         </>
       )}
