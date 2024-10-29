@@ -20,7 +20,7 @@ import {
   MONGO_OBJ_ID_MALFORMED_MESSAGE,
 } from "../utils/constants.ts";
 
-import { upload } from "../../config/multer";
+import { upload } from "../config/multer.ts";
 import { uploadFileToFirebase } from "../utils/utils";
 import { QnListSearchFilterParams, RandomQnCriteria } from "../utils/types.ts";
 

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
-import { bucket } from "../../config/firebase";
+import { bucket } from "../config/firebase";
 
 import Question from "../models/Question";
 
@@ -50,5 +50,7 @@ export const uploadFileToFirebase = async (
 };
 
 export const sortAlphabetically = (arr: string[]) => {
-  return [...arr].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  return [...arr].sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" }),
+  );
 };

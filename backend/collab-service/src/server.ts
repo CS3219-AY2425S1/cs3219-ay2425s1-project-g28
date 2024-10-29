@@ -1,6 +1,6 @@
 import http from "http";
 import app, { allowedOrigins } from "./app.ts";
-import { handleWebsocketCollabEvents } from "./src/handlers/websocketHandler";
+import { handleWebsocketCollabEvents } from "./handlers/websocketHandler.ts";
 import { Server } from "socket.io";
 import { connectRedis } from "./config/redis.ts";
 
