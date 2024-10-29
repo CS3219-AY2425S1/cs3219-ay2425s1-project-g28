@@ -281,8 +281,8 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const initMatchedListeners = () => {
     matchSocket.on(MatchEvents.MATCH_SUCCESSFUL, (id: string) => {
       setMatchPending(false);
-      appNavigate(MatchPaths.COLLAB);
       setQuestionId(id);
+      appNavigate(MatchPaths.COLLAB);
     });
 
     matchSocket.on(MatchEvents.MATCH_UNSUCCESSFUL, () => {
@@ -302,6 +302,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const initCollabListeners = () => {
     matchSocket.on(MatchEvents.MATCH_ENDED, () => {
       toast.error(MATCH_ENDED_MESSAGE);
+      setIsEndSessionModalOpen(false);
       appNavigate(MatchPaths.HOME);
     });
   };
@@ -501,8 +502,8 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const handleConfirmEndSession = () => {
-    stopMatch();
     setIsEndSessionModalOpen(false);
+    stopMatch();
   };
 
   return (
