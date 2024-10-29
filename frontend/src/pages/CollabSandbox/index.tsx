@@ -7,9 +7,11 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Grid2,
   Tab,
+  Tabs,
+  Typography,
 } from "@mui/material";
-import { TabContext, TabList, TabPanel } from "@mui/lab";
 import classes from "./index.module.css";
 import { useMatch } from "../../contexts/MatchContext";
 import { USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
@@ -22,6 +24,7 @@ import reducer, {
 } from "../../reducers/questionReducer";
 import QuestionDetailComponent from "../../components/QuestionDetail";
 import Chat from "../../components/Chat";
+import TabPanel from "../../components/TabPanel";
 
 const CollabSandbox: React.FC = () => {
   const match = useMatch();
@@ -119,60 +122,56 @@ const CollabSandbox: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Box sx={{ display: "flex", flex: 1 }}>
-        {/* Left side */}
-        <Box sx={(theme) => ({ flex: 1, marginRight: theme.spacing(2) })}>
+      <Grid2 container sx={{ flexGrow: 1 }} spacing={4}>
+        <Grid2 sx={{ flexGrow: 1 }} size={6}>
           <QuestionDetailComponent
             title={selectedQuestion.title}
             description={selectedQuestion.description}
             complexity={selectedQuestion.complexity}
             categories={selectedQuestion.categories}
           />
-        </Box>
-        {/* Right side */}
-        <Box
-          sx={(theme) => ({
-            flex: 1,
-            marginLeft: theme.spacing(2),
+        </Grid2>
+        <Grid2
+          sx={{
             display: "flex",
             flexDirection: "column",
-          })}
+            maxHeight: "100%",
+          }}
+          size={6}
         >
-          <Box sx={{ flex: 1, maxHeight: "50%" }}>Code editor</Box>
-          <Box
-            sx={{
-              flex: 1,
-              maxHeight: "50%",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <TabContext value={selectedTab}>
-              <Box sx={{ maxHeight: "100%" }}>
-                <TabList onChange={(_, value) => setSelectedTab(value)}>
-                  <Tab label="Test cases" value={"tests"} />
-                  <Tab label="Chat" value={"chat"} />
-                </TabList>
-              </Box>
-              <TabPanel value={"tests"} sx={{ flex: 1, maxHeight: "100%" }}>
-                Tests
-              </TabPanel>
-              <TabPanel
-                value={"chat"}
-                sx={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  maxHeight: "100%",
-                }}
-              >
-                <Chat />
-              </TabPanel>
-            </TabContext>
+          <Box sx={{ flex: 1, maxHeight: "50vw" }}>Code Editor</Box>
+          <Box sx={{ flex: 1, maxHeight: "50vw", overflow: "auto" }}>
+            <Tabs
+              value={selectedTab}
+              onChange={(_, value) => setSelectedTab(value)}
+              sx={{
+                position: "sticky",
+                top: 0,
+                zIndex: 10,
+                background: "white",
+              }}
+            >
+              <Tab label="Test Cases" value="tests" />
+              <Tab label="Chat" value="chat" />
+            </Tabs>
+            <TabPanel selected={selectedTab} value="tests">
+              <Typography>Tests</Typography>
+            </TabPanel>
+            <TabPanel
+              selected={selectedTab}
+              value="chat"
+              sx={(theme) => ({
+                padding: theme.spacing(2),
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+              })}
+            >
+              <Chat />
+            </TabPanel>
           </Box>
-        </Box>
-      </Box>
+        </Grid2>
+      </Grid2>
     </AppMargin>
   );
 };

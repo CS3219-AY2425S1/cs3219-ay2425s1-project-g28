@@ -20,6 +20,7 @@ export const handleWebsocketCommunicationEvents = (socket: Socket) => {
 
       socket.join(roomId);
       socket.data.roomId = roomId;
+      socket.data.username = username;
 
       // send the message to all users (including the sender) in the room
       const createdTime = Date.now();
@@ -78,7 +79,13 @@ export const handleWebsocketCommunicationEvents = (socket: Socket) => {
   socket.on(CommunicationEvents.DISCONNECT, () => {
     const { roomId } = socket.data;
     if (roomId) {
-      socket.to(roomId).emit(CommunicationEvents.DISCONNECTED);
+      const createdTime = Date.now();
+      socket.to(roomId).emit(CommunicationEvents.DISCONNECTED, {
+        from: BOT_NAME,
+        type: MessageTypes.BOT_GENERATED,
+        message: `${socket.data.username} has disconnected`,
+        createdTime,
+      });
     }
   });
 };

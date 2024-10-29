@@ -72,6 +72,12 @@ const Chat: React.FC = () => {
         setMessages((prevMessages) => [...prevMessages, message]);
       }
     );
+    communicationSocket.on(
+      CommunicationEvents.DISCONNECTED,
+      (message: Message) => {
+        setMessages((prevMessages) => [...prevMessages, message]);
+      }
+    );
 
     return () => {
       communicationSocket.off(CommunicationEvents.USER_JOINED);
@@ -79,17 +85,10 @@ const Chat: React.FC = () => {
     };
   }, []);
 
+  console.log(messages);
   return (
-    <Box
-      sx={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        overflow: "auto",
-      }}
-    >
-      <Box sx={{ overflow: "auto", flex: 3 }}>
+    <>
+      <Box>
         {messages.map((msg, id) =>
           msg.type === "bot_generated" ? (
             <Box
@@ -119,13 +118,13 @@ const Chat: React.FC = () => {
               sx={(theme) => ({
                 display: "flex",
                 justifyContent: "flex-end",
-                margin: theme.spacing(2),
+                marginTop: theme.spacing(1),
               })}
             >
               <Typography
                 sx={(theme) => ({
                   background: theme.palette.primary.main,
-                  padding: theme.spacing(1),
+                  padding: theme.spacing(1, 2),
                   borderRadius: theme.spacing(2),
                   maxWidth: "80%",
                 })}
@@ -138,15 +137,15 @@ const Chat: React.FC = () => {
               sx={(theme) => ({
                 display: "flex",
                 justifyContent: "flex-start",
-                margin: theme.spacing(2),
-                maxWidth: "80%",
+                marginTop: theme.spacing(1),
               })}
             >
               <Typography
                 sx={(theme) => ({
                   background: theme.palette.secondary.main,
-                  padding: theme.spacing(1),
+                  padding: theme.spacing(1, 2),
                   borderRadius: theme.spacing(2),
+                  maxWidth: "80%",
                 })}
               >
                 {msg.message}
@@ -155,29 +154,27 @@ const Chat: React.FC = () => {
           )
         )}
       </Box>
-      <Box
-        sx={{ flex: 1, display: "flex", alignItems: "flex-end", zIndex: 10 }}
-      >
-        <TextField
-          placeholder="Type message..."
-          margin="normal"
-          fullWidth
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              communicationSocket.emit(CommunicationEvents.SEND_TEXT_MESSAGE, {
-                roomId: getMatchId(),
-                message: inputValue,
-                username: user?.username,
-                createdTime: Date.now(),
-              });
-              setInputValue("");
-            }
-          }}
-        />
-      </Box>
-    </Box>
+      <TextField
+        placeholder="Type message..."
+        margin="normal"
+        multiline
+        fullWidth
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && inputValue !== "") {
+            communicationSocket.emit(CommunicationEvents.SEND_TEXT_MESSAGE, {
+              roomId: getMatchId(),
+              message: inputValue,
+              username: user?.username,
+              createdTime: Date.now(),
+            });
+            setInputValue("");
+          }
+        }}
+        sx={{ position: "sticky", bottom: 0, zIndex: 10, background: "white" }}
+      />
+    </>
   );
 };
 
