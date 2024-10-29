@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import redisClient from "../config/redis";
+import redisClient from "../src/config/redis";
 
 beforeAll(async () => {
   const mongoUri =

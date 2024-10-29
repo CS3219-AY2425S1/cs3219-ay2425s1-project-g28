@@ -23,10 +23,13 @@ import reducer, {
   initialState,
 } from "../../reducers/questionReducer";
 import QuestionDetailComponent from "../../components/QuestionDetail";
+import { Navigate } from "react-router-dom";
 import Chat from "../../components/Chat";
 import TabPanel from "../../components/TabPanel";
 
 const CollabSandbox: React.FC = () => {
+  const [showErrorScreen, setShowErrorScreen] = useState<boolean>(false);
+
   const match = useMatch();
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
@@ -47,6 +50,10 @@ const CollabSandbox: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<"tests" | "chat">("tests");
 
   useEffect(() => {
+    if (!partner) {
+      return;
+    }
+
     verifyMatchStatus();
 
     if (!questionId) {
@@ -61,17 +68,39 @@ const CollabSandbox: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    let timeout: number | undefined;
+
+    if (!selectedQuestion) {
+      timeout = setTimeout(() => {
+        setShowErrorScreen(true);
+      }, 2000);
+    } else {
+      setShowErrorScreen(false);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [selectedQuestion]);
+
   if (loading) {
     return <Loader />;
   }
 
-  if (!partner || !questionId || !selectedQuestion) {
+  if (!partner) {
+    return <Navigate to="/home" replace />;
+  }
+
+  if (showErrorScreen) {
     return (
       <ServerError
         title="Oops, match ended..."
         subtitle="Unfortunately, the match has ended due to a connection loss 😥"
       />
     );
+  }
+
+  if (!selectedQuestion) {
+    return <Loader />;
   }
 
   return (

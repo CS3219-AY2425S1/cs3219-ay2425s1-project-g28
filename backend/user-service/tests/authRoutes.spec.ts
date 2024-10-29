@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import { faker } from "@faker-js/faker";
 import supertest from "supertest";
-import app from "../app";
-import UserModel from "../model/user-model";
+import app from "../src/app";
+import UserModel from "../src/model/user-model";
 
 jest.setTimeout(10000);
 

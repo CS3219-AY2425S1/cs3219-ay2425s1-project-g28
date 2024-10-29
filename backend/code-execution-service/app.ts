@@ -5,11 +5,11 @@ import yaml from "yaml";
 import swaggerUi from "swagger-ui-express";
 import cors from "cors";
 
-import collabRoutes from "./src/routes/collabRoutes.ts";
+import codeExecutionRoutes from "./src/routes/codeExecutionRoutes.ts";
 
 dotenv.config();
 
-export const allowedOrigins = process.env.ORIGINS
+const allowedOrigins = process.env.ORIGINS
   ? process.env.ORIGINS.split(",")
   : ["http://localhost:5173", "http://127.0.0.1:5173"];
 
@@ -24,12 +24,12 @@ app.options("*", cors({ origin: allowedOrigins, credentials: true }));
 
 app.use(express.json());
 
-app.use("/api/collab", collabRoutes);
+app.use("/api/run", codeExecutionRoutes);
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get("/", (req: Request, res: Response) => {
-  res.status(200).json({ message: "Hello world from collab service" });
+  res.status(200).json({ message: "Hello world from code execution service" });
 });
 
 export default app;

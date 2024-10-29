@@ -9,7 +9,7 @@ import {
   getMatchByUid,
   getMatchById,
 } from "./matchHandler";
-import { io } from "../../server";
+import { io } from "../server";
 import { v4 as uuidv4 } from "uuid";
 import { questionService } from "../utils/api";
 

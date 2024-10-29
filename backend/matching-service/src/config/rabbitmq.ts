@@ -1,8 +1,8 @@
 import amqplib, { Connection } from "amqplib";
 import dotenv from "dotenv";
-import { matchUsers } from "../src/utils/mq_utils";
-import { MatchRequestItem } from "../src/handlers/matchHandler";
-import { Complexities, Categories, Languages } from "../src/utils/constants";
+import { matchUsers } from "../utils/mq_utils";
+import { MatchRequestItem } from "../handlers/matchHandler";
+import { Complexities, Categories, Languages } from "../utils/constants";
 
 dotenv.config();
 
