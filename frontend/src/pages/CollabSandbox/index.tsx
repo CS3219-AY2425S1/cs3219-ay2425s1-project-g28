@@ -181,12 +181,13 @@ const CollabSandbox: React.FC = () => {
             <Tabs
               value={selectedTab}
               onChange={(_, value) => setSelectedTab(value)}
-              sx={{
+              sx={(theme) => ({
                 position: "sticky",
                 top: 0,
                 zIndex: 10,
                 background: "white",
-              }}
+                borderBottom: `1px solid ${theme.palette.divider}`,
+              })}
             >
               <Tab label="Test Cases" value="tests" />
               <Tab label="Chat" value="chat" />
