@@ -113,3 +113,6 @@ export const FIND_MATCH_FORM_PATH = "/find_match_form.png";
 export const MATCH_FOUND_PATH = "/match_found.png";
 export const QUESTIONS_LIST_PATH = "/questions_list.png";
 export const COLLABORATIVE_EDITOR_PATH = "/collaborative_editor.png";
+
+/* Tooltips */
+export const ADD_QUESTION_TEST_CASE_TOOLTIP_MESSAGE = `Add at least 1 and at most 3 test cases. <br /> This will be displayed to users.`;

@@ -1,6 +1,16 @@
-import { Box, Button, Stack, TextField, Typography } from "@mui/material";
+import { HelpOutlined } from "@mui/icons-material";
+import {
+  Box,
+  Button,
+  IconButton,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import { Dispatch, SetStateAction } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { ADD_QUESTION_TEST_CASE_TOOLTIP_MESSAGE } from "../../utils/constants";
 
 interface QuestionTestCasesProps {
   testCases: TestCase[];
@@ -58,7 +68,30 @@ const QuestionTestCases: React.FC<QuestionTestCasesProps> = ({
             alignItems="center"
             justifyContent="space-between"
           >
-            <Typography variant="h6">Test Case {i + 1}</Typography>
+            <Stack direction="row" alignItems="center">
+              <Typography variant="h6">Test Case {i + 1}</Typography>
+              {i === 0 ? (
+                <Tooltip
+                  title={
+                    <Typography variant="body2">
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: ADD_QUESTION_TEST_CASE_TOOLTIP_MESSAGE,
+                        }}
+                      />
+                    </Typography>
+                  }
+                  placement="right"
+                  arrow
+                >
+                  <IconButton>
+                    <HelpOutlined fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              ) : (
+                <></>
+              )}
+            </Stack>
             <Stack direction="row" alignItems="center">
               {i === testCases.length - 1 && testCases.length < 3 ? (
                 <>
