@@ -1,5 +1,5 @@
 import { Box, TextField, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { communicationSocket } from "../../utils/communicationSocket";
 import { useMatch } from "../../contexts/MatchContext";
 import {
@@ -35,6 +35,7 @@ const Chat: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
   const match = useMatch();
   const auth = useAuth();
+  const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
@@ -84,6 +85,10 @@ const Chat: React.FC = () => {
       communicationSocket.off(CommunicationEvents.TEXT_MESSAGE_RECEIVED);
     };
   }, []);
+
+  useEffect(() => {
+    endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   return (
     <>
@@ -161,6 +166,7 @@ const Chat: React.FC = () => {
           )
         )}
       </Box>
+      <div ref={endOfMessagesRef} />
       <TextField
         placeholder="Type message..."
         margin="none"
@@ -170,6 +176,7 @@ const Chat: React.FC = () => {
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter" && inputValue !== "") {
+            e.preventDefault();
             communicationSocket.emit(CommunicationEvents.SEND_TEXT_MESSAGE, {
               roomId: getMatchId(),
               message: inputValue,
