@@ -26,6 +26,10 @@ import QuestionMarkdown from "../../components/QuestionMarkdown";
 import QuestionImageContainer from "../../components/QuestionImageContainer";
 import QuestionCategoryAutoComplete from "../../components/QuestionCategoryAutoComplete";
 import QuestionDetail from "../../components/QuestionDetail";
+import QuestionTestCases, {
+  TestCase,
+} from "../../components/QuestionTestCases";
+import { v4 as uuidv4 } from "uuid";
 
 const NewQuestion = () => {
   const navigate = useNavigate();
@@ -40,6 +44,10 @@ const NewQuestion = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [uploadedImagesUrl, setUploadedImagesUrl] = useState<string[]>([]);
   const [isPreviewQuestion, setIsPreviewQuestion] = useState<boolean>(false);
+
+  const [testCases, setTestCases] = useState<TestCase[]>([
+    { id: uuidv4(), input: "", expectedOutput: "" },
+  ]);
 
   const [pythonTemplate, setPythonTemplate] = useState<string>("");
   const [javaTemplate, setJavaTemplate] = useState<string>("");
@@ -64,31 +72,37 @@ const NewQuestion = () => {
       !title ||
       !markdownText ||
       !selectedComplexity ||
-      selectedCategories.length === 0
+      selectedCategories.length === 0 ||
+      testCases.some(
+        (testCase) =>
+          testCase.input.trim() === "" || testCase.expectedOutput.trim() === ""
+      )
     ) {
       toast.error(FILL_ALL_FIELDS);
       return;
     }
 
-    const result = await createQuestion(
-      {
-        title,
-        description: markdownText,
-        complexity: selectedComplexity,
-        categories: selectedCategories,
-        pythonTemplate,
-        javaTemplate,
-        cTemplate,
-      },
-      dispatch
-    );
+    // const result = await createQuestion(
+    //   {
+    //     title,
+    //     description: markdownText,
+    //     complexity: selectedComplexity,
+    //     categories: selectedCategories,
+    //     pythonTemplate,
+    //     javaTemplate,
+    //     cTemplate,
+    //   },
+    //   dispatch
+    // );
 
-    if (result) {
-      navigate("/questions");
-      toast.success(SUCCESS_QUESTION_CREATE);
-    } else {
-      toast.error(state.selectedQuestionError || FAILED_QUESTION_CREATE);
-    }
+    // if (result) {
+    //   navigate("/questions");
+    //   toast.success(SUCCESS_QUESTION_CREATE);
+    // } else {
+    //   toast.error(state.selectedQuestionError || FAILED_QUESTION_CREATE);
+    // }
+
+    console.log("successfully submit")
   };
 
   return (
@@ -140,6 +154,11 @@ const NewQuestion = () => {
           <QuestionMarkdown
             markdownText={markdownText}
             setMarkdownText={setMarkdownText}
+          />
+
+          <QuestionTestCases
+            testCases={testCases}
+            setTestCases={setTestCases}
           />
 
           {/* for the FE ppl to redesign... */}
