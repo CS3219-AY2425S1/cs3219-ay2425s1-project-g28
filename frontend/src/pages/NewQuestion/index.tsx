@@ -30,6 +30,7 @@ import QuestionTestCases, {
   TestCase,
 } from "../../components/QuestionTestCases";
 import { v4 as uuidv4 } from "uuid";
+import QuestionFileContainer from "../../components/QuestionFileContainer";
 
 const NewQuestion = () => {
   const navigate = useNavigate();
@@ -102,7 +103,7 @@ const NewQuestion = () => {
     //   toast.error(state.selectedQuestionError || FAILED_QUESTION_CREATE);
     // }
 
-    console.log("successfully submit")
+    console.log("successfully submit");
   };
 
   return (
@@ -160,6 +161,19 @@ const NewQuestion = () => {
             testCases={testCases}
             setTestCases={setTestCases}
           />
+
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <QuestionFileContainer
+              fileUploadMessage={`Click to upload text file for test case inputs`}
+            />
+            <QuestionFileContainer
+              fileUploadMessage={`Click to upload text file for test case expected outputs`}
+            />
+          </Stack>
 
           {/* for the FE ppl to redesign... */}
           <input
