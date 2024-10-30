@@ -169,7 +169,15 @@ const CollabSandbox: React.FC = () => {
           size={6}
         >
           <Box sx={{ flex: 1, maxHeight: "50vh" }}>Code Editor</Box>
-          <Box sx={{ flex: 1, maxHeight: "50vh", overflow: "auto" }}>
+          <Box
+            sx={{
+              flex: 1,
+              maxHeight: "50vh",
+              overflow: "auto",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <Tabs
               value={selectedTab}
               onChange={(_, value) => setSelectedTab(value)}
@@ -186,16 +194,7 @@ const CollabSandbox: React.FC = () => {
             <TabPanel selected={selectedTab} value="tests">
               <Typography>Tests</Typography>
             </TabPanel>
-            <TabPanel
-              selected={selectedTab}
-              value="chat"
-              sx={(theme) => ({
-                padding: theme.spacing(2),
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-              })}
-            >
+            <TabPanel selected={selectedTab} value="chat">
               <Chat />
             </TabPanel>
           </Box>
