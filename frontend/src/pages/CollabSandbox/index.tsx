@@ -10,7 +10,6 @@ import {
   Grid2,
   Tab,
   Tabs,
-  Typography,
 } from "@mui/material";
 import classes from "./index.module.css";
 import { useMatch } from "../../contexts/MatchContext";
@@ -26,6 +25,31 @@ import QuestionDetailComponent from "../../components/QuestionDetail";
 import { Navigate } from "react-router-dom";
 import Chat from "../../components/Chat";
 import TabPanel from "../../components/TabPanel";
+import TestCase from "../../components/TestCase";
+
+// hardcode for now...
+
+type TestCase = {
+  input: string;
+  output: string;
+  stdout: string;
+  result: string;
+};
+
+const testcases: TestCase[] = [
+  {
+    input: "1 2 3 4",
+    output: "1 2 3 4",
+    stdout: "1\n2\n3\n4",
+    result: "1 2 3 4",
+  },
+  {
+    input: "5 6 7 8",
+    output: "5 6 7 8",
+    stdout: "5\n6\n7\n8",
+    result: "5 6 7 8",
+  },
+];
 
 const CollabSandbox: React.FC = () => {
   const [showErrorScreen, setShowErrorScreen] = useState<boolean>(false);
@@ -48,6 +72,7 @@ const CollabSandbox: React.FC = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { selectedQuestion } = state;
   const [selectedTab, setSelectedTab] = useState<"tests" | "chat">("tests");
+  const [selectedTestcase, setSelectedTestcase] = useState(0);
 
   useEffect(() => {
     if (!partner) {
@@ -193,7 +218,29 @@ const CollabSandbox: React.FC = () => {
               <Tab label="Chat" value="chat" />
             </Tabs>
             <TabPanel selected={selectedTab} value="tests">
-              <Typography>Tests</Typography>
+              <Box sx={(theme) => ({ margin: theme.spacing(2, 0) })}>
+                {[...Array(testcases.length)]
+                  .map((_, index) => index + 1)
+                  .map((i) => (
+                    <Button
+                      key={i}
+                      variant="contained"
+                      color={
+                        selectedTestcase === i - 1 ? "primary" : "secondary"
+                      }
+                      onClick={() => setSelectedTestcase(i - 1)}
+                      sx={(theme) => ({ margin: theme.spacing(0, 1) })}
+                    >
+                      Testcase {i}
+                    </Button>
+                  ))}
+              </Box>
+              <TestCase
+                input={testcases[selectedTestcase].input}
+                output={testcases[selectedTestcase].output}
+                stdout={testcases[selectedTestcase].stdout}
+                result={testcases[selectedTestcase].result}
+              />
             </TabPanel>
             <TabPanel selected={selectedTab} value="chat">
               <Chat isActive={selectedTab === "chat"} />
