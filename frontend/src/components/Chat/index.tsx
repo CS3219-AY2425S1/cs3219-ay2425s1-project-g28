@@ -177,7 +177,6 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
           )
         )}
       </Box>
-      {/* <div ref={messagesRef} /> */}
       <TextField
         placeholder="Type message..."
         margin="none"
