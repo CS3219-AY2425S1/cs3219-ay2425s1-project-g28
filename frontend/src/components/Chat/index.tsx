@@ -30,12 +30,16 @@ enum CommunicationEvents {
   DISCONNECTED = "disconnected",
 }
 
-const Chat: React.FC = () => {
+type ChatProps = {
+  isActive: boolean;
+};
+
+const Chat: React.FC<ChatProps> = ({ isActive }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const match = useMatch();
   const auth = useAuth();
-  const endOfMessagesRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
 
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
@@ -87,8 +91,14 @@ const Chat: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (messagesRef.current) {
+      const nodes = messagesRef.current.querySelectorAll("div > div");
+      if (nodes.length > 0) {
+        const lastNode = nodes[nodes.length - 1];
+        lastNode.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, [messages, isActive]);
 
   return (
     <>
@@ -98,6 +108,7 @@ const Chat: React.FC = () => {
           overflowY: "auto",
           padding: 2,
         }}
+        ref={messagesRef}
       >
         {messages.map((msg, id) =>
           msg.type === "bot_generated" ? (
@@ -166,7 +177,7 @@ const Chat: React.FC = () => {
           )
         )}
       </Box>
-      <div ref={endOfMessagesRef} />
+      {/* <div ref={messagesRef} /> */}
       <TextField
         placeholder="Type message..."
         margin="none"
@@ -175,11 +186,12 @@ const Chat: React.FC = () => {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && inputValue !== "") {
+          const trimmedValue = inputValue.trim();
+          if (e.key === "Enter" && trimmedValue !== "") {
             e.preventDefault();
             communicationSocket.emit(CommunicationEvents.SEND_TEXT_MESSAGE, {
               roomId: getMatchId(),
-              message: inputValue,
+              message: trimmedValue,
               username: user?.username,
               createdTime: Date.now(),
             });

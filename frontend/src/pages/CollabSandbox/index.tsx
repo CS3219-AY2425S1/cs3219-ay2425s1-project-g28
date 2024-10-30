@@ -195,7 +195,7 @@ const CollabSandbox: React.FC = () => {
               <Typography>Tests</Typography>
             </TabPanel>
             <TabPanel selected={selectedTab} value="chat">
-              <Chat />
+              <Chat isActive={selectedTab === "chat"} />
             </TabPanel>
           </Box>
         </Grid2>
