@@ -1,4 +1,4 @@
-import { Box, TextField, Typography } from "@mui/material";
+import { Box, styled, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { communicationSocket } from "../../utils/communicationSocket";
 import { useMatch } from "../../contexts/MatchContext";
@@ -33,6 +33,13 @@ enum CommunicationEvents {
 type ChatProps = {
   isActive: boolean;
 };
+
+const StyledTypography = styled(Typography)(({ theme }) => ({
+  padding: theme.spacing(1, 2),
+  borderRadius: theme.spacing(2),
+  maxWidth: "80%",
+  whiteSpace: "pre-line",
+}));
 
 const Chat: React.FC<ChatProps> = ({ isActive }) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -143,16 +150,13 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
                 marginTop: theme.spacing(1),
               })}
             >
-              <Typography
+              <StyledTypography
                 sx={(theme) => ({
                   background: theme.palette.primary.main,
-                  padding: theme.spacing(1, 2),
-                  borderRadius: theme.spacing(2),
-                  maxWidth: "80%",
                 })}
               >
                 {msg.message}
-              </Typography>
+              </StyledTypography>
             </Box>
           ) : (
             <Box
@@ -163,16 +167,13 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
                 marginTop: theme.spacing(1),
               })}
             >
-              <Typography
+              <StyledTypography
                 sx={(theme) => ({
                   background: theme.palette.secondary.main,
-                  padding: theme.spacing(1, 2),
-                  borderRadius: theme.spacing(2),
-                  maxWidth: "80%",
                 })}
               >
                 {msg.message}
-              </Typography>
+              </StyledTypography>
             </Box>
           )
         )}
@@ -186,7 +187,7 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={(e) => {
           const trimmedValue = inputValue.trim();
-          if (e.key === "Enter" && trimmedValue !== "") {
+          if (e.key === "Enter" && !e.shiftKey && trimmedValue !== "") {
             e.preventDefault();
             communicationSocket.emit(CommunicationEvents.SEND_TEXT_MESSAGE, {
               roomId: getMatchId(),
