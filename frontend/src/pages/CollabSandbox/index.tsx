@@ -7,6 +7,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Grid2,
+  Tab,
+  Tabs,
 } from "@mui/material";
 import classes from "./index.module.css";
 import { useMatch } from "../../contexts/MatchContext";
@@ -20,6 +23,33 @@ import reducer, {
 } from "../../reducers/questionReducer";
 import QuestionDetailComponent from "../../components/QuestionDetail";
 import { Navigate } from "react-router-dom";
+import Chat from "../../components/Chat";
+import TabPanel from "../../components/TabPanel";
+import TestCase from "../../components/TestCase";
+
+// hardcode for now...
+
+type TestCase = {
+  input: string;
+  output: string;
+  stdout: string;
+  result: string;
+};
+
+const testcases: TestCase[] = [
+  {
+    input: "1 2 3 4",
+    output: "1 2 3 4",
+    stdout: "1\n2\n3\n4",
+    result: "1 2 3 4",
+  },
+  {
+    input: "5 6 7 8",
+    output: "5 6 7 8",
+    stdout: "5\n6\n7\n8",
+    result: "5 6 7 8",
+  },
+];
 
 const CollabSandbox: React.FC = () => {
   const [showErrorScreen, setShowErrorScreen] = useState<boolean>(false);
@@ -41,6 +71,8 @@ const CollabSandbox: React.FC = () => {
   } = match;
   const [state, dispatch] = useReducer(reducer, initialState);
   const { selectedQuestion } = state;
+  const [selectedTab, setSelectedTab] = useState<"tests" | "chat">("tests");
+  const [selectedTestcase, setSelectedTestcase] = useState(0);
 
   useEffect(() => {
     if (!partner) {
@@ -98,9 +130,6 @@ const CollabSandbox: React.FC = () => {
 
   return (
     <AppMargin classname={`${classes.fullheight} ${classes.flex}`}>
-      {/* <Stack spacing={2} alignItems={"center"}>
-        <Typography variant="h1">Successfully matched!</Typography>
-      </Stack> */}
       <Dialog
         sx={{
           "& .MuiDialog-paper": {
@@ -147,25 +176,78 @@ const CollabSandbox: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Box sx={{ display: "flex", flex: 1 }}>
-        <Box sx={(theme) => ({ flex: 1, marginRight: theme.spacing(2) })}>
+      <Grid2 container sx={{ flexGrow: 1 }} spacing={4}>
+        <Grid2 sx={{ flexGrow: 1 }} size={6}>
           <QuestionDetailComponent
             title={selectedQuestion.title}
             description={selectedQuestion.description}
             complexity={selectedQuestion.complexity}
             categories={selectedQuestion.categories}
           />
-        </Box>
-        <Box sx={(theme) => ({ flex: 1, marginLeft: theme.spacing(2) })}>
+        </Grid2>
+        <Grid2
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            maxHeight: "100%",
+          }}
+          size={6}
+        >
+          <Box sx={{ flex: 1, maxHeight: "50vh" }}>Code Editor</Box>
           <Box
-            sx={{ display: "flex", flexDirection: "column", height: "100%" }}
+            sx={{
+              flex: 1,
+              maxHeight: "50vh",
+              overflow: "auto",
+              display: "flex",
+              flexDirection: "column",
+            }}
           >
-            <Box sx={{ flex: 1 }}>Code editor</Box>
-            <Box sx={{ flex: 1 }}>Test cases and chat tabs</Box>
+            <Tabs
+              value={selectedTab}
+              onChange={(_, value) => setSelectedTab(value)}
+              sx={(theme) => ({
+                position: "sticky",
+                top: 0,
+                zIndex: 10,
+                background: "white",
+                borderBottom: `1px solid ${theme.palette.divider}`,
+              })}
+            >
+              <Tab label="Test Cases" value="tests" />
+              <Tab label="Chat" value="chat" />
+            </Tabs>
+            <TabPanel selected={selectedTab} value="tests">
+              <Box sx={(theme) => ({ margin: theme.spacing(2, 0) })}>
+                {[...Array(testcases.length)]
+                  .map((_, index) => index + 1)
+                  .map((i) => (
+                    <Button
+                      key={i}
+                      variant="contained"
+                      color={
+                        selectedTestcase === i - 1 ? "primary" : "secondary"
+                      }
+                      onClick={() => setSelectedTestcase(i - 1)}
+                      sx={(theme) => ({ margin: theme.spacing(0, 1) })}
+                    >
+                      Testcase {i}
+                    </Button>
+                  ))}
+              </Box>
+              <TestCase
+                input={testcases[selectedTestcase].input}
+                output={testcases[selectedTestcase].output}
+                stdout={testcases[selectedTestcase].stdout}
+                result={testcases[selectedTestcase].result}
+              />
+            </TabPanel>
+            <TabPanel selected={selectedTab} value="chat">
+              <Chat isActive={selectedTab === "chat"} />
+            </TabPanel>
           </Box>
-        </Box>
-      </Box>
+        </Grid2>
+      </Grid2>
     </AppMargin>
   );
 };

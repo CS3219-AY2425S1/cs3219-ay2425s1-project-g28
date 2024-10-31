@@ -40,6 +40,7 @@ jobs:
             matching-service,
             collab-service,
             code-execution-service,
+            communication-service,
             qn-history-service,
           ]
     steps:
