@@ -9,13 +9,10 @@ import { StateField, StateEffect } from "@codemirror/state";
 // Adapted from https://github.com/BjornTheProgrammer/react-codemirror-collab-sockets
 
 export interface Cursor {
-  id: string;
+  uid: string;
+  username: string;
   from: number;
   to: number;
-}
-
-export interface Cursors {
-  cursors: Cursor[];
 }
 
 class TooltipWidget extends WidgetType {
@@ -49,55 +46,51 @@ class TooltipWidget extends WidgetType {
   }
 }
 
-export const addCursor = StateEffect.define<Cursor>();
-export const removeCursor = StateEffect.define<string>();
+export const updateCursor = StateEffect.define<Cursor>();
 
-const cursorsItems = new Map<string, number>();
+const cursors = new Map<string, number>();
 
-const cursorField = StateField.define<DecorationSet>({
-  create() {
-    return Decoration.none;
-  },
-  update(cursors, tr) {
-    let cursorTransacions = cursors.map(tr.changes);
-    for (const e of tr.effects)
-      if (e.is(addCursor)) {
+const cursorStateField = StateField.define<DecorationSet>({
+  create: () => Decoration.none,
+  update: (prevCursorState, transaction) => {
+    let cursorTransactions = prevCursorState.map(transaction.changes);
+    for (const effect of transaction.effects) {
+      if (effect.is(updateCursor)) {
         const addUpdates = [];
-        if (!cursorsItems.has(e.value.id))
-          cursorsItems.set(e.value.id, cursorsItems.size);
-
-        if (e.value.from !== e.value.to) {
+        if (!cursors.has(effect.value.uid)) {
+          cursors.set(effect.value.uid, cursors.size);
+        }
+        if (effect.value.from !== effect.value.to) {
+          // highlight selected text
           addUpdates.push(
             Decoration.mark({
-              class: `cm-highlight-${(cursorsItems.get(e.value.id)! % 8) + 1}`,
-              id: e.value.id,
-            }).range(e.value.from, e.value.to)
+              class: `cm-highlight-${(cursors.get(effect.value.uid)! % 8) + 1}`,
+              uid: effect.value.uid,
+            }).range(effect.value.from, effect.value.to)
           );
         }
 
         addUpdates.push(
           Decoration.widget({
             widget: new TooltipWidget(
-              e.value.id,
-              cursorsItems.get(e.value.id)!
+              effect.value.username,
+              cursors.get(effect.value.uid)!
             ),
             block: false,
-            id: e.value.id,
-          }).range(e.value.to, e.value.to)
+            uid: effect.value.uid,
+          }).range(effect.value.to, effect.value.to)
         );
 
-        cursorTransacions = cursorTransacions.update({
+        // ensure only the latest cursor position and/or selection is displayed
+        cursorTransactions = cursorTransactions.update({
           add: addUpdates,
-          filter: (_from, _to, value) => {
-            if (value?.spec?.id === e.value.id) return false;
-            return true;
-          },
+          filter: (_from, _to, value) => value?.spec?.uid !== effect.value.uid,
         });
       }
-
-    return cursorTransacions;
+    }
+    return cursorTransactions;
   },
-  provide: (f) => EditorView.decorations.from(f),
+  provide: (field) => EditorView.decorations.from(field),
 });
 
 const cursorBaseTheme = EditorView.baseTheme({
@@ -193,21 +186,23 @@ const cursorBaseTheme = EditorView.baseTheme({
   },
 });
 
-export const cursorExtension = (username: string) => {
+export const cursorExtension = (uid: string, username: string) => {
   return [
-    cursorField,
-    cursorBaseTheme,
+    cursorStateField, // handles cursor positions and highlights
+    cursorBaseTheme, // provides cursor styling
+    // detects cursor updates
     EditorView.updateListener.of((update) => {
-      update.transactions.forEach((e) => {
-        if (e.selection) {
+      update.transactions.forEach((transaction) => {
+        if (transaction.selection) {
           const cursor: Cursor = {
-            id: username,
-            from: e.selection.ranges[0].from,
-            to: e.selection.ranges[0].to,
+            uid: uid,
+            username: username,
+            from: transaction.selection.ranges[0].from,
+            to: transaction.selection.ranges[0].to,
           };
 
           update.view.dispatch({
-            effects: addCursor.of(cursor),
+            effects: updateCursor.of(cursor),
           });
         }
       });

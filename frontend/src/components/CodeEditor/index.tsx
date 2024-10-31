@@ -63,7 +63,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
         basicSetup(),
         langs.c(),
         peerExtension(codeEditorState.version, uid),
-        cursorExtension(username),
+        cursorExtension(uid, username),
         EditorView.editable.of(!isReadOnly),
         EditorState.readOnly.of(isReadOnly),
       ]}

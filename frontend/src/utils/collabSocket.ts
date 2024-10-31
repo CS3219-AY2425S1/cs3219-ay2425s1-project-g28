@@ -8,7 +8,7 @@ import {
   getSyncedVersion,
 } from "@codemirror/collab";
 import { io } from "socket.io-client";
-import { addCursor, Cursor, removeCursor } from "./collabCursor";
+import { updateCursor, Cursor } from "./collabCursor";
 
 // Adapted from https://codemirror.net/examples/collab/ and https://github.com/BjornTheProgrammer/react-codemirror-collab-sockets
 
@@ -57,16 +57,14 @@ const pullUpdates = (version: number): Promise<readonly Update[]> => {
       const effects: StateEffect<any>[] = [];
 
       update.effects?.forEach((effect) => {
-        if (effect.value?.id && effect.value?.from) {
+        if (effect.value?.uid && effect.value?.from) {
           const cursor: Cursor = {
-            id: effect.value.id,
+            uid: effect.value.uid,
+            username: effect.value.username,
             from: effect.value.from,
             to: effect.value.to,
           };
-          effects.push(addCursor.of(cursor));
-        } else if (effect.value?.id) {
-          const cursorId = effect.value.id;
-          effects.push(removeCursor.of(cursorId));
+          effects.push(updateCursor.of(cursor));
         }
       });
 
@@ -147,9 +145,7 @@ export const peerExtension = (startVersion: number, uid: string) => {
       startVersion: startVersion,
       clientID: uid,
       sharedEffects: (transaction) =>
-        transaction.effects.filter(
-          (effect) => effect.is(addCursor) || effect.is(removeCursor)
-        ),
+        transaction.effects.filter((effect) => effect.is(updateCursor)),
     }),
     plugin,
   ];
