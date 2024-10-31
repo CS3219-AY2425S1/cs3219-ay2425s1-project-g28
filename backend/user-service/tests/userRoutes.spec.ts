@@ -2,8 +2,8 @@ import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import { faker } from "@faker-js/faker";
 import supertest from "supertest";
-import app from "../app";
-import UserModel from "../model/user-model";
+import app from "../src/app";
+import UserModel from "../src/model/user-model";
 
 const request = supertest(app);
 
@@ -13,7 +13,7 @@ faker.seed(0);
 
 const mockSendMail = jest.fn();
 
-jest.mock("../middleware/basic-access-control", () => ({
+jest.mock("../src/middleware/basic-access-control", () => ({
   verifyAccessToken: jest.fn((req, res, next) => {
     req.user = {
       id: new mongoose.Types.ObjectId().toHexString(),

@@ -1,6 +1,8 @@
 import http from "http";
 import app, { allowedOrigins } from "./app.ts";
+import { handleWebsocketCollabEvents } from "./handlers/websocketHandler.ts";
 import { Server, Socket } from "socket.io";
+import { connectRedis } from "./config/redis.ts";
 import { ChangeSet, Text } from "@codemirror/state";
 import { Update } from "@codemirror/collab";
 
@@ -18,6 +20,8 @@ export const io = new Server(server, {
 });
 
 io.on("connection", (socket: Socket) => {
+  handleWebsocketCollabEvents(socket);
+
   socket.on("pullUpdates", (version: number) => {
     if (version < updates.length) {
       socket.emit("pullUpdateResponse", JSON.stringify(updates.slice(version)));
@@ -69,4 +73,6 @@ if (process.env.NODE_ENV !== "test") {
   server.listen(PORT, () => {
     console.log(`Collab service server listening on http://localhost:${PORT}`);
   });
+
+  connectRedis();
 }

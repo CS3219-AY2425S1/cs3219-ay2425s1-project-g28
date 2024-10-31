@@ -81,11 +81,17 @@ type MatchContextType = {
   matchingTimeout: () => void;
   matchOfferTimeout: () => void;
   verifyMatchStatus: () => void;
+  getMatchId: () => string | null;
+  handleEndSessionClick: () => void;
+  handleRejectEndSession: () => void;
+  handleConfirmEndSession: () => void;
   matchUser: MatchUser | null;
   matchCriteria: MatchCriteria | null;
   partner: MatchUser | null;
   matchPending: boolean;
   loading: boolean;
+  isEndSessionModalOpen: boolean;
+  questionId: string | null;
 };
 
 const requestTimeoutDuration = 5000;
@@ -110,6 +116,10 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const [partner, setPartner] = useState<MatchUser | null>(null);
   const [matchPending, setMatchPending] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [questionId, setQuestionId] = useState<string | null>(null);
+
+  const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
+    useState<boolean>(false);
 
   const navigator = useContext(UNSAFE_NavigationContext).navigator as History;
 
@@ -269,8 +279,9 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const initMatchedListeners = () => {
-    matchSocket.on(MatchEvents.MATCH_SUCCESSFUL, () => {
+    matchSocket.on(MatchEvents.MATCH_SUCCESSFUL, (id: string) => {
       setMatchPending(false);
+      setQuestionId(id);
       appNavigate(MatchPaths.COLLAB);
     });
 
@@ -291,6 +302,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const initCollabListeners = () => {
     matchSocket.on(MatchEvents.MATCH_ENDED, () => {
       toast.error(MATCH_ENDED_MESSAGE);
+      setIsEndSessionModalOpen(false);
       appNavigate(MatchPaths.HOME);
     });
   };
@@ -356,6 +368,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const stopMatch = () => {
+    setQuestionId(null);
     switch (location.pathname) {
       case MatchPaths.TIMEOUT:
         appNavigate(MatchPaths.HOME);
@@ -476,6 +489,23 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     );
   };
 
+  const getMatchId = () => {
+    return matchId;
+  };
+
+  const handleEndSessionClick = () => {
+    setIsEndSessionModalOpen(true);
+  }
+
+  const handleRejectEndSession = () => {
+    setIsEndSessionModalOpen(false);
+  };
+
+  const handleConfirmEndSession = () => {
+    setIsEndSessionModalOpen(false);
+    stopMatch();
+  };
+
   return (
     <MatchContext.Provider
       value={{
@@ -487,11 +517,17 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         matchingTimeout,
         matchOfferTimeout,
         verifyMatchStatus,
+        getMatchId,
+        handleEndSessionClick,
+        handleRejectEndSession,
+        handleConfirmEndSession,
         matchUser,
         matchCriteria,
         partner,
         matchPending,
         loading,
+        isEndSessionModalOpen,
+        questionId,
       }}
     >
       {children}

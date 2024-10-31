@@ -29,4 +29,6 @@ docker-compose down
 - User Service: http://localhost:3001
 - Question Service: http://localhost:3000
 - Matching Service: http://localhost:3002
+- Collab Service: http://localhost:3003
+- Code Execution Service: http://localhost:3004
 - Frontend: http://localhost:5173

@@ -5,7 +5,7 @@ import yaml from "yaml";
 import fs from "fs";
 import cors from "cors";
 
-import matchingRoutes from "./src/routes/matchingRoutes.ts";
+import matchingRoutes from "./routes/matchingRoutes.ts";
 
 dotenv.config();
 

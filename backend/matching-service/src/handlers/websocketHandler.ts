@@ -7,9 +7,11 @@ import {
   getMatchIdByUid,
   MatchUser,
   getMatchByUid,
+  getMatchById,
 } from "./matchHandler";
-import { io } from "../../server";
+import { io } from "../server";
 import { v4 as uuidv4 } from "uuid";
+import { questionService } from "../utils/api";
 
 enum MatchEvents {
   // Receive
@@ -121,7 +123,18 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
   socket.on(MatchEvents.MATCH_ACCEPT_REQUEST, (matchId: string) => {
     const partnerAccepted = handleMatchAccept(matchId);
     if (partnerAccepted) {
-      io.to(matchId).emit(MatchEvents.MATCH_SUCCESSFUL);
+      const match = getMatchById(matchId);
+      if (!match) {
+        return;
+      }
+
+      const { complexity, category } = match;
+      questionService
+        .get("/random", { params: { complexity, category } })
+        .then((res) => {
+          const { id } = res.data.question;
+          io.to(matchId).emit(MatchEvents.MATCH_SUCCESSFUL, id);
+        });
     }
   });
 

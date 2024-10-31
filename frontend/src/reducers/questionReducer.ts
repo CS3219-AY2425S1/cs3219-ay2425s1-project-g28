@@ -8,10 +8,21 @@ type QuestionDetail = {
   description: string;
   complexity: string;
   categories: Array<string>;
+  pythonTemplate: string;
+  javaTemplate: string;
+  cTemplate: string;
+};
+
+type QuestionListDetail = {
+  id: string;
+  title: string;
+  description: string;
+  complexity: string;
+  categories: Array<string>;
 };
 
 type QuestionList = {
-  questions: Array<QuestionDetail>;
+  questions: Array<QuestionListDetail>;
   questionCount: number;
 };
 
@@ -35,7 +46,7 @@ type QuestionActions = {
 
 type QuestionsState = {
   questionCategories: Array<string>;
-  questions: Array<QuestionDetail>;
+  questions: Array<QuestionListDetail>;
   questionCount: number;
   selectedQuestion: QuestionDetail | null;
   questionCategoriesError: string | null;
@@ -95,6 +106,9 @@ export const createQuestion = async (
         description: question.description,
         complexity: question.complexity,
         category: question.categories,
+        pythonTemplate: question.pythonTemplate,
+        cTemplate: question.cTemplate,
+        javaTemplate: question.javaTemplate,
       },
       {
         headers: {

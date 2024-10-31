@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { faker } from "@faker-js/faker";
 import supertest from "supertest";
-import app from "../app";
+import app from "../src/app";
 import Question from "../src/models/Question";
 import {
   DUPLICATE_QUESTION_MESSAGE,

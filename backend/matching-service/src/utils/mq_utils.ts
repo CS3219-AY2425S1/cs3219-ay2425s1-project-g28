@@ -1,4 +1,4 @@
-import { getPendingRequests } from "../../config/rabbitmq";
+import { getPendingRequests } from "../config/rabbitmq";
 import { createMatch, MatchRequestItem } from "../handlers/matchHandler";
 import { isActiveRequest, isUserConnected } from "../handlers/websocketHandler";
 
@@ -6,6 +6,7 @@ export const matchUsers = (queueName: string, newRequest: string) => {
   const pendingRequests = getPendingRequests(queueName);
   const newRequestJson = JSON.parse(newRequest) as MatchRequestItem;
   const newRequestUid = newRequestJson.user.id;
+  const [complexity, category, language] = queueName.split("_");
 
   for (const [uid, pendingRequest] of pendingRequests) {
     if (
@@ -34,7 +35,7 @@ export const matchUsers = (queueName: string, newRequest: string) => {
     }
 
     pendingRequests.delete(uid);
-    createMatch(pendingRequest, newRequestJson);
+    createMatch(pendingRequest, newRequestJson, complexity, category, language);
     return;
   }
   pendingRequests.set(newRequestUid, newRequestJson);
