@@ -43,24 +43,6 @@ const QuestionFileContainer: React.FC<QuestionFileContainerProps> = ({
     }
 
     setFile(file);
-    console.log(event);
-
-    // const formData = new FormData();
-
-    // if (formData.getAll("images[]").length === 0) {
-    //   return;
-    // }
-
-    // createImageUrls(formData).then((res) => {
-    //   if (res) {
-    //     for (const imageUrl of res.imageUrls) {
-    //       setUploadedImagesUrl((prev) => [...prev, imageUrl]);
-    //     }
-    //     toast.success(SUCCESS_FILE_UPLOAD);
-    //   } else {
-    //     toast.error(FAILED_FILE_UPLOAD);
-    //   }
-    // });
   };
 
   return (

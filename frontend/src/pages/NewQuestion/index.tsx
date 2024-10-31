@@ -95,27 +95,30 @@ const NewQuestion = () => {
       return;
     }
 
-    // const result = await createQuestion(
-    //   {
-    //     title,
-    //     description: markdownText,
-    //     complexity: selectedComplexity,
-    //     categories: selectedCategories,
-    //     pythonTemplate: codeTemplates.python,
-    //     javaTemplate: codeTemplates.java,
-    //     cTemplate: codeTemplates.c,
-    //   },
-    //   dispatch
-    // );
+    const result = await createQuestion(
+      {
+        title,
+        description: markdownText,
+        complexity: selectedComplexity,
+        categories: selectedCategories,
+        testcases: testCases,
+        pythonTemplate: codeTemplates.python,
+        javaTemplate: codeTemplates.java,
+        cTemplate: codeTemplates.c,
+      },
+      {
+        testcaseInputFile: testcaseInputFile,
+        testcaseOutputFile: testcaseOutputFile,
+      },
+      dispatch
+    );
 
-    // if (result) {
-    //   navigate("/questions");
-    //   toast.success(SUCCESS_QUESTION_CREATE);
-    // } else {
-    //   toast.error(state.selectedQuestionError || FAILED_QUESTION_CREATE);
-    // }
-
-    console.log("successfully submit");
+    if (result) {
+      navigate("/questions");
+      toast.success(SUCCESS_QUESTION_CREATE);
+    } else {
+      toast.error(state.selectedQuestionError || FAILED_QUESTION_CREATE);
+    }
   };
 
   return (

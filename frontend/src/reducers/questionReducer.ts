@@ -2,12 +2,24 @@ import { Dispatch } from "react";
 import { questionClient } from "../utils/api";
 import { isString, isStringArray } from "../utils/typeChecker";
 
+type TestcaseFiles = {
+  testcaseInputFile: File;
+  testcaseOutputFile: File;
+};
+
+type Testcases = {
+  id: string;
+  input: string;
+  expectedOutput: string;
+};
+
 type QuestionDetail = {
   id: string;
   title: string;
   description: string;
   complexity: string;
   categories: Array<string>;
+  testcases: Array<Testcases>;
   pythonTemplate: string;
   javaTemplate: string;
   cTemplate: string;
@@ -93,10 +105,50 @@ export const initialState: QuestionsState = {
   selectedQuestionError: null,
 };
 
+export const uploadTestcaseFiles = async (
+  data: TestcaseFiles
+): Promise<{
+  message: string;
+  urls: {
+    testcaseInputFileUrl: string;
+    testcaseOutputFileUrl: string;
+  };
+} | null> => {
+  const formData = new FormData();
+  formData.append("testcaseInputFile", data.testcaseInputFile);
+  formData.append("testcaseOutputFile", data.testcaseOutputFile);
+
+  try {
+    const accessToken = localStorage.getItem("token");
+    const res = await questionClient.post("/tcfiles", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return res.data;
+  } catch {
+    return null;
+  }
+};
+
 export const createQuestion = async (
   question: Omit<QuestionDetail, "id">,
+  testcaseFiles: TestcaseFiles,
   dispatch: Dispatch<QuestionActions>
 ): Promise<boolean> => {
+  const uploadResult = await uploadTestcaseFiles(testcaseFiles);
+
+  if (!uploadResult) {
+    dispatch({
+      type: QuestionActionTypes.ERROR_CREATING_QUESTION,
+      payload: "Failed to upload test case files.",
+    });
+    return false;
+  }
+
+  const { testcaseInputFileUrl, testcaseOutputFileUrl } = uploadResult.urls;
+
   const accessToken = localStorage.getItem("token");
   return questionClient
     .post(
@@ -106,6 +158,9 @@ export const createQuestion = async (
         description: question.description,
         complexity: question.complexity,
         category: question.categories,
+        testcases: question.testcases,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
         pythonTemplate: question.pythonTemplate,
         cTemplate: question.cTemplate,
         javaTemplate: question.javaTemplate,
@@ -124,6 +179,8 @@ export const createQuestion = async (
       return true;
     })
     .catch((err) => {
+      console.log(err.response?.data.message || err.message);
+
       dispatch({
         type: QuestionActionTypes.ERROR_CREATING_QUESTION,
         payload: err.response?.data.message || err.message,

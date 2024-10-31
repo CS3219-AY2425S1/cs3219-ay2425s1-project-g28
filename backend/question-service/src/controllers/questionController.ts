@@ -20,9 +20,11 @@ import {
   MONGO_OBJ_ID_MALFORMED_MESSAGE,
 } from "../utils/constants.ts";
 
-import { upload } from "../config/multer.ts";
+import { upload, uploadTestcaseFiles } from "../config/multer.ts";
 import { uploadFileToFirebase } from "../utils/utils";
 import { QnListSearchFilterParams, RandomQnCriteria } from "../utils/types.ts";
+
+const FIREBASE_TESTCASE_FILES_FOLDER_NAME = "testcaseFiles/";
 
 export const createQuestion = async (
   req: Request,
@@ -34,6 +36,9 @@ export const createQuestion = async (
       description,
       complexity,
       category,
+      testcases,
+      testcaseInputFileUrl,
+      testcaseOutputFileUrl,
       pythonTemplate,
       javaTemplate,
       cTemplate,
@@ -59,6 +64,9 @@ export const createQuestion = async (
       description,
       complexity,
       category,
+      testcases,
+      testcaseInputFileUrl,
+      testcaseOutputFileUrl,
     });
 
     await newQuestion.save();
@@ -77,6 +85,7 @@ export const createQuestion = async (
       question: formatQuestionIndivResponse(newQuestion, newQuestionTemplate),
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
   }
 };
@@ -104,6 +113,59 @@ export const createImageLink = async (
       return res
         .status(200)
         .json({ message: "Images uploaded successfully", imageUrls });
+    } catch (error) {
+      return res.status(500).json({ message: "Server error", error });
+    }
+  });
+};
+
+export const createFileLink = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  uploadTestcaseFiles(req, res, async (err) => {
+    if (err) {
+      return res.status(500).json({
+        message: "Failed to upload testcase files",
+        error: err.message,
+      });
+    }
+
+    const tcFiles = req.files as {
+      testcaseInputFile?: Express.Multer.File[];
+      testcaseOutputFile?: Express.Multer.File[];
+    };
+
+    if (!tcFiles || !tcFiles.testcaseInputFile || !tcFiles.testcaseOutputFile) {
+      return res
+        .status(400)
+        .json({ message: "Missing one or both testcase file(s)" });
+    }
+
+    try {
+      const testcaseInputFile = tcFiles
+        .testcaseInputFile[0] as Express.Multer.File;
+      const testcaseOutputFile = tcFiles
+        .testcaseOutputFile[0] as Express.Multer.File;
+
+      const [tcInputFileUrl, tcOutputFileUrl] = await Promise.all([
+        uploadFileToFirebase(
+          testcaseInputFile,
+          FIREBASE_TESTCASE_FILES_FOLDER_NAME,
+        ),
+        uploadFileToFirebase(
+          testcaseOutputFile,
+          FIREBASE_TESTCASE_FILES_FOLDER_NAME,
+        ),
+      ]);
+
+      return res.status(200).json({
+        message: "Files uploaded successfully",
+        urls: {
+          testcaseInputFileUrl: tcInputFileUrl,
+          testcaseOutputFileUrl: tcOutputFileUrl,
+        },
+      });
     } catch (error) {
       return res.status(500).json({ message: "Server error", error });
     }
