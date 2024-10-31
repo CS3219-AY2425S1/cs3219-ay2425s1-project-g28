@@ -9,7 +9,7 @@ const ServerError: React.FC<ServerErrorProps> = (props) => {
 
   return (
     <AppMargin classname={`${classes.fullheight} ${classes.center}`}>
-      <Box>
+      <Box sx={(theme) => ({marginTop: theme.spacing(4) })}>
         <Typography
           component={"h1"}
           variant="h3"

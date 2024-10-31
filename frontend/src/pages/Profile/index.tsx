@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import AppMargin from "../../components/AppMargin";
 import ProfileDetails from "../../components/ProfileDetails";
 import { Box, Button, Divider, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from "@mui/material";
@@ -22,6 +22,7 @@ const rowsPerPage = 10;
 const ProfilePage: React.FC = () => {
   const [page, setPage] = useState<number>(0);
   const [state, dispatch] = useReducer(qnHistoryReducer, initialQHState);
+  const navigate = useNavigate();
 
   const { userId } = useParams<{ userId: string }>();
   const auth = useAuth();
@@ -52,7 +53,7 @@ const ProfilePage: React.FC = () => {
 
     fetchUser(userId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userId]);
 
   const updateQnHistoryList = () => {
     if (userId) {
@@ -160,15 +161,22 @@ const ProfilePage: React.FC = () => {
                       textOverflow: "ellipsis",
                     }}
                   >
-                    <Typography
-                      component="span"
-                      sx={{
-                        "&:hover": { cursor: "pointer", color: "primary.main" },
-                      }}
-                      onClick={() => {}}
-                    >
-                      {qnHistory.title}
-                    </Typography>
+                    {isCurrentUser
+                      ? <Typography
+                          component="span"
+                          sx={{
+                            "&:hover": { cursor: "pointer", color: "primary.main" },
+                          }}
+                          onClick={() => navigate(`${qnHistory.id}`)}
+                        >
+                          {qnHistory.title}
+                        </Typography>
+                      : <Typography
+                          component="span"
+                        >
+                          {qnHistory.title}
+                        </Typography>
+                    }
                   </TableCell>
                   <TableCell
                     sx={{
@@ -216,6 +224,17 @@ const ProfilePage: React.FC = () => {
             page={page}
             onPageChange={(_, page) => setPage(page)}
           />
+          {state.qnHistories.length === 0 && (
+            <Stack
+              direction="column"
+              spacing={1}
+              sx={{ alignItems: "center", fontStyle: "italic" }}
+            >
+              <Typography>
+                There are currently no records.
+              </Typography>
+            </Stack>
+          )}
         </Box>
         {editProfileOpen && (
           <EditProfileModal

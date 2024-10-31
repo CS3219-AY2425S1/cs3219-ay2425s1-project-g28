@@ -8,6 +8,7 @@ export interface IQnHistory extends Document {
   dateAttempted: Date;
   timeTaken: Number;
   code: string;
+  language: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +26,11 @@ const qnHistorySchema: Schema<IQnHistory> = new mongoose.Schema(
     dateAttempted: { type: Date, required: true },
     timeTaken: { type: Number, required: true },
     code: { type: String, required: false, default: "" },
+    language: {
+      type: String,
+      enum: ["Python", "Java", "C"],
+      required: true,
+    },
   },
   { timestamps: true }
 );

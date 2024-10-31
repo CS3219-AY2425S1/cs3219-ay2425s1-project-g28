@@ -130,7 +130,7 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
           return;
         }
 
-        const { complexity, category } = match;
+        const { complexity, category, language } = match;
         questionService
           .get("/random", { params: { complexity, category } })
           .then((res) => {
@@ -143,6 +143,7 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
                 submissionStatus: "Attempted",
                 dateAttempted: new Date(),
                 timeTaken: 0,
+                language: language,
               })
               .then((res) => {
                 io.to(matchId).emit(

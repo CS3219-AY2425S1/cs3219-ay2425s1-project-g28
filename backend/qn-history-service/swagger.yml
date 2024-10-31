@@ -32,6 +32,9 @@ components:
         code:
           type: string
           description: Code submitted
+        language:
+          type: string
+          description: Programming language used
 
 definitions:
   QnHistory:
@@ -64,6 +67,9 @@ definitions:
       code:
         type: string
         description: Code submitted
+      language:
+        type: string
+        description: Programming language used
       createdAt:
         type: string
         description: Date of creation

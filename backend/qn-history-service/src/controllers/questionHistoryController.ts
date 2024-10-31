@@ -24,15 +24,8 @@ export const createQnHistory = async (
       submissionStatus,
       dateAttempted,
       timeTaken,
+      language,
     } = req.body;
-    console.log(
-      userIds,
-      questionId,
-      title,
-      submissionStatus,
-      dateAttempted,
-      timeTaken
-    );
 
     const newQnHistory = new QnHistory({
       userIds,
@@ -41,6 +34,7 @@ export const createQnHistory = async (
       submissionStatus,
       dateAttempted,
       timeTaken,
+      language,
     });
 
     await newQnHistory.save();
@@ -191,5 +185,6 @@ const formatQnHistoryResponse = (qnHistory: IQnHistory) => {
     dateAttempted: qnHistory.dateAttempted,
     timeTaken: qnHistory.timeTaken,
     code: qnHistory.code,
+    language: qnHistory.language,
   };
 };

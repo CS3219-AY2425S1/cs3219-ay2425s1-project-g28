@@ -98,6 +98,23 @@ services:
     restart: on-failure
     command: ["npm", "test"]
 
+  test-qn-history-service:
+    image: peerprep/qn-history-service
+    build: ./backend/qn-history-service
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3005
+      - MONGO_URI_TEST=mongodb://mongo:mongo@test-mongo:27017/
+    depends_on:
+      - test-mongo
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/qn-history-service:/qn-history-service
+      - /qn-history-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
   test-frontend:
     image: peerprep/frontend
     build: ./frontend

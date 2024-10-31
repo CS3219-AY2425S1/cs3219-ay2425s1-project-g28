@@ -11,6 +11,7 @@ type QnHistoryDetail = {
   dateAttempted: string;
   timeTaken: number;
   code: string;
+  language: string;
 };
 
 type QnHistoryList = {
@@ -59,7 +60,8 @@ const isQnHistory = (qnHistory: any): qnHistory is QnHistoryDetail => {
       "[object Date]" &&
     !isNaN(new Date(qnHistory.dateAttempted).getTime()) &&
     typeof qnHistory.timeTaken === "number" &&
-    isString(qnHistory.code)
+    isString(qnHistory.code) &&
+    isString(qnHistory.language)
   );
 };
 
@@ -93,24 +95,16 @@ export const createQnHistory = async (
   qnHistory: Omit<QnHistoryDetail, "id" | "code">,
   dispatch: Dispatch<QnHistoryActions>
 ): Promise<string> => {
-  const accessToken = localStorage.getItem("token");
   return qnHistoryClient
-    .post(
-      "/",
-      {
-        userIds: qnHistory.userIds,
-        questionId: qnHistory.questionId,
-        title: qnHistory.title,
-        submissionStatus: qnHistory.submissionStatus,
-        dateAttempted: qnHistory.dateAttempted,
-        timeTaken: qnHistory.timeTaken,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    )
+    .post("/", {
+      userIds: qnHistory.userIds,
+      questionId: qnHistory.questionId,
+      title: qnHistory.title,
+      submissionStatus: qnHistory.submissionStatus,
+      dateAttempted: qnHistory.dateAttempted,
+      timeTaken: qnHistory.timeTaken,
+      language: qnHistory.language,
+    })
     .then((res) => {
       dispatch({
         type: QnHistoryActionTypes.CREATE_QNHIST,
@@ -178,25 +172,19 @@ export const getQnHistoryById = (
 
 export const updateQnHistoryById = async (
   qnHistoryId: string,
-  qnHistory: Omit<QnHistoryDetail, "id" | "userIds" | "questionId" | "title">,
+  qnHistory: Omit<
+    QnHistoryDetail,
+    "id" | "userIds" | "questionId" | "title" | "language"
+  >,
   dispatch: Dispatch<QnHistoryActions>
 ): Promise<boolean> => {
-  const accessToken = localStorage.getItem("token");
   return qnHistoryClient
-    .put(
-      `/${qnHistoryId}`,
-      {
-        submissionStatus: qnHistory.submissionStatus,
-        dateAttempted: qnHistory.dateAttempted,
-        timeTaken: qnHistory.timeTaken,
-        code: qnHistory.code,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    )
+    .put(`/${qnHistoryId}`, {
+      submissionStatus: qnHistory.submissionStatus,
+      dateAttempted: qnHistory.dateAttempted,
+      timeTaken: qnHistory.timeTaken,
+      code: qnHistory.code,
+    })
     .then((res) => {
       dispatch({
         type: QnHistoryActionTypes.UPDATE_QNHIST,
@@ -215,12 +203,7 @@ export const updateQnHistoryById = async (
 
 export const deleteQuestionById = async (qnHistoryId: string) => {
   try {
-    const accessToken = localStorage.getItem("token");
-    await qnHistoryClient.delete(`/${qnHistoryId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    await qnHistoryClient.delete(`/${qnHistoryId}`);
     return true;
   } catch {
     return false;
