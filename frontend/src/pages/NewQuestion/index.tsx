@@ -30,7 +30,7 @@ import QuestionTestCases, {
   TestCase,
 } from "../../components/QuestionTestCases";
 import { v4 as uuidv4 } from "uuid";
-import QuestionFileContainer from "../../components/QuestionFileContainer";
+import QuestionTestCasesFileUpload from "../../components/QuestionTestCasesFileUpload";
 
 const NewQuestion = () => {
   const navigate = useNavigate();
@@ -49,6 +49,10 @@ const NewQuestion = () => {
   const [testCases, setTestCases] = useState<TestCase[]>([
     { id: uuidv4(), input: "", expectedOutput: "" },
   ]);
+  const [testcaseInputFile, setTestcaseInputFile] = useState<File | null>(null);
+  const [testcaseOutputFile, setTestcaseOutputFile] = useState<File | null>(
+    null
+  );
 
   const [pythonTemplate, setPythonTemplate] = useState<string>("");
   const [javaTemplate, setJavaTemplate] = useState<string>("");
@@ -77,7 +81,9 @@ const NewQuestion = () => {
       testCases.some(
         (testCase) =>
           testCase.input.trim() === "" || testCase.expectedOutput.trim() === ""
-      )
+      ) ||
+      testcaseInputFile === null ||
+      testcaseOutputFile === null
     ) {
       toast.error(FILL_ALL_FIELDS);
       return;
@@ -162,18 +168,12 @@ const NewQuestion = () => {
             setTestCases={setTestCases}
           />
 
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <QuestionFileContainer
-              fileUploadMessage={`Click to upload text file for test case inputs`}
-            />
-            <QuestionFileContainer
-              fileUploadMessage={`Click to upload text file for test case expected outputs`}
-            />
-          </Stack>
+          <QuestionTestCasesFileUpload
+            testcaseInputFile={testcaseInputFile}
+            setTestcaseInputFile={setTestcaseInputFile}
+            testcaseOutputFile={testcaseOutputFile}
+            setTestcaseOutputFile={setTestcaseOutputFile}
+          />
 
           {/* for the FE ppl to redesign... */}
           <input

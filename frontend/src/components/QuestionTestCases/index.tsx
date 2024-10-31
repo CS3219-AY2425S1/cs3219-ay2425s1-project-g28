@@ -55,7 +55,7 @@ const QuestionTestCases: React.FC<QuestionTestCasesProps> = ({
   };
 
   return (
-    <Box marginY={2}>
+    <Box marginTop={2}>
       {testCases.map((testCase, i) => (
         <Box
           key={testCase.id}
