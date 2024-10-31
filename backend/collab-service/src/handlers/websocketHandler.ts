@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
-import { io } from "../../server";
-import redisClient from "../../config/redis";
+import { io } from "../server";
+import redisClient from "../config/redis";
 
 enum CollabEvents {
   // Receive

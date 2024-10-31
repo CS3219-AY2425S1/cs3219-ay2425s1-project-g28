@@ -34,7 +34,13 @@ jobs:
     strategy:
       matrix:
         service:
-          [question-service, user-service, matching-service, collab-service]
+          [
+            question-service,
+            user-service,
+            matching-service,
+            collab-service,
+            code-execution-service,
+          ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -55,4 +61,5 @@ jobs:
           FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
           FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          ONE_COMPILER_KEY: ${{ secrets.ONE_COMPILER_KEY }}
         run: docker compose -f docker-compose-test.yml run --rm test-${{ matrix.service }}

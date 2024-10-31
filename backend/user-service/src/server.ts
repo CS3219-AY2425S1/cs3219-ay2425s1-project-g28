@@ -1,7 +1,7 @@
 import http from "http";
 import index from "./app.ts";
 import dotenv from "dotenv";
-import { connectToDB } from "./model/repository";
+import { connectToDB } from "./model/repository.ts";
 import { seedAdminAccount } from "./scripts/seed.ts";
 import { connectRedis } from "./config/redis.ts";
 

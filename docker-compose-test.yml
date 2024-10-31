@@ -83,6 +83,21 @@ services:
     restart: on-failure
     command: ["npm", "test"]
 
+  test-code-execution-service:
+    image: peerprep/code-execution-service
+    build: ./backend/code-execution-service
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3004
+      - ONE_COMPILER_KEY
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/code-execution-service:/code-execution-service
+      - /code-execution-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
   test-frontend:
     image: peerprep/frontend
     build: ./frontend

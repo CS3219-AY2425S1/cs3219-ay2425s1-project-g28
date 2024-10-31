@@ -13,7 +13,7 @@ const CollabSessionControls: React.FC = () => {
   const [time, setTime] = useState<number>(0);
 
   useEffect(() => {
-    let intervalId = setInterval(
+    const intervalId = setInterval(
       () => setTime((prevTime) => prevTime + 1),
       1000
     );
