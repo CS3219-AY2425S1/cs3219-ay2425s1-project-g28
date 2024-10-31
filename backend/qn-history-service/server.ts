@@ -1,7 +1,7 @@
 import app from "./app.ts";
 import connectDB from "./config/db.ts";
 
-const PORT = process.env.SERVICE_PORT || 3005;
+const PORT = process.env.SERVICE_PORT || 3006;
 
 if (process.env.NODE_ENV !== "test") {
   connectDB()

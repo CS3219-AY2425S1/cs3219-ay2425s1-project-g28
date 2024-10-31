@@ -103,7 +103,7 @@ services:
     build: ./backend/qn-history-service
     environment:
       - NODE_ENV=test
-      - SERVICE_PORT=3005
+      - SERVICE_PORT=3006
       - MONGO_URI_TEST=mongodb://mongo:mongo@test-mongo:27017/
     depends_on:
       - test-mongo

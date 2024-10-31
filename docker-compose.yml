@@ -92,7 +92,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
     env_file: ./backend/qn-history-service/.env
     ports:
-      - 3005:3005
+      - 3006:3006
     depends_on:
       - qn-history-service-mongo
       - user-service

@@ -24,6 +24,6 @@
 
 ## After running
 
-1. To view Question History Service documentation, go to http://localhost:3005/docs.
+1. To view Question History Service documentation, go to http://localhost:3006/docs.
 
-2. Using applications like Postman, you can interact with the Question History Service on port 3005. If you wish to change this, please update the `.env` file.
+2. Using applications like Postman, you can interact with the Question History Service on port 3006. If you wish to change this, please update the `.env` file.
