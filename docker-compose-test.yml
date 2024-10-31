@@ -98,6 +98,20 @@ services:
     restart: on-failure
     command: ["npm", "test"]
 
+  test-communication-service:
+    image: peerprep/communication-service
+    build: ./backend/communication-service
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3005
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/communication-service:/communication-service
+      - /communication-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
   test-frontend:
     image: peerprep/frontend
     build: ./frontend

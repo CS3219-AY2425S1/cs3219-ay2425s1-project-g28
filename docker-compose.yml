@@ -85,6 +85,21 @@ services:
       - /code-execution-service/node_modules
     restart: on-failure
 
+  communication-service:
+    image: peerprep/communication-service
+    build: ./backend/communication-service
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    env_file: ./backend/communication-service/.env
+    ports:
+      - 3005:3005
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/communication-service:/communication-service
+      - /communication-service/node_modules
+    restart: on-failure
+
   frontend:
     image: peerprep/frontend
     build: ./frontend
