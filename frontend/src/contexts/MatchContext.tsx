@@ -18,6 +18,9 @@ import useAppNavigate from "../components/UseAppNavigate";
 import { UNSAFE_NavigationContext } from "react-router-dom";
 import { Action, type History, type Transition } from "history";
 
+let matchUserId: string;
+let partnerUserId: string;
+
 type MatchUser = {
   id: string;
   username: string;
@@ -92,6 +95,7 @@ type MatchContextType = {
   loading: boolean;
   isEndSessionModalOpen: boolean;
   questionId: string | null;
+  qnHistoryId: string | null;
 };
 
 const requestTimeoutDuration = 5000;
@@ -117,6 +121,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const [matchPending, setMatchPending] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [questionId, setQuestionId] = useState<string | null>(null);
+  const [qnHistoryId, setQnHistoryId] = useState<string | null>(null);
 
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
     useState<boolean>(false);
@@ -130,8 +135,10 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         username: user.username,
         profile: user.profilePictureUrl,
       });
+      matchUserId = user.id;
     } else {
       setMatchUser(null);
+      matchUserId = "";
     }
   }, [user]);
 
@@ -185,6 +192,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     }
     setMatchId(null);
     setPartner(null);
+    partnerUserId = "";
     setMatchPending(false);
     setLoading(false);
   };
@@ -279,10 +287,11 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const initMatchedListeners = () => {
-    matchSocket.on(MatchEvents.MATCH_SUCCESSFUL, (id: string) => {
+    matchSocket.on(MatchEvents.MATCH_SUCCESSFUL, (qnId: string, qnHistId: string) => {
       setMatchPending(false);
       appNavigate(MatchPaths.COLLAB);
-      setQuestionId(id);
+      setQuestionId(qnId);
+      setQnHistoryId(qnHistId);
     });
 
     matchSocket.on(MatchEvents.MATCH_UNSUCCESSFUL, () => {
@@ -314,8 +323,10 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     setMatchId(matchId);
     if (matchUser?.id === user1.id) {
       setPartner(user2);
+      partnerUserId = user2.id;
     } else {
       setPartner(user1);
+      partnerUserId = user1.id;
     }
     setMatchPending(true);
     appNavigate(MatchPaths.MATCHED);
@@ -395,7 +406,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const acceptMatch = () => {
-    matchSocket.emit(MatchEvents.MATCH_ACCEPT_REQUEST, matchId);
+    matchSocket.emit(MatchEvents.MATCH_ACCEPT_REQUEST, matchId, matchUserId, partnerUserId);
   };
 
   const rematch = () => {
@@ -430,6 +441,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         if (requested) {
           appNavigate(MatchPaths.MATCHING);
           setPartner(null);
+          partnerUserId = "";
         }
       }
     );
@@ -479,9 +491,11 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         if (match) {
           setMatchId(match.matchId);
           setPartner(match.partner);
+          partnerUserId = match.partner.id;
         } else {
           setMatchId(null);
           setPartner(null);
+          partnerUserId = "";
         }
         setLoading(false);
       }
@@ -527,6 +541,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         loading,
         isEndSessionModalOpen,
         questionId,
+        qnHistoryId,
       }}
     >
       {children}
