@@ -75,6 +75,7 @@ const QuestionHistoryDetail: React.FC = () => {
       <IconButton  sx={{marginTop: 2}} onClick={() => navigate(-1)}>
         <ArrowBack />
       </IconButton>
+      <Typography variant="h2" style={{marginTop: 20, marginBottom: 20}}>Latest submission details</Typography>
       { user && qnhistState.selectedQnHistory &&
       <TableContainer>
         <Table
