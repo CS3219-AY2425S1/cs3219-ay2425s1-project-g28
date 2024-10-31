@@ -31,6 +31,7 @@ import QuestionTestCases, {
 } from "../../components/QuestionTestCases";
 import { v4 as uuidv4 } from "uuid";
 import QuestionTestCasesFileUpload from "../../components/QuestionTestCasesFileUpload";
+import QuestionCodeTemplates from "../../components/QuestionCodeTemplates";
 
 const NewQuestion = () => {
   const navigate = useNavigate();
@@ -54,9 +55,13 @@ const NewQuestion = () => {
     null
   );
 
-  const [pythonTemplate, setPythonTemplate] = useState<string>("");
-  const [javaTemplate, setJavaTemplate] = useState<string>("");
-  const [cTemplate, setCTemplate] = useState<string>("");
+  const [codeTemplates, setCodeTemplates] = useState<{ [key: string]: string }>(
+    {
+      python: "",
+      java: "",
+      c: "",
+    }
+  );
 
   const handleBack = () => {
     if (
@@ -83,7 +88,8 @@ const NewQuestion = () => {
           testCase.input.trim() === "" || testCase.expectedOutput.trim() === ""
       ) ||
       testcaseInputFile === null ||
-      testcaseOutputFile === null
+      testcaseOutputFile === null ||
+      Object.values(codeTemplates).some((value) => value === "")
     ) {
       toast.error(FILL_ALL_FIELDS);
       return;
@@ -95,9 +101,9 @@ const NewQuestion = () => {
     //     description: markdownText,
     //     complexity: selectedComplexity,
     //     categories: selectedCategories,
-    //     pythonTemplate,
-    //     javaTemplate,
-    //     cTemplate,
+    //     pythonTemplate: codeTemplates.python,
+    //     javaTemplate: codeTemplates.java,
+    //     cTemplate: codeTemplates.c,
     //   },
     //   dispatch
     // );
@@ -175,21 +181,9 @@ const NewQuestion = () => {
             setTestcaseOutputFile={setTestcaseOutputFile}
           />
 
-          {/* for the FE ppl to redesign... */}
-          <input
-            placeholder="Python Template"
-            value={pythonTemplate}
-            onChange={(e) => setPythonTemplate(e.target.value)}
-          />
-          <input
-            placeholder="Java Template"
-            value={javaTemplate}
-            onChange={(e) => setJavaTemplate(e.target.value)}
-          />
-          <input
-            placeholder="C Template"
-            value={cTemplate}
-            onChange={(e) => setCTemplate(e.target.value)}
+          <QuestionCodeTemplates
+            codeTemplates={codeTemplates}
+            setCodeTemplates={setCodeTemplates}
           />
         </>
       )}

@@ -116,4 +116,5 @@ export const COLLABORATIVE_EDITOR_PATH = "/collaborative_editor.png";
 
 /* Tooltips */
 export const ADD_QUESTION_TEST_CASE_TOOLTIP_MESSAGE = `Add at least 1 and at most 3 test cases. <br /> This will be displayed to users.`;
-export const ADD_TEST_CASE_FILES_TOOLTIP_MESSAGE = `Upload files for executing test cases when user submits code. <br /><br /> This is a required field. Only text files accepted.`;
+export const ADD_TEST_CASE_FILES_TOOLTIP_MESSAGE = `Upload files for executing test cases backend when user submits code. <br /><br /> This is a required field. <br /> Only text files accepted.`;
+export const CODE_TEMPLATES_TOOLTIP_MESSAGE = `This is a required field. <br /> Fill in a code template for each language.`;

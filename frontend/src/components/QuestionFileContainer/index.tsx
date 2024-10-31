@@ -1,6 +1,5 @@
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import { Button, styled } from "@mui/material";
-import { useState } from "react";
 import { toast } from "react-toastify";
 
 interface QuestionFileContainerProps {
