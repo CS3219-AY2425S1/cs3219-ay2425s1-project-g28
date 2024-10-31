@@ -1,30 +1,32 @@
 import CodeMirror from "@uiw/react-codemirror";
 import { langs } from "@uiw/codemirror-extensions-langs";
 import { basicSetup } from "@uiw/codemirror-extensions-basic-setup";
+import { EditorView } from "@codemirror/view";
+import { EditorState } from "@codemirror/state";
 import { useEffect, useState } from "react";
 import {
-  collabSocket,
   getDocument,
   peerExtension,
+  removeListeners,
 } from "../../utils/collabSocket";
 import Loader from "../Loader";
 import { cursorExtension } from "../../utils/collabCursor";
 
 interface CodeEditorProps {
+  uid: string;
   username: string;
+  isReadOnly?: boolean;
 }
 
-type EditorState = {
-  connected: boolean;
+type CodeEditorState = {
   version: number | null;
   doc: string | null;
 };
 
 const CodeEditor: React.FC<CodeEditorProps> = (props) => {
-  const { username } = props;
+  const { uid, username, isReadOnly = false } = props;
 
-  const [editorState, setEditorState] = useState<EditorState>({
-    connected: false,
+  const [codeEditorState, setCodeEditorState] = useState<CodeEditorState>({
     version: null,
     doc: null,
   });
@@ -33,24 +35,9 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     const fetchDocument = async () => {
       try {
         const { version, doc } = await getDocument();
-        setEditorState((prevState) => ({
-          ...prevState,
+        setCodeEditorState({
           version: version,
           doc: doc.toString(),
-        }));
-
-        collabSocket.on("connect", () => {
-          setEditorState((prevState) => ({
-            ...prevState,
-            connected: true,
-          }));
-        });
-
-        collabSocket.on("disconnect", () => {
-          setEditorState((prevState) => ({
-            ...prevState,
-            connected: false,
-          }));
         });
       } catch (error) {
         console.error("Error fetching document: ", error);
@@ -59,16 +46,10 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
 
     fetchDocument();
 
-    return () => {
-      collabSocket.off("connect");
-      collabSocket.off("disconnect");
-      collabSocket.off("pullUpdateResponse");
-      collabSocket.off("pushUpdateResponse");
-      collabSocket.off("getDocumentResponse");
-    };
+    return () => removeListeners();
   }, []);
 
-  if (editorState.version === null || editorState.doc === null) {
+  if (codeEditorState.version === null || codeEditorState.doc === null) {
     return <Loader />;
   }
 
@@ -81,11 +62,12 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       extensions={[
         basicSetup(),
         langs.c(),
-        // peerExtension(editorState.version),
-        peerExtension(editorState.version, username),
+        peerExtension(codeEditorState.version, uid),
         cursorExtension(username),
+        EditorView.editable.of(!isReadOnly),
+        EditorState.readOnly.of(isReadOnly),
       ]}
-      value={editorState.doc}
+      value={codeEditorState.doc}
     />
   );
 };

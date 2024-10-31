@@ -6,6 +6,8 @@ import {
 } from "@codemirror/view";
 import { StateField, StateEffect } from "@codemirror/state";
 
+// Adapted from https://github.com/BjornTheProgrammer/react-codemirror-collab-sockets
+
 export interface Cursor {
   id: string;
   from: number;
@@ -191,7 +193,7 @@ const cursorBaseTheme = EditorView.baseTheme({
   },
 });
 
-export const cursorExtension = (id: string = "") => {
+export const cursorExtension = (username: string) => {
   return [
     cursorField,
     cursorBaseTheme,
@@ -199,7 +201,7 @@ export const cursorExtension = (id: string = "") => {
       update.transactions.forEach((e) => {
         if (e.selection) {
           const cursor: Cursor = {
-            id,
+            id: username,
             from: e.selection.ranges[0].from,
             to: e.selection.ranges[0].to,
           };

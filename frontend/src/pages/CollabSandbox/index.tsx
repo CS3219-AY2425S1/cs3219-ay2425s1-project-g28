@@ -100,9 +100,6 @@ const CollabSandbox: React.FC = () => {
 
   return (
     <AppMargin classname={`${classes.fullheight} ${classes.flex}`}>
-      {/* <Stack spacing={2} alignItems={"center"}>
-        <Typography variant="h1">Successfully matched!</Typography>
-      </Stack> */}
       <Dialog
         sx={{
           "& .MuiDialog-paper": {
@@ -164,7 +161,7 @@ const CollabSandbox: React.FC = () => {
             sx={{ display: "flex", flexDirection: "column", height: "100%" }}
           >
             <Box sx={{ flex: 1 }}>
-              <CodeEditor username={matchUser.username} />
+              <CodeEditor uid={matchUser.id} username={matchUser.username} />
             </Box>
             <Box sx={{ flex: 1 }}>Test cases and chat tabs</Box>
           </Box>

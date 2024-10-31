@@ -10,61 +10,69 @@ import {
 import { io } from "socket.io-client";
 import { addCursor, Cursor, removeCursor } from "./collabCursor";
 
-export const collabSocket = io("http://localhost:3003");
+// Adapted from https://codemirror.net/examples/collab/ and https://github.com/BjornTheProgrammer/react-codemirror-collab-sockets
+
+enum CollabEvents {
+  // Send
+  PUSH_UPDATES = "push_updates",
+  PULL_UPDATES = "pull_updates",
+  GET_DOCUMENT = "get_document",
+
+  // Receive
+  PULL_UPDATES_RESPONSE = "pull_updates_response",
+  GET_DOCUMENT_RESPONSE = "get_document_response",
+}
+
+const collabSocket = io("http://localhost:3003");
 
 const pushUpdates = (
   version: number,
   fullUpdates: readonly Update[]
-): Promise<boolean> => {
-  const updates = fullUpdates.map((u) => ({
-    clientID: u.clientID,
-    changes: u.changes.toJSON(),
-    effects: u.effects, // cursor
+): Promise<void> => {
+  const updates = fullUpdates.map((update) => ({
+    clientID: update.clientID, // client who made the update
+    changes: update.changes.toJSON(), // document updates
+    effects: update.effects, // cursor updates
   }));
 
-  return new Promise(function (resolve) {
-    collabSocket.emit("pushUpdates", version, JSON.stringify(updates));
-
-    collabSocket.once("pushUpdateResponse", (status: boolean) => {
-      resolve(status);
-    });
+  return new Promise((resolve) => {
+    collabSocket.emit(
+      CollabEvents.PUSH_UPDATES,
+      version,
+      JSON.stringify(updates),
+      () => resolve()
+    );
   });
 };
 
 const pullUpdates = (version: number): Promise<readonly Update[]> => {
-  return new Promise(function (resolve) {
-    collabSocket.emit("pullUpdates", version);
+  return new Promise<readonly Update[]>((resolve) => {
+    collabSocket.emit(CollabEvents.PULL_UPDATES, version);
 
-    collabSocket.once("pullUpdateResponse", (updates: any) => {
+    collabSocket.once(CollabEvents.PULL_UPDATES_RESPONSE, (updates: string) => {
       resolve(JSON.parse(updates));
     });
-  }).then((updates: any) =>
-    //   updates.map((u: any) => ({
-    //     changes: ChangeSet.fromJSON(u.changes),
-    //     clientID: u.clientID,
-    //   }))
-
-    updates.map((u: any) => {
+  }).then((updates) =>
+    updates.map((update) => {
       const effects: StateEffect<any>[] = [];
-      if (u.effects?.length) {
-        u.effects.forEach((effect: StateEffect<any>) => {
-          if (effect.value?.id && effect.value?.from) {
-            const cursor: Cursor = {
-              id: effect.value.id,
-              from: effect.value.from,
-              to: effect.value.to,
-            };
-            effects.push(addCursor.of(cursor));
-          } else if (effect.value?.id) {
-            const cursorId = effect.value.id;
-            effects.push(removeCursor.of(cursorId));
-          }
-        });
-      }
+
+      update.effects?.forEach((effect) => {
+        if (effect.value?.id && effect.value?.from) {
+          const cursor: Cursor = {
+            id: effect.value.id,
+            from: effect.value.from,
+            to: effect.value.to,
+          };
+          effects.push(addCursor.of(cursor));
+        } else if (effect.value?.id) {
+          const cursorId = effect.value.id;
+          effects.push(removeCursor.of(cursorId));
+        }
+      });
 
       return {
-        changes: ChangeSet.fromJSON(u.changes),
-        clientID: u.clientID,
+        clientID: update.clientID,
+        changes: ChangeSet.fromJSON(update.changes),
         effects: effects,
       };
     })
@@ -72,23 +80,27 @@ const pullUpdates = (version: number): Promise<readonly Update[]> => {
 };
 
 export const getDocument = (): Promise<{ version: number; doc: Text }> => {
-  return new Promise(function (resolve) {
-    collabSocket.emit("getDocument");
+  return new Promise((resolve) => {
+    collabSocket.emit(CollabEvents.GET_DOCUMENT);
 
-    collabSocket.once("getDocumentResponse", (version: number, doc: string) => {
-      resolve({
-        version: version,
-        doc: Text.of(doc.split("\n")),
-      });
-    });
+    collabSocket.once(
+      CollabEvents.GET_DOCUMENT_RESPONSE,
+      (version: number, doc: string) => {
+        resolve({
+          version: version,
+          doc: Text.of(doc.split("\n")),
+        });
+      }
+    );
   });
 };
 
-export const peerExtension = (startVersion: number, id?: string) => {
+// handles push and pull updates
+export const peerExtension = (startVersion: number, uid: string) => {
   const plugin = ViewPlugin.fromClass(
     class {
-      private pushing = false;
-      private done = false;
+      private pushingUpdates = false; // to ensure only one running push request
+      private pullUpdates = true;
 
       constructor(private view: EditorView) {
         this.pull();
@@ -96,48 +108,54 @@ export const peerExtension = (startVersion: number, id?: string) => {
 
       update(update: ViewUpdate) {
         if (update.docChanged || update.transactions.length) {
-          // cursor
-          // if (update.docChanged) {
           this.push();
         }
       }
 
       async push() {
         const updates = sendableUpdates(this.view.state);
-        if (this.pushing || !updates.length) {
+        if (this.pushingUpdates || !updates.length) {
           return;
         }
-        this.pushing = true;
+        this.pushingUpdates = true;
         const version = getSyncedVersion(this.view.state);
         await pushUpdates(version, updates);
-        this.pushing = false;
+        this.pushingUpdates = false;
+
+        // check if there are still updates to push (failed / new updates)
         if (sendableUpdates(this.view.state).length) {
           setTimeout(() => this.push(), 100);
         }
       }
 
       async pull() {
-        while (!this.done) {
+        while (this.pullUpdates) {
           const version = getSyncedVersion(this.view.state);
-          const updates = await pullUpdates(version);
+          const updates = await pullUpdates(version); // returns only if there are updates
           this.view.dispatch(receiveUpdates(this.view.state, updates));
         }
       }
 
       destroy() {
-        this.done = true;
+        this.pullUpdates = false;
       }
     }
   );
 
-  // return [collab({ startVersion }), plugin];
   return [
     collab({
-      startVersion,
-      clientID: id,
-      sharedEffects: (tr) =>
-        tr.effects.filter((e) => e.is(addCursor) || e.is(removeCursor)),
+      startVersion: startVersion,
+      clientID: uid,
+      sharedEffects: (transaction) =>
+        transaction.effects.filter(
+          (effect) => effect.is(addCursor) || effect.is(removeCursor)
+        ),
     }),
     plugin,
   ];
+};
+
+export const removeListeners = () => {
+  collabSocket.off(CollabEvents.PULL_UPDATES_RESPONSE);
+  collabSocket.off(CollabEvents.GET_DOCUMENT_RESPONSE);
 };
