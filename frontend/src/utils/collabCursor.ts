@@ -17,11 +17,9 @@ export interface Cursor {
 
 class CursorWidget extends WidgetType {
   private username: string;
-  private colorClass: string;
 
-  constructor(username: string, color: number) {
+  constructor(username: string) {
     super();
-    this.colorClass = `cm-cursor-color-${color}`;
     this.username = username;
   }
 
@@ -30,11 +28,11 @@ class CursorWidget extends WidgetType {
     cursorRoot.className = "cm-cursor-root";
 
     const cursor = document.createElement("div");
-    cursor.className = `cm-cursor-display ${this.colorClass}`;
+    cursor.className = `cm-cursor-display cm-cursor-color`;
     cursorRoot.appendChild(cursor);
 
     const cursorLabel = document.createElement("div");
-    cursorLabel.className = `cm-cursor-label ${this.colorClass}`;
+    cursorLabel.className = `cm-cursor-label cm-cursor-color`;
     cursorLabel.textContent = this.username;
     cursorRoot.appendChild(cursorLabel);
 
@@ -59,51 +57,45 @@ class CursorWidget extends WidgetType {
 
 export const updateCursor = StateEffect.define<Cursor>();
 
-const cursors = new Map<string, number>();
+const cursorStateField = (uid: string): StateField<DecorationSet> => {
+  return StateField.define<DecorationSet>({
+    create: () => Decoration.none,
+    update: (prevCursorState, transaction) => {
+      let cursorTransactions = prevCursorState.map(transaction.changes);
+      for (const effect of transaction.effects) {
+        // check for partner's cursor updates
+        if (effect.is(updateCursor) && effect.value.uid !== uid) {
+          const cursorUpdates = [];
 
-const cursorStateField = StateField.define<DecorationSet>({
-  create: () => Decoration.none,
-  update: (prevCursorState, transaction) => {
-    let cursorTransactions = prevCursorState.map(transaction.changes);
-    for (const effect of transaction.effects) {
-      if (effect.is(updateCursor)) {
-        const cursorUpdates = [];
+          if (effect.value.from !== effect.value.to) {
+            // highlight selected text
+            cursorUpdates.push(
+              Decoration.mark({
+                class: "cm-highlight-color",
+                uid: effect.value.uid,
+              }).range(effect.value.from, effect.value.to)
+            );
+          }
 
-        if (!cursors.has(effect.value.uid)) {
-          cursors.set(effect.value.uid, cursors.size + 1);
-        }
-
-        if (effect.value.from !== effect.value.to) {
-          // highlight selected text
           cursorUpdates.push(
-            Decoration.mark({
-              class: `cm-highlight-color-${cursors.get(effect.value.uid)!}`,
+            Decoration.widget({
+              widget: new CursorWidget(effect.value.username),
               uid: effect.value.uid,
-            }).range(effect.value.from, effect.value.to)
+            }).range(effect.value.to)
           );
+
+          // ensure only the latest cursor position and/or selection is displayed
+          cursorTransactions = cursorTransactions.update({
+            add: cursorUpdates,
+            filter: (_from, _to, value) => value.spec.uid !== effect.value.uid,
+          });
         }
-
-        cursorUpdates.push(
-          Decoration.widget({
-            widget: new CursorWidget(
-              effect.value.username,
-              cursors.get(effect.value.uid)!
-            ),
-            uid: effect.value.uid,
-          }).range(effect.value.to)
-        );
-
-        // ensure only the latest cursor position and/or selection is displayed
-        cursorTransactions = cursorTransactions.update({
-          add: cursorUpdates,
-          filter: (_from, _to, value) => value.spec.uid !== effect.value.uid,
-        });
       }
-    }
-    return cursorTransactions;
-  },
-  provide: (field) => EditorView.decorations.from(field),
-});
+      return cursorTransactions;
+    },
+    provide: (field) => EditorView.decorations.from(field),
+  });
+};
 
 const cursorBaseTheme = EditorView.baseTheme({
   ".cm-cursor-root": {
@@ -128,23 +120,17 @@ const cursorBaseTheme = EditorView.baseTheme({
     marginTop: "-35px",
     marginLeft: "0px",
   },
-  ".cm-cursor-color-1": {
+  ".cm-cursor-color": {
     backgroundColor: "#f6a1a1",
   },
-  ".cm-cursor-color-2": {
-    backgroundColor: "#d6a3e8",
-  },
-  ".cm-highlight-color-1": {
+  ".cm-highlight-color": {
     backgroundColor: "rgba(246, 161, 161, 0.3)",
-  },
-  ".cm-highlight-color-2": {
-    backgroundColor: "rgba(214, 163, 232, 0.3)",
   },
 });
 
 export const cursorExtension = (uid: string, username: string) => {
   return [
-    cursorStateField, // handles cursor positions and highlights
+    cursorStateField(uid), // handles cursor positions and highlights
     cursorBaseTheme, // provides cursor styling
     // detects cursor updates
     EditorView.updateListener.of((update) => {

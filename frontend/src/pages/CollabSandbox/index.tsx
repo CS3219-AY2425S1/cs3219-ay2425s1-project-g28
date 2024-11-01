@@ -164,7 +164,14 @@ const CollabSandbox: React.FC = () => {
           <Box
             sx={{ display: "flex", flexDirection: "column", height: "100%" }}
           >
-            <Box sx={{ flex: 1 }}>
+            <Box
+              sx={(theme) => ({
+                flex: 1,
+                width: "100%",
+                paddingTop: theme.spacing(2),
+                paddingBottom: theme.spacing(2),
+              })}
+            >
               <CodeEditor
                 uid={matchUser.id}
                 username={matchUser.username}

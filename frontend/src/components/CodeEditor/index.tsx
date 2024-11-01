@@ -83,8 +83,9 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
 
   return (
     <CodeMirror
-      height="300px"
-      width="300px"
+      style={{ height: "100%", width: "100%" }}
+      height="100%"
+      width="100%"
       basicSetup={false}
       id="codeEditor"
       extensions={[
