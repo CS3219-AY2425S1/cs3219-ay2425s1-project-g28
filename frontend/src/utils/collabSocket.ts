@@ -23,6 +23,8 @@ enum CollabEvents {
   GET_DOCUMENT = "get_document",
 
   // Receive
+  USER_CONNECTED = "user_connected",
+
   PULL_UPDATES_RESPONSE = "pull_updates_response",
   GET_DOCUMENT_RESPONSE = "get_document_response",
 }
@@ -34,9 +36,9 @@ const collabSocket = io(COLLAB_SOCKET_URL, {
 });
 
 const pushUpdates = (
+  roomId: string,
   version: number,
-  fullUpdates: readonly Update[],
-  roomId: string
+  fullUpdates: readonly Update[]
 ): Promise<void> => {
   const updates = fullUpdates.map((update) => ({
     clientID: update.clientID, // client who made the update
@@ -47,17 +49,20 @@ const pushUpdates = (
   return new Promise((resolve) => {
     collabSocket.emit(
       CollabEvents.PUSH_UPDATES,
+      roomId,
       version,
       JSON.stringify(updates),
-      roomId,
       () => resolve()
     );
   });
 };
 
-const pullUpdates = (version: number): Promise<readonly Update[]> => {
+const pullUpdates = (
+  roomId: string,
+  version: number
+): Promise<readonly Update[]> => {
   return new Promise<readonly Update[]>((resolve) => {
-    collabSocket.emit(CollabEvents.PULL_UPDATES, version);
+    collabSocket.emit(CollabEvents.PULL_UPDATES, roomId, version);
 
     collabSocket.once(CollabEvents.PULL_UPDATES_RESPONSE, (updates: string) => {
       resolve(JSON.parse(updates));
@@ -93,26 +98,36 @@ const pullUpdates = (version: number): Promise<readonly Update[]> => {
   );
 };
 
-export const join = (matchId: string | null) => {
+export const join = (roomId: string): Promise<void> => {
   collabSocket.connect();
-  collabSocket.emit(CollabEvents.JOIN, matchId);
-};
+  collabSocket.emit(CollabEvents.JOIN, roomId);
 
-export const leave = (matchId: string | null) => {
-  collabSocket.emit(CollabEvents.LEAVE, matchId);
-  collabSocket.disconnect();
-};
-
-export const initDocument = (template: string): Promise<void> => {
   return new Promise((resolve) => {
-    console.log("emit init document");
-    collabSocket.emit(CollabEvents.INIT_DOCUMENT, template, () => resolve());
+    collabSocket.once(CollabEvents.USER_CONNECTED, () => resolve());
   });
 };
 
-export const getDocument = (): Promise<{ version: number; doc: Text }> => {
+export const leave = (roomId: string) => {
+  collabSocket.emit(CollabEvents.LEAVE, roomId);
+  collabSocket.disconnect();
+};
+
+export const initDocument = (
+  roomId: string,
+  template: string
+): Promise<void> => {
   return new Promise((resolve) => {
-    collabSocket.emit(CollabEvents.GET_DOCUMENT);
+    collabSocket.emit(CollabEvents.INIT_DOCUMENT, roomId, template, () =>
+      resolve()
+    );
+  });
+};
+
+export const getDocument = (
+  roomId: string
+): Promise<{ version: number; doc: Text }> => {
+  return new Promise((resolve) => {
+    collabSocket.emit(CollabEvents.GET_DOCUMENT, roomId);
 
     collabSocket.once(
       CollabEvents.GET_DOCUMENT_RESPONSE,
@@ -128,9 +143,9 @@ export const getDocument = (): Promise<{ version: number; doc: Text }> => {
 
 // handles push and pull updates
 export const peerExtension = (
+  roomId: string,
   startVersion: number,
-  uid: string,
-  roomId: string
+  uid: string
 ) => {
   const plugin = ViewPlugin.fromClass(
     class {
@@ -154,7 +169,7 @@ export const peerExtension = (
         }
         this.pushingUpdates = true;
         const version = getSyncedVersion(this.view.state);
-        await pushUpdates(version, updates, roomId);
+        await pushUpdates(roomId, version, updates);
         this.pushingUpdates = false;
 
         // check if there are still updates to push (failed / new updates)
@@ -166,7 +181,7 @@ export const peerExtension = (
       async pull() {
         while (this.pullUpdates) {
           const version = getSyncedVersion(this.view.state);
-          const updates = await pullUpdates(version); // returns only if there are updates
+          const updates = await pullUpdates(roomId, version); // returns only if there are updates
           this.view.dispatch(receiveUpdates(this.view.state, updates));
         }
       }
@@ -186,9 +201,4 @@ export const peerExtension = (
     }),
     plugin,
   ];
-};
-
-export const removeListeners = () => {
-  collabSocket.off(CollabEvents.PULL_UPDATES_RESPONSE);
-  collabSocket.off(CollabEvents.GET_DOCUMENT_RESPONSE);
 };

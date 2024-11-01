@@ -8,7 +8,6 @@ import {
   getDocument,
   initDocument,
   peerExtension,
-  removeListeners,
 } from "../../utils/collabSocket";
 import Loader from "../Loader";
 import { cursorExtension } from "../../utils/collabCursor";
@@ -58,11 +57,16 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     }
 
     const fetchDocument = async () => {
+      if (!roomId) {
+        return;
+      }
+
       try {
         if (template) {
-          await initDocument(template);
+          await initDocument(roomId, template);
         }
-        const { version, doc } = await getDocument();
+
+        const { version, doc } = await getDocument(roomId);
         setCodeEditorState({
           version: version,
           doc: doc.toString(),
@@ -73,8 +77,6 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     };
 
     fetchDocument();
-
-    return () => removeListeners();
   }, []);
 
   if (codeEditorState.version === null || codeEditorState.doc === null) {
@@ -91,7 +93,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       extensions={[
         basicSetup(),
         languageSupport[language as keyof typeof languageSupport],
-        peerExtension(codeEditorState.version, uid, roomId),
+        peerExtension(roomId, codeEditorState.version, uid),
         cursorExtension(uid, username),
         EditorView.editable.of(!isReadOnly),
         EditorState.readOnly.of(isReadOnly),

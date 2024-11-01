@@ -24,6 +24,7 @@ import CodeEditor from "../../components/CodeEditor";
 import { join, leave } from "../../utils/collabSocket";
 
 const CollabSandbox: React.FC = () => {
+  const [connected, setConnected] = useState<boolean>(false);
   const [showErrorScreen, setShowErrorScreen] = useState<boolean>(false);
 
   const match = useMatch();
@@ -58,12 +59,23 @@ const CollabSandbox: React.FC = () => {
     }
     getQuestionById(questionId, dispatch);
 
-    // TODO
-    // use matchId as the room id in the collab service
-    console.log(matchId);
-    join(matchId);
+    if (!matchId || connected) {
+      return;
+    }
+
+    const connectToCollabSession = async () => {
+      try {
+        await join(matchId);
+        setConnected(true);
+      } catch (error) {
+        console.error("Error connecting to collab session: ", error);
+      }
+    };
+
+    connectToCollabSession();
 
     return () => leave(matchId);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -98,7 +110,7 @@ const CollabSandbox: React.FC = () => {
     );
   }
 
-  if (!selectedQuestion) {
+  if (!selectedQuestion || !connected) {
     return <Loader />;
   }
 
