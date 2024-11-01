@@ -30,7 +30,7 @@ const QuestionCodeTemplates: React.FC<QuestionCodeTemplatesProps> = ({
   const [selectedLanguage, setSelectedLanguage] = useState<string>("python");
 
   const handleLanguageChange = (
-    event: React.MouseEvent<HTMLElement>,
+    _: React.MouseEvent<HTMLElement>,
     language: string
   ) => {
     if (language) {
@@ -115,6 +115,11 @@ const QuestionCodeTemplates: React.FC<QuestionCodeTemplatesProps> = ({
         variant="outlined"
         multiline
         rows={8}
+        sx={{
+          "& .MuiOutlinedInput-root": {
+            fontFamily: "monospace",
+          },
+        }}
         value={codeTemplates[selectedLanguage]}
         onChange={handleCodeChange}
         onKeyDown={handleTabKeys}
