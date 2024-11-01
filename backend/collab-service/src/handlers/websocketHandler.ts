@@ -13,6 +13,7 @@ enum CollabEvents {
 
   PUSH_UPDATES = "push_updates",
   PULL_UPDATES = "pull_updates",
+  INIT_DOCUMENT = "init_document",
   GET_DOCUMENT = "get_document",
 
   // Send
@@ -86,10 +87,28 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
 // Adapted from https://codemirror.net/examples/collab/ and https://github.com/BjornTheProgrammer/react-codemirror-collab-sockets
 
 let updates: Update[] = []; // updates.length = current version
-let doc = Text.of(["Start document"]);
+let doc = Text.of([""]);
 let pendingPullUpdatesRequests: ((updates: Update[]) => void)[] = [];
 
 const handleCodeEditorEvents = (socket: Socket) => {
+  socket.on(
+    CollabEvents.INIT_DOCUMENT,
+    (template: string, callback: () => void) => {
+      if (!doc.toString()) {
+        doc = Text.of([template]);
+      }
+      callback();
+    }
+  );
+
+  socket.on(CollabEvents.GET_DOCUMENT, () => {
+    socket.emit(
+      CollabEvents.GET_DOCUMENT_RESPONSE,
+      updates.length,
+      doc.toString()
+    );
+  });
+
   socket.on(CollabEvents.PULL_UPDATES, (version: number) => {
     if (version < updates.length) {
       // send the new updates
@@ -111,13 +130,18 @@ const handleCodeEditorEvents = (socket: Socket) => {
   // received new updates, notify any pending pullUpdates requests
   socket.on(
     CollabEvents.PUSH_UPDATES,
-    (version: number, newUpdates: string, callback: () => void) => {
+    async (
+      version: number,
+      newUpdates: string,
+      roomId: string,
+      callback: () => void
+    ) => {
       let docUpdates = JSON.parse(newUpdates) as readonly Update[];
 
       try {
         // If the given version is the latest version, apply the new updates.
         // Else, rebase updates first.
-        if (version != updates.length) {
+        if (version < updates.length) {
           docUpdates = rebaseUpdates(docUpdates, updates.slice(version));
         }
 
@@ -129,6 +153,10 @@ const handleCodeEditorEvents = (socket: Socket) => {
             effects: update.effects,
           });
           doc = changes.apply(doc);
+
+          await redisClient.set(`collaboration:${roomId}`, doc.toString(), {
+            EX: EXPIRY_TIME,
+          });
         }
         callback();
 
@@ -141,12 +169,4 @@ const handleCodeEditorEvents = (socket: Socket) => {
       }
     }
   );
-
-  socket.on(CollabEvents.GET_DOCUMENT, () => {
-    socket.emit(
-      CollabEvents.GET_DOCUMENT_RESPONSE,
-      updates.length,
-      doc.toString()
-    );
-  });
 };

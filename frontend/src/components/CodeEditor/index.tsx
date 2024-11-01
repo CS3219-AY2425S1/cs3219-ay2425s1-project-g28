@@ -6,6 +6,7 @@ import { EditorState } from "@codemirror/state";
 import { useEffect, useState } from "react";
 import {
   getDocument,
+  initDocument,
   peerExtension,
   removeListeners,
 } from "../../utils/collabSocket";
@@ -15,6 +16,9 @@ import { cursorExtension } from "../../utils/collabCursor";
 interface CodeEditorProps {
   uid: string;
   username: string;
+  language: string;
+  template?: string;
+  roomId?: string;
   isReadOnly?: boolean;
 }
 
@@ -23,8 +27,21 @@ type CodeEditorState = {
   doc: string | null;
 };
 
+const languageSupport = {
+  Python: langs.python(),
+  Java: langs.java(),
+  C: langs.c(),
+};
+
 const CodeEditor: React.FC<CodeEditorProps> = (props) => {
-  const { uid, username, isReadOnly = false } = props;
+  const {
+    uid,
+    username,
+    language,
+    template = "",
+    roomId = "",
+    isReadOnly = false,
+  } = props;
 
   const [codeEditorState, setCodeEditorState] = useState<CodeEditorState>({
     version: null,
@@ -32,8 +49,19 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
   });
 
   useEffect(() => {
+    if (isReadOnly) {
+      setCodeEditorState({
+        version: 0,
+        doc: template,
+      });
+      return;
+    }
+
     const fetchDocument = async () => {
       try {
+        if (template) {
+          await initDocument(template);
+        }
         const { version, doc } = await getDocument();
         setCodeEditorState({
           version: version,
@@ -61,8 +89,8 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       id="codeEditor"
       extensions={[
         basicSetup(),
-        langs.c(),
-        peerExtension(codeEditorState.version, uid),
+        languageSupport[language as keyof typeof languageSupport],
+        peerExtension(codeEditorState.version, uid, roomId),
         cursorExtension(uid, username),
         EditorView.editable.of(!isReadOnly),
         EditorState.readOnly.of(isReadOnly),

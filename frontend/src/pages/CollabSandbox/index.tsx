@@ -21,6 +21,7 @@ import reducer, {
 import QuestionDetailComponent from "../../components/QuestionDetail";
 import { Navigate } from "react-router-dom";
 import CodeEditor from "../../components/CodeEditor";
+import { join, leave } from "../../utils/collabSocket";
 
 const CollabSandbox: React.FC = () => {
   const [showErrorScreen, setShowErrorScreen] = useState<boolean>(false);
@@ -32,11 +33,12 @@ const CollabSandbox: React.FC = () => {
 
   const {
     verifyMatchStatus,
-    getMatchId,
     handleRejectEndSession,
     handleConfirmEndSession,
     matchUser,
     partner,
+    matchCriteria,
+    matchId,
     loading,
     isEndSessionModalOpen,
     questionId,
@@ -57,9 +59,11 @@ const CollabSandbox: React.FC = () => {
     getQuestionById(questionId, dispatch);
 
     // TODO
-    // use getMatchId() as the room id in the collab service
-    console.log(getMatchId());
+    // use matchId as the room id in the collab service
+    console.log(matchId);
+    join(matchId);
 
+    return () => leave(matchId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -81,7 +85,7 @@ const CollabSandbox: React.FC = () => {
     return <Loader />;
   }
 
-  if (!matchUser || !partner) {
+  if (!matchUser || !partner || !matchCriteria || !matchId) {
     return <Navigate to="/home" replace />;
   }
 
@@ -161,7 +165,21 @@ const CollabSandbox: React.FC = () => {
             sx={{ display: "flex", flexDirection: "column", height: "100%" }}
           >
             <Box sx={{ flex: 1 }}>
-              <CodeEditor uid={matchUser.id} username={matchUser.username} />
+              <CodeEditor
+                uid={matchUser.id}
+                username={matchUser.username}
+                language={matchCriteria.language}
+                template={
+                  matchCriteria.language === "Python"
+                    ? selectedQuestion.pythonTemplate
+                    : matchCriteria.language === "Java"
+                    ? selectedQuestion.javaTemplate
+                    : matchCriteria.language === "C"
+                    ? selectedQuestion.cTemplate
+                    : ""
+                }
+                roomId={matchId}
+              />
             </Box>
             <Box sx={{ flex: 1 }}>Test cases and chat tabs</Box>
           </Box>

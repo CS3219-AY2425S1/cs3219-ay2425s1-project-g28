@@ -15,34 +15,45 @@ export interface Cursor {
   to: number;
 }
 
-class TooltipWidget extends WidgetType {
-  private name = "John";
-  private suffix = "";
+class CursorWidget extends WidgetType {
+  private username: string;
+  private colorClass: string;
 
-  constructor(name: string, color: number) {
+  constructor(username: string, color: number) {
     super();
-    this.suffix = `${(color % 8) + 1}`;
-    this.name = name;
+    this.colorClass = `cm-cursor-color-${color}`;
+    this.username = username;
   }
 
   toDOM() {
-    const dom = document.createElement("div");
-    dom.className = "cm-tooltip-none";
+    const cursorRoot = document.createElement("div");
+    cursorRoot.className = "cm-cursor-root";
 
-    const cursor_tooltip = document.createElement("div");
-    cursor_tooltip.className = `cm-tooltip-cursor cm-tooltip cm-tooltip-above cm-tooltip-${this.suffix}`;
-    cursor_tooltip.textContent = this.name;
+    const cursor = document.createElement("div");
+    cursor.className = `cm-cursor-display ${this.colorClass}`;
+    cursorRoot.appendChild(cursor);
 
-    const cursor_tooltip_arrow = document.createElement("div");
-    cursor_tooltip_arrow.className = "cm-tooltip-arrow";
+    const cursorLabel = document.createElement("div");
+    cursorLabel.className = `cm-cursor-label ${this.colorClass}`;
+    cursorLabel.textContent = this.username;
+    cursorRoot.appendChild(cursorLabel);
 
-    cursor_tooltip.appendChild(cursor_tooltip_arrow);
-    dom.appendChild(cursor_tooltip);
-    return dom;
-  }
+    let labelTimeout = setTimeout(() => {
+      cursorLabel.style.display = "none";
+    }, 2000);
 
-  ignoreEvent() {
-    return false;
+    cursor.addEventListener("mouseenter", () => {
+      clearTimeout(labelTimeout);
+      cursorLabel.style.display = "block";
+    });
+
+    cursor.addEventListener("mouseleave", () => {
+      labelTimeout = setTimeout(() => {
+        cursorLabel.style.display = "none";
+      }, 2000);
+    });
+
+    return cursorRoot;
   }
 }
 
@@ -56,35 +67,36 @@ const cursorStateField = StateField.define<DecorationSet>({
     let cursorTransactions = prevCursorState.map(transaction.changes);
     for (const effect of transaction.effects) {
       if (effect.is(updateCursor)) {
-        const addUpdates = [];
+        const cursorUpdates = [];
+
         if (!cursors.has(effect.value.uid)) {
-          cursors.set(effect.value.uid, cursors.size);
+          cursors.set(effect.value.uid, cursors.size + 1);
         }
+
         if (effect.value.from !== effect.value.to) {
           // highlight selected text
-          addUpdates.push(
+          cursorUpdates.push(
             Decoration.mark({
-              class: `cm-highlight-${(cursors.get(effect.value.uid)! % 8) + 1}`,
+              class: `cm-highlight-color-${cursors.get(effect.value.uid)!}`,
               uid: effect.value.uid,
             }).range(effect.value.from, effect.value.to)
           );
         }
 
-        addUpdates.push(
+        cursorUpdates.push(
           Decoration.widget({
-            widget: new TooltipWidget(
+            widget: new CursorWidget(
               effect.value.username,
               cursors.get(effect.value.uid)!
             ),
-            block: false,
             uid: effect.value.uid,
-          }).range(effect.value.to, effect.value.to)
+          }).range(effect.value.to)
         );
 
         // ensure only the latest cursor position and/or selection is displayed
         cursorTransactions = cursorTransactions.update({
-          add: addUpdates,
-          filter: (_from, _to, value) => value?.spec?.uid !== effect.value.uid,
+          add: cursorUpdates,
+          filter: (_from, _to, value) => value.spec.uid !== effect.value.uid,
         });
       }
     }
@@ -94,95 +106,39 @@ const cursorStateField = StateField.define<DecorationSet>({
 });
 
 const cursorBaseTheme = EditorView.baseTheme({
-  ".cm-tooltip.cm-tooltip-cursor": {
-    color: "white",
-    border: "none",
-    padding: "2px 7px",
-    borderRadius: "4px",
-    position: "absolute",
-    marginTop: "-40px",
-    marginLeft: "-14px",
-    "& .cm-tooltip-arrow:after": {
-      borderTopColor: "transparent",
-    },
-    zIndex: "1000000",
-  },
-  ".cm-tooltip-none": {
+  ".cm-cursor-root": {
+    display: "inline-block",
     width: "0px",
     height: "0px",
-    display: "inline-block",
   },
-  ".cm-highlight-1": {
-    backgroundColor: "#6666BB55",
+  ".cm-cursor-display": {
+    border: "none",
+    width: "0.5px",
+    height: "18.5px",
+    position: "absolute",
+    marginTop: "-14.5px",
+    marginLeft: "0px",
   },
-  ".cm-highlight-2": {
-    backgroundColor: "#F76E6E55",
+  ".cm-cursor-label": {
+    color: "white",
+    borderRadius: "4px 4px 4px 0px",
+    padding: "2px 4px",
+    fontSize: "12px",
+    position: "absolute",
+    marginTop: "-35px",
+    marginLeft: "0px",
   },
-  ".cm-highlight-3": {
-    backgroundColor: "#0CDA6255",
+  ".cm-cursor-color-1": {
+    backgroundColor: "#f6a1a1",
   },
-  ".cm-highlight-4": {
-    backgroundColor: "#0CC5DA55",
+  ".cm-cursor-color-2": {
+    backgroundColor: "#d6a3e8",
   },
-  ".cm-highlight-5": {
-    backgroundColor: "#0C51DA55",
+  ".cm-highlight-color-1": {
+    backgroundColor: "rgba(246, 161, 161, 0.3)",
   },
-  ".cm-highlight-6": {
-    backgroundColor: "#980CDA55",
-  },
-  ".cm-highlight-7": {
-    backgroundColor: "#DA0CBB55",
-  },
-  ".cm-highlight-8": {
-    backgroundColor: "#DA800C55",
-  },
-  ".cm-tooltip-1": {
-    backgroundColor: "#66b !important",
-    "& .cm-tooltip-arrow:before": {
-      borderTopColor: "#66b !important",
-    },
-  },
-  ".cm-tooltip-2": {
-    backgroundColor: "#F76E6E !important",
-    "& .cm-tooltip-arrow:before": {
-      borderTopColor: "#F76E6E !important",
-    },
-  },
-  ".cm-tooltip-3": {
-    backgroundColor: "#0CDA62 !important",
-    "& .cm-tooltip-arrow:before": {
-      borderTopColor: "#0CDA62 !important",
-    },
-  },
-  ".cm-tooltip-4": {
-    backgroundColor: "#0CC5DA !important",
-    "& .cm-tooltip-arrow:before": {
-      borderTopColor: "#0CC5DA !important",
-    },
-  },
-  ".cm-tooltip-5": {
-    backgroundColor: "#0C51DA !important",
-    "& .cm-tooltip-arrow:before": {
-      borderTopColor: "#0C51DA !important",
-    },
-  },
-  ".cm-tooltip-6": {
-    backgroundColor: "#980CDA !important",
-    "& .cm-tooltip-arrow:before": {
-      borderTopColor: "#980CDA !important",
-    },
-  },
-  ".cm-tooltip-7": {
-    backgroundColor: "#DA0CBB !important",
-    "& .cm-tooltip-arrow:before": {
-      borderTopColor: "#DA0CBB !important",
-    },
-  },
-  ".cm-tooltip-8": {
-    backgroundColor: "#DA800C !important",
-    "& .cm-tooltip-arrow:before": {
-      borderTopColor: "#DA800C !important",
-    },
+  ".cm-highlight-color-2": {
+    backgroundColor: "rgba(214, 163, 232, 0.3)",
   },
 });
 

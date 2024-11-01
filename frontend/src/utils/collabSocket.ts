@@ -14,8 +14,12 @@ import { updateCursor, Cursor } from "./collabCursor";
 
 enum CollabEvents {
   // Send
+  JOIN = "join",
+  LEAVE = "leave",
+
   PUSH_UPDATES = "push_updates",
   PULL_UPDATES = "pull_updates",
+  INIT_DOCUMENT = "init_document",
   GET_DOCUMENT = "get_document",
 
   // Receive
@@ -23,11 +27,16 @@ enum CollabEvents {
   GET_DOCUMENT_RESPONSE = "get_document_response",
 }
 
-const collabSocket = io("http://localhost:3003");
+const COLLAB_SOCKET_URL = "http://localhost:3003";
+const collabSocket = io(COLLAB_SOCKET_URL, {
+  reconnectionAttempts: 3,
+  autoConnect: false,
+});
 
 const pushUpdates = (
   version: number,
-  fullUpdates: readonly Update[]
+  fullUpdates: readonly Update[],
+  roomId: string
 ): Promise<void> => {
   const updates = fullUpdates.map((update) => ({
     clientID: update.clientID, // client who made the update
@@ -40,6 +49,7 @@ const pushUpdates = (
       CollabEvents.PUSH_UPDATES,
       version,
       JSON.stringify(updates),
+      roomId,
       () => resolve()
     );
   });
@@ -54,10 +64,16 @@ const pullUpdates = (version: number): Promise<readonly Update[]> => {
     });
   }).then((updates) =>
     updates.map((update) => {
+      // eslint-disable-next-line  @typescript-eslint/no-explicit-any
       const effects: StateEffect<any>[] = [];
 
       update.effects?.forEach((effect) => {
-        if (effect.value?.uid && effect.value?.from) {
+        if (
+          effect.value.uid &&
+          effect.value.username &&
+          effect.value.from &&
+          effect.value.to
+        ) {
           const cursor: Cursor = {
             uid: effect.value.uid,
             username: effect.value.username,
@@ -77,6 +93,23 @@ const pullUpdates = (version: number): Promise<readonly Update[]> => {
   );
 };
 
+export const join = (matchId: string | null) => {
+  collabSocket.connect();
+  collabSocket.emit(CollabEvents.JOIN, matchId);
+};
+
+export const leave = (matchId: string | null) => {
+  collabSocket.emit(CollabEvents.LEAVE, matchId);
+  collabSocket.disconnect();
+};
+
+export const initDocument = (template: string): Promise<void> => {
+  return new Promise((resolve) => {
+    console.log("emit init document");
+    collabSocket.emit(CollabEvents.INIT_DOCUMENT, template, () => resolve());
+  });
+};
+
 export const getDocument = (): Promise<{ version: number; doc: Text }> => {
   return new Promise((resolve) => {
     collabSocket.emit(CollabEvents.GET_DOCUMENT);
@@ -94,7 +127,11 @@ export const getDocument = (): Promise<{ version: number; doc: Text }> => {
 };
 
 // handles push and pull updates
-export const peerExtension = (startVersion: number, uid: string) => {
+export const peerExtension = (
+  startVersion: number,
+  uid: string,
+  roomId: string
+) => {
   const plugin = ViewPlugin.fromClass(
     class {
       private pushingUpdates = false; // to ensure only one running push request
@@ -117,7 +154,7 @@ export const peerExtension = (startVersion: number, uid: string) => {
         }
         this.pushingUpdates = true;
         const version = getSyncedVersion(this.view.state);
-        await pushUpdates(version, updates);
+        await pushUpdates(version, updates, roomId);
         this.pushingUpdates = false;
 
         // check if there are still updates to push (failed / new updates)
