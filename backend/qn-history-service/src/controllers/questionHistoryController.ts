@@ -131,6 +131,11 @@ export const readQnHistoryList = async (
       return;
     }
 
+    if (!userId.match(MONGO_OBJ_ID_FORMAT)) {
+      res.status(400).json({ message: MONGO_OBJ_ID_MALFORMED_MESSAGE });
+      return;
+    }
+
     const filteredQnHistCount = await QnHistory.countDocuments({
       userIds: userId,
     });

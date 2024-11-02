@@ -6,7 +6,7 @@ export interface IQnHistory extends Document {
   title: string;
   submissionStatus: string;
   dateAttempted: Date;
-  timeTaken: Number;
+  timeTaken: number;
   code: string;
   language: string;
   createdAt: Date;
