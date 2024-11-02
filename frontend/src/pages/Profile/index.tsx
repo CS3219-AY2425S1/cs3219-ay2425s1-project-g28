@@ -16,12 +16,14 @@ import {
 import qnHistoryReducer, { getQnHistoryList, initialQHState } from "../../reducers/qnHistoryReducer";
 import { grey } from "@mui/material/colors";
 import { convertDateString } from "../../utils/sessionTime";
+import Loader from "../../components/Loader";
 
 const rowsPerPage = 10;
 
 const ProfilePage: React.FC = () => {
   const [page, setPage] = useState<number>(0);
   const [state, dispatch] = useReducer(qnHistoryReducer, initialQHState);
+  const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
   const { userId } = useParams<{ userId: string }>();
@@ -47,11 +49,14 @@ const ProfilePage: React.FC = () => {
   } = profile;
 
   useEffect(() => {
+    setLoading(true);
     if (!userId) {
+      setTimeout(() => setLoading(false), 500);
       return;
     }
 
     fetchUser(userId);
+    setTimeout(() => setLoading(false), 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
@@ -69,6 +74,10 @@ const ProfilePage: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => updateQnHistoryList(), [page]);
 
+  if (loading) {
+    return <Loader />;
+  }
+  
   if (!user) {
     return (
       <ServerError

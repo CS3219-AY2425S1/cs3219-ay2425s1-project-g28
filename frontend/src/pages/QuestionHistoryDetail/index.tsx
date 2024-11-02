@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AppMargin from "../../components/AppMargin";
 import ServerError from "../../components/ServerError";
@@ -14,11 +14,13 @@ import { grey } from "@mui/material/colors";
 import { convertDateString } from "../../utils/sessionTime";
 import { useAuth } from "../../contexts/AuthContext";
 import { USE_AUTH_ERROR_MESSAGE } from "../../utils/constants";
+import Loader from "../../components/Loader";
 
 const QuestionHistoryDetail: React.FC = () => {
   const { qnHistoryId } = useParams<{ qnHistoryId: string }>();
   const [qnhistState, qnhistDispatch] = useReducer(qnHistoryReducer, initialQHState);
   const [qnState, qnDispatch] = useReducer(reducer, initialState);
+  const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const auth = useAuth();
 
@@ -44,6 +46,7 @@ const QuestionHistoryDetail: React.FC = () => {
     if (qnhistState.selectedQnHistory) {
       getQuestionById(qnhistState.selectedQnHistory.questionId, qnDispatch);
     }
+    setTimeout(() => setLoading(false), 500);
   }, [qnhistState])
 
 
@@ -55,6 +58,10 @@ const QuestionHistoryDetail: React.FC = () => {
     }
   } 
 
+  if (loading) {
+    return <Loader />;
+  }
+  
   if (!qnhistState.selectedQnHistory) {
     if (qnhistState.selectedQnHistoryError) {
       return (
@@ -72,7 +79,7 @@ const QuestionHistoryDetail: React.FC = () => {
 
   return (
     <AppMargin>
-      <IconButton  sx={{marginTop: 2}} onClick={() => navigate(-1)}>
+      <IconButton  sx={{marginTop: 2}} onClick={() => navigate(`/profile/${user?.id}`)}>
         <ArrowBack />
       </IconButton>
       <Typography variant="h2" style={{marginTop: 20, marginBottom: 20}}>Latest submission details</Typography>

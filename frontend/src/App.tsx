@@ -52,14 +52,7 @@ function App() {
                 </ProfileContextProvider>
               }
             />
-            <Route 
-              path="profile/:userId/:qnHistoryId" 
-              element={
-                <AuthProvider>
-                  <QuestionHistoryDetail />
-                </AuthProvider>
-              } 
-            />
+            <Route path="profile/:userId/:qnHistoryId" element={<QuestionHistoryDetail />} />
             <Route path="matching" element={<ProtectedRoutes />}>
               <Route element={<NoDirectAccessRoutes />}>
                 <Route index element={<Matching />} />
