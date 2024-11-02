@@ -5,12 +5,17 @@ import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { useEffect, useState } from "react";
 import {
+  awareness,
   getDocument,
   initDocument,
   peerExtension,
+  receiveCursorUpdates,
+  removeCursorListener,
+  ytext,
 } from "../../utils/collabSocket";
 import Loader from "../Loader";
 import { cursorExtension } from "../../utils/collabCursor";
+import { yCollab } from "y-codemirror.next";
 
 interface CodeEditorProps {
   uid: string;
@@ -48,40 +53,44 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
   });
 
   useEffect(() => {
-    if (isReadOnly) {
-      setCodeEditorState({
-        version: 0,
-        doc: template,
-      });
-      return;
-    }
-
-    const fetchDocument = async () => {
-      if (!roomId) {
-        return;
-      }
-
-      try {
-        if (template) {
-          await initDocument(roomId, template);
-        }
-
-        const { version, doc } = await getDocument(roomId);
-        setCodeEditorState({
-          version: version,
-          doc: doc.toString(),
-        });
-      } catch (error) {
-        console.error("Error fetching document: ", error);
-      }
-    };
-
-    fetchDocument();
+    return () => removeCursorListener();
   }, []);
 
-  if (codeEditorState.version === null || codeEditorState.doc === null) {
-    return <Loader />;
-  }
+  // useEffect(() => {
+  // if (isReadOnly) {
+  //   setCodeEditorState({
+  //     version: 0,
+  //     doc: template,
+  //   });
+  //   return;
+  // }
+
+  //   const fetchDocument = async () => {
+  //     if (!roomId) {
+  //       return;
+  //     }
+
+  //     try {
+  //       if (template) {
+  //         await initDocument(roomId, template);
+  //       }
+
+  //       const { version, doc } = await getDocument(roomId);
+  //       setCodeEditorState({
+  //         version: version,
+  //         doc: doc.toString(),
+  //       });
+  //     } catch (error) {
+  //       console.error("Error fetching document: ", error);
+  //     }
+  //   };
+
+  //   fetchDocument();
+  // }, []);
+
+  // if (codeEditorState.version === null || codeEditorState.doc === null) {
+  //   return <Loader />;
+  // }
 
   return (
     <CodeMirror
@@ -93,12 +102,13 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       extensions={[
         basicSetup(),
         languageSupport[language as keyof typeof languageSupport],
-        peerExtension(roomId, codeEditorState.version, uid),
-        cursorExtension(uid, username),
+        yCollab(ytext, awareness),
+        // peerExtension(roomId, codeEditorState.version, uid),
+        cursorExtension(roomId, uid, username),
         EditorView.editable.of(!isReadOnly),
         EditorState.readOnly.of(isReadOnly),
       ]}
-      value={codeEditorState.doc}
+      // value={codeEditorState.doc}
     />
   );
 };

@@ -5,6 +5,7 @@ import {
   WidgetType,
 } from "@codemirror/view";
 import { StateField, StateEffect } from "@codemirror/state";
+import { receiveCursorUpdates, sendCursorUpdates } from "./collabSocket";
 
 // Adapted from https://github.com/BjornTheProgrammer/react-codemirror-collab-sockets
 
@@ -65,6 +66,7 @@ const cursorStateField = (uid: string): StateField<DecorationSet> => {
       for (const effect of transaction.effects) {
         // check for partner's cursor updates
         if (effect.is(updateCursor) && effect.value.uid !== uid) {
+          // if (effect.is(updateCursor)) {
           const cursorUpdates = [];
 
           if (effect.value.from !== effect.value.to) {
@@ -128,7 +130,11 @@ const cursorBaseTheme = EditorView.baseTheme({
   },
 });
 
-export const cursorExtension = (uid: string, username: string) => {
+export const cursorExtension = (
+  roomId: string,
+  uid: string,
+  username: string
+) => {
   return [
     cursorStateField(uid), // handles cursor positions and highlights
     cursorBaseTheme, // provides cursor styling
@@ -143,11 +149,11 @@ export const cursorExtension = (uid: string, username: string) => {
             to: transaction.selection.ranges[0].to,
           };
 
-          update.view.dispatch({
-            effects: updateCursor.of(cursor),
-          });
+          sendCursorUpdates(roomId, cursor);
         }
       });
+
+      receiveCursorUpdates(update.view);
     }),
   ];
 };

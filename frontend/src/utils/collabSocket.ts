@@ -9,6 +9,8 @@ import {
 } from "@codemirror/collab";
 import { io } from "socket.io-client";
 import { updateCursor, Cursor } from "./collabCursor";
+import * as Y from "yjs";
+import { Awareness } from "y-protocols/awareness";
 
 // Adapted from https://codemirror.net/examples/collab/ and https://github.com/BjornTheProgrammer/react-codemirror-collab-sockets
 
@@ -98,18 +100,60 @@ const pullUpdates = (
   );
 };
 
+export const ydoc = new Y.Doc();
+export const ytext = ydoc.getText("codemirror");
+export const awareness = new Awareness(ydoc);
+
 export const join = (roomId: string): Promise<void> => {
   collabSocket.connect();
   collabSocket.emit(CollabEvents.JOIN, roomId);
 
+  // Listen for local document changes and send to the server
+  ydoc.on("update", (update) => {
+    collabSocket.emit("update", roomId, update);
+  });
+
+  // Listen for document updates from the server
+  collabSocket.on("update", (update) => {
+    Y.applyUpdate(ydoc, new Uint8Array(update));
+  });
+
   return new Promise((resolve) => {
-    collabSocket.once(CollabEvents.USER_CONNECTED, () => resolve());
+    // Listen for initial document state
+    collabSocket.once("sync", (update) => {
+      try {
+        Y.applyUpdate(ydoc, new Uint8Array(update));
+      } catch (error) {
+        console.error("Sync initial state error: ", error);
+      }
+      resolve();
+    });
   });
 };
 
 export const leave = (roomId: string) => {
   collabSocket.emit(CollabEvents.LEAVE, roomId);
   collabSocket.disconnect();
+};
+
+export const sendCursorUpdates = (roomId: string, cursor: Cursor) => {
+  collabSocket.emit("cursor_update", roomId, cursor);
+};
+
+export const receiveCursorUpdates = (view: EditorView) => {
+  if (collabSocket.hasListeners("cursor_update")) {
+    return;
+  }
+
+  collabSocket.on("cursor_update", (cursor: Cursor) => {
+    view.dispatch({
+      effects: updateCursor.of(cursor),
+    });
+  });
+};
+
+export const removeCursorListener = () => {
+  collabSocket.off("cursor_update");
 };
 
 export const initDocument = (

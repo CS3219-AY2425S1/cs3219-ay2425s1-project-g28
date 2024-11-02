@@ -3,6 +3,7 @@ import { io } from "../server";
 import redisClient from "../config/redis";
 import { ChangeSet, Text } from "@codemirror/state";
 import { rebaseUpdates, Update } from "@codemirror/collab";
+import * as Y from "yjs";
 
 enum CollabEvents {
   // Receive
@@ -37,6 +38,79 @@ interface CollabSession {
 }
 
 const collabSessions = new Map<string, CollabSession>();
+
+const yCollabSessions = new Map<string, Y.Doc>();
+
+export const handleYWebsocketCollabEvents = (socket: Socket) => {
+  socket.on(CollabEvents.JOIN, async (roomId: string) => {
+    if (!roomId) {
+      return;
+    }
+
+    const room = io.sockets.adapter.rooms.get(roomId);
+    if (room && room.size >= 2) {
+      socket.emit(CollabEvents.ROOM_FULL);
+      return;
+    }
+
+    socket.join(roomId);
+    socket.data.roomId = roomId;
+
+    // in case of disconnect, send the code to the user when he rejoins
+    // const collabSession = await redisClient.get(`collaboration:${roomId}`);
+    // if (collabSession) {
+    //   if (!yCollabSessions.has(roomId)) {
+    //     yCollabSessions.set(roomId, JSON.parse(collabSession) as Y.Doc);
+    //   }
+    // } else {
+    //   const ydoc = new Y.Doc();
+    //   yCollabSessions.set(roomId, ydoc);
+    // }
+    if (!yCollabSessions.has(roomId)) {
+      const ydoc = new Y.Doc();
+      yCollabSessions.set(roomId, ydoc);
+    }
+    socket.emit("sync", Y.encodeStateAsUpdate(yCollabSessions.get(roomId)!));
+    socket.emit(CollabEvents.USER_CONNECTED);
+
+    // inform the other user that a new user has joined
+    socket.to(roomId).emit(CollabEvents.NEW_USER_CONNECTED);
+  });
+
+  socket.on("update", (roomId: string, update: Uint8Array) => {
+    let ydoc = yCollabSessions.get(roomId);
+    if (!ydoc) {
+      ydoc = new Y.Doc();
+    }
+    Y.applyUpdate(ydoc, update);
+
+    socket.to(roomId).emit("update", update);
+  });
+
+  socket.on(
+    "cursor_update",
+    (
+      roomId: string,
+      cursor: { uid: string; username: string; from: number; to: number }
+    ) => {
+      socket.to(roomId).emit("cursor_update", cursor);
+    }
+  );
+
+  socket.on(CollabEvents.LEAVE, (roomId: string) => {
+    if (!roomId) {
+      return;
+    }
+
+    socket.leave(roomId);
+    const room = io.sockets.adapter.rooms.get(roomId);
+    if (room?.size === 0) {
+      collabSessions.delete(roomId);
+    } else {
+      socket.to(roomId).emit(CollabEvents.PARTNER_LEFT);
+    }
+  });
+};
 
 export const handleWebsocketCollabEvents = (socket: Socket) => {
   socket.on(CollabEvents.JOIN, async (roomId: string) => {
