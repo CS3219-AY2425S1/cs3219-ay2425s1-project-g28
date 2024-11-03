@@ -21,11 +21,13 @@ import reducer, {
 import QuestionDetailComponent from "../../components/QuestionDetail";
 import { Navigate } from "react-router-dom";
 import CodeEditor from "../../components/CodeEditor";
-import { CollabData, join, leave } from "../../utils/collabSocket";
+import { CollabSessionData, join, leave } from "../../utils/collabSocket";
 
 const CollabSandbox: React.FC = () => {
   const [showErrorScreen, setShowErrorScreen] = useState<boolean>(false);
-  const [editorState, setEditorState] = useState<CollabData | null>(null);
+  const [editorState, setEditorState] = useState<CollabSessionData | null>(
+    null
+  );
 
   const match = useMatch();
   if (!match) {
@@ -65,8 +67,12 @@ const CollabSandbox: React.FC = () => {
 
     const connectToCollabSession = async () => {
       try {
-        const { text, awareness } = await join(matchUser.id, matchId);
-        setEditorState({ text, awareness });
+        const editorState = await join(matchUser.id, matchId);
+        if (editorState.ready) {
+          setEditorState(editorState);
+        } else {
+          setShowErrorScreen(true);
+        }
       } catch (error) {
         console.error("Error connecting to collab session: ", error);
       }
@@ -104,8 +110,8 @@ const CollabSandbox: React.FC = () => {
   if (showErrorScreen) {
     return (
       <ServerError
-        title="Oops, match ended..."
-        subtitle="Unfortunately, the match has ended due to a connection loss 😥"
+        title="Oops, collaboration session ended..."
+        subtitle="Unfortunately, the session has ended due to a connection loss 😥"
       />
     );
   }

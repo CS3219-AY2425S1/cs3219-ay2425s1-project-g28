@@ -1,7 +1,7 @@
 import { EditorView } from "@codemirror/view";
 import { io } from "socket.io-client";
 import { updateCursor, Cursor } from "./collabCursor";
-import { Doc, Text, applyUpdate } from "yjs";
+import { Doc, Text, applyUpdateV2 } from "yjs";
 import { Awareness } from "y-protocols/awareness";
 
 enum CollabEvents {
@@ -13,13 +13,13 @@ enum CollabEvents {
   UPDATE_CURSOR_REQUEST = "update_cursor_request",
 
   // Receive
-  // USER_CONNECTED = "user_connected",
-  SYNC = "sync",
-  UPDATE = "update",
+  ROOM_READY = "room_ready",
+  UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
 }
 
-export type CollabData = {
+export type CollabSessionData = {
+  ready: boolean;
   text: Text;
   awareness: Awareness;
 };
@@ -34,31 +34,35 @@ let doc: Doc;
 let text: Text;
 let awareness: Awareness;
 
-export const join = (uid: string, roomId: string): Promise<CollabData> => {
+export const join = (
+  uid: string,
+  roomId: string
+): Promise<CollabSessionData> => {
   collabSocket.connect();
 
   doc = new Doc();
   text = doc.getText();
   awareness = new Awareness(doc);
 
-  doc.on(CollabEvents.UPDATE, (update) => {
-    console.log("client sent update");
-    collabSocket.emit(CollabEvents.UPDATE_REQUEST, roomId, update);
+  doc.on(CollabEvents.UPDATE, (update, origin) => {
+    if (origin != uid) {
+      console.log("client sent update");
+      collabSocket.emit(CollabEvents.UPDATE_REQUEST, roomId, update);
+    }
   });
 
   collabSocket.on(CollabEvents.UPDATE, (update) => {
     console.log("client received update");
-    applyUpdate(doc, new Uint8Array(update));
+    applyUpdateV2(doc, new Uint8Array(update), uid);
   });
 
   collabSocket.emit(CollabEvents.JOIN, uid, roomId);
   console.log("join: ", roomId);
 
   return new Promise((resolve) => {
-    // resolve({ text: text, awareness: awareness });
-    collabSocket.once(CollabEvents.SYNC, () => {
-      console.log("sync");
-      resolve({ text: text, awareness: awareness });
+    collabSocket.once(CollabEvents.ROOM_READY, (ready: boolean) => {
+      console.log("room ready: ", ready);
+      resolve({ ready: ready, text: text, awareness: awareness });
     });
   });
 };
