@@ -3,8 +3,8 @@ import { questionClient } from "../utils/api";
 import { isString, isStringArray } from "../utils/typeChecker";
 
 type TestcaseFiles = {
-  testcaseInputFile: File;
-  testcaseOutputFile: File;
+  testcaseInputFile: File | null;
+  testcaseOutputFile: File | null;
 };
 
 type Testcases = {
@@ -12,6 +12,11 @@ type Testcases = {
   input: string;
   expectedOutput: string;
 };
+
+export const enum TestcaseFilesUploadRequestTypes {
+  CREATE = "create",
+  UPDATE = "update",
+}
 
 type QuestionDetail = {
   id: string;
@@ -23,6 +28,11 @@ type QuestionDetail = {
   pythonTemplate: string;
   javaTemplate: string;
   cTemplate: string;
+};
+
+type QuestionDetailWithUrl = QuestionDetail & {
+  testcaseInputFileUrl: string;
+  testcaseOutputFileUrl: string;
 };
 
 type QuestionListDetail = {
@@ -53,21 +63,26 @@ enum QuestionActionTypes {
 
 type QuestionActions = {
   type: QuestionActionTypes;
-  payload: QuestionList | QuestionDetail | string[] | string;
+  payload:
+    | QuestionList
+    | QuestionDetail
+    | QuestionDetailWithUrl
+    | string[]
+    | string;
 };
 
 type QuestionsState = {
   questionCategories: Array<string>;
   questions: Array<QuestionListDetail>;
   questionCount: number;
-  selectedQuestion: QuestionDetail | null;
+  selectedQuestion: QuestionDetailWithUrl | null;
   questionCategoriesError: string | null;
   questionListError: string | null;
   selectedQuestionError: string | null;
 };
 
 // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-const isQuestion = (question: any): question is QuestionDetail => {
+const isQuestion = (question: any): question is QuestionDetailWithUrl => {
   if (!question || typeof question !== "object") {
     return false;
   }
@@ -106,7 +121,8 @@ export const initialState: QuestionsState = {
 };
 
 export const uploadTestcaseFiles = async (
-  data: TestcaseFiles
+  data: TestcaseFiles,
+  requestType: TestcaseFilesUploadRequestTypes
 ): Promise<{
   message: string;
   urls: {
@@ -115,8 +131,9 @@ export const uploadTestcaseFiles = async (
   };
 } | null> => {
   const formData = new FormData();
-  formData.append("testcaseInputFile", data.testcaseInputFile);
-  formData.append("testcaseOutputFile", data.testcaseOutputFile);
+  formData.append("testcaseInputFile", data.testcaseInputFile ?? "");
+  formData.append("testcaseOutputFile", data.testcaseOutputFile ?? "");
+  formData.append("requestType", requestType);
 
   try {
     const accessToken = localStorage.getItem("token");
@@ -137,7 +154,10 @@ export const createQuestion = async (
   testcaseFiles: TestcaseFiles,
   dispatch: Dispatch<QuestionActions>
 ): Promise<boolean> => {
-  const uploadResult = await uploadTestcaseFiles(testcaseFiles);
+  const uploadResult = await uploadTestcaseFiles(
+    testcaseFiles,
+    TestcaseFilesUploadRequestTypes.CREATE
+  );
 
   if (!uploadResult) {
     dispatch({
@@ -260,9 +280,34 @@ export const getQuestionById = (
 
 export const updateQuestionById = async (
   questionId: string,
-  question: Omit<QuestionDetail, "id">,
+  question: Omit<QuestionDetailWithUrl, "id">,
+  testcaseFiles: TestcaseFiles,
   dispatch: Dispatch<QuestionActions>
 ): Promise<boolean> => {
+  let urls = {};
+
+  if (Object.values(testcaseFiles).some((file) => file !== null)) {
+    const uploadResult = await uploadTestcaseFiles(
+      testcaseFiles,
+      TestcaseFilesUploadRequestTypes.UPDATE
+    );
+
+    if (!uploadResult) {
+      dispatch({
+        type: QuestionActionTypes.ERROR_CREATING_QUESTION,
+        payload: "Failed to upload test case file(s).",
+      });
+      return false;
+    }
+
+    const { testcaseInputFileUrl, testcaseOutputFileUrl } = uploadResult.urls;
+
+    urls = {
+      ...(testcaseInputFileUrl ? { testcaseInputFileUrl } : {}),
+      ...(testcaseOutputFileUrl ? { testcaseOutputFileUrl } : {}),
+    };
+  }
+
   const accessToken = localStorage.getItem("token");
   return questionClient
     .put(
@@ -272,6 +317,13 @@ export const updateQuestionById = async (
         description: question.description,
         complexity: question.complexity,
         category: question.categories,
+        testcases: question.testcases,
+        testcaseInputFileUrl: question.testcaseInputFileUrl,
+        testcaseOutputFileUrl: question.testcaseOutputFileUrl,
+        ...urls,
+        pythonTemplate: question.pythonTemplate,
+        javaTemplate: question.javaTemplate,
+        cTemplate: question.cTemplate,
       },
       {
         headers: {

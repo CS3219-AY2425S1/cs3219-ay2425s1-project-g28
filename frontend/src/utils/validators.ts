@@ -1,5 +1,6 @@
 /* eslint-disable */
 
+import { TestCase } from "../components/QuestionTestCases";
 import {
   BIO_MAX_LENGTH_ERROR_MESSAGE,
   EMAIL_INVALID_ERROR_MESSAGE,
@@ -119,3 +120,17 @@ export const passwordValidators = [
     message: PASSWORD_SPECIAL_CHAR_ERROR_MESSAGE,
   },
 ];
+
+export const isTestcaseUnchanged = (
+  newTc: Array<TestCase>,
+  oldTc: Array<TestCase>
+) => {
+  return (
+    newTc.length === oldTc.length &&
+    newTc.every(
+      (tc, i) =>
+        tc.input === oldTc[i].input &&
+        tc.expectedOutput === oldTc[i].expectedOutput
+    )
+  );
+};

@@ -25,6 +25,10 @@ import { uploadFileToFirebase } from "../utils/utils";
 import { QnListSearchFilterParams, RandomQnCriteria } from "../utils/types.ts";
 
 const FIREBASE_TESTCASE_FILES_FOLDER_NAME = "testcaseFiles/";
+enum TestcaseFilesUploadRequestTypes {
+  CREATE = "create",
+  UPDATE = "update",
+}
 
 export const createQuestion = async (
   req: Request,
@@ -131,39 +135,51 @@ export const createFileLink = async (
       });
     }
 
+    const isQuestionCreation =
+      req.body.requestType === TestcaseFilesUploadRequestTypes.CREATE;
     const tcFiles = req.files as {
       testcaseInputFile?: Express.Multer.File[];
       testcaseOutputFile?: Express.Multer.File[];
     };
 
-    if (!tcFiles || !tcFiles.testcaseInputFile || !tcFiles.testcaseOutputFile) {
+    if (
+      isQuestionCreation &&
+      (!tcFiles || !tcFiles.testcaseInputFile || !tcFiles.testcaseOutputFile)
+    ) {
       return res
         .status(400)
         .json({ message: "Missing one or both testcase file(s)" });
     }
 
     try {
-      const testcaseInputFile = tcFiles
-        .testcaseInputFile[0] as Express.Multer.File;
-      const testcaseOutputFile = tcFiles
-        .testcaseOutputFile[0] as Express.Multer.File;
+      const uploadPromises = [];
 
-      const [tcInputFileUrl, tcOutputFileUrl] = await Promise.all([
-        uploadFileToFirebase(
-          testcaseInputFile,
-          FIREBASE_TESTCASE_FILES_FOLDER_NAME,
-        ),
-        uploadFileToFirebase(
-          testcaseOutputFile,
-          FIREBASE_TESTCASE_FILES_FOLDER_NAME,
-        ),
-      ]);
+      if (tcFiles.testcaseInputFile) {
+        const inputFile = tcFiles.testcaseInputFile[0] as Express.Multer.File;
+        uploadPromises.push(
+          uploadFileToFirebase(inputFile, FIREBASE_TESTCASE_FILES_FOLDER_NAME),
+        );
+      } else {
+        uploadPromises.push(Promise.resolve(null));
+      }
+
+      if (tcFiles.testcaseOutputFile) {
+        const outputFile = tcFiles.testcaseOutputFile[0] as Express.Multer.File;
+        uploadPromises.push(
+          uploadFileToFirebase(outputFile, FIREBASE_TESTCASE_FILES_FOLDER_NAME),
+        );
+      } else {
+        uploadPromises.push(Promise.resolve(null));
+      }
+
+      const [tcInputFileUrl, tcOutputFileUrl] =
+        await Promise.all(uploadPromises);
 
       return res.status(200).json({
         message: "Files uploaded successfully",
         urls: {
-          testcaseInputFileUrl: tcInputFileUrl,
-          testcaseOutputFileUrl: tcOutputFileUrl,
+          testcaseInputFileUrl: tcInputFileUrl || "",
+          testcaseOutputFileUrl: tcOutputFileUrl || "",
         },
       });
     } catch (error) {
@@ -218,9 +234,9 @@ export const updateQuestion = async (
     const updatedQuestionTemplate = await QuestionTemplate.findOneAndUpdate(
       { questionId: id },
       {
-        ...(pythonTemplate !== undefined && { pythonTemplate }),
-        ...(javaTemplate !== undefined && { javaTemplate }),
-        ...(cTemplate !== undefined && { cTemplate }),
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       },
       { new: true },
     );
@@ -418,6 +434,9 @@ const formatQuestionIndivResponse = (
     description: question.description,
     complexity: question.complexity,
     categories: question.category,
+    testcases: question.testcases,
+    testcaseInputFileUrl: question.testcaseInputFileUrl,
+    testcaseOutputFileUrl: question.testcaseOutputFileUrl,
     pythonTemplate: questionTemplate ? questionTemplate.pythonTemplate : "",
     javaTemplate: questionTemplate ? questionTemplate.javaTemplate : "",
     cTemplate: questionTemplate ? questionTemplate.cTemplate : "",

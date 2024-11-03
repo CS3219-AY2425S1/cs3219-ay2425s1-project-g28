@@ -28,6 +28,12 @@ import QuestionMarkdown from "../../components/QuestionMarkdown";
 import QuestionImageContainer from "../../components/QuestionImageContainer";
 import QuestionCategoryAutoComplete from "../../components/QuestionCategoryAutoComplete";
 import QuestionDetail from "../../components/QuestionDetail";
+import QuestionTestCases, {
+  TestCase,
+} from "../../components/QuestionTestCases";
+import QuestionTestCasesFileUpload from "../../components/QuestionTestCasesFileUpload";
+import QuestionCodeTemplates from "../../components/QuestionCodeTemplates";
+import { isTestcaseUnchanged } from "../../utils/validators";
 
 const QuestionEdit = () => {
   const navigate = useNavigate();
@@ -37,10 +43,23 @@ const QuestionEdit = () => {
 
   const [title, setTitle] = useState<string>("");
   const [markdownText, setMarkdownText] = useState<string>("");
-  const [selectedComplexity, setselectedComplexity] = useState<string | null>(
+  const [selectedComplexity, setSelectedComplexity] = useState<string | null>(
     null
   );
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [testcaseInputFile, setTestcaseInputFile] = useState<File | null>(null);
+  const [testcaseOutputFile, setTestcaseOutputFile] = useState<File | null>(
+    null
+  );
+
+  const [codeTemplates, setCodeTemplates] = useState<{ [key: string]: string }>(
+    {
+      python: "",
+      java: "",
+      c: "",
+    }
+  );
   const [uploadedImagesUrl, setUploadedImagesUrl] = useState<string[]>([]);
   const [isPreviewQuestion, setIsPreviewQuestion] = useState<boolean>(false);
 
@@ -56,8 +75,14 @@ const QuestionEdit = () => {
     if (state.selectedQuestion) {
       setTitle(state.selectedQuestion.title);
       setMarkdownText(state.selectedQuestion.description);
-      setselectedComplexity(state.selectedQuestion.complexity);
+      setSelectedComplexity(state.selectedQuestion.complexity);
       setSelectedCategories(state.selectedQuestion.categories);
+      setTestCases(state.selectedQuestion.testcases);
+      setCodeTemplates({
+        python: state.selectedQuestion.pythonTemplate,
+        java: state.selectedQuestion.javaTemplate,
+        c: state.selectedQuestion.cTemplate,
+      });
     }
   }, [state.selectedQuestion]);
 
@@ -77,7 +102,13 @@ const QuestionEdit = () => {
       title === state.selectedQuestion.title &&
       markdownText === state.selectedQuestion.description &&
       selectedComplexity === state.selectedQuestion.complexity &&
-      selectedCategories === state.selectedQuestion.categories
+      selectedCategories === state.selectedQuestion.categories &&
+      isTestcaseUnchanged(testCases, state.selectedQuestion.testcases) &&
+      codeTemplates.python === state.selectedQuestion.pythonTemplate &&
+      codeTemplates.java === state.selectedQuestion.javaTemplate &&
+      codeTemplates.c === state.selectedQuestion.cTemplate &&
+      testcaseInputFile === null &&
+      testcaseOutputFile === null
     ) {
       toast.error(NO_QUESTION_CHANGES);
       return;
@@ -87,7 +118,12 @@ const QuestionEdit = () => {
       !title ||
       !markdownText ||
       !selectedComplexity ||
-      selectedCategories.length === 0
+      selectedCategories.length === 0 ||
+      testCases.some(
+        (testCase) =>
+          testCase.input.trim() === "" || testCase.expectedOutput.trim() === ""
+      ) ||
+      Object.values(codeTemplates).some((value) => value === "")
     ) {
       toast.error(FILL_ALL_FIELDS);
       return;
@@ -100,6 +136,16 @@ const QuestionEdit = () => {
         description: markdownText,
         complexity: selectedComplexity,
         categories: selectedCategories,
+        testcases: testCases,
+        testcaseInputFileUrl: state.selectedQuestion.testcaseInputFileUrl,
+        testcaseOutputFileUrl: state.selectedQuestion.testcaseOutputFileUrl,
+        pythonTemplate: codeTemplates.python,
+        javaTemplate: codeTemplates.java,
+        cTemplate: codeTemplates.c,
+      },
+      {
+        testcaseInputFile: testcaseInputFile,
+        testcaseOutputFile: testcaseOutputFile,
       },
       dispatch
     );
@@ -142,7 +188,7 @@ const QuestionEdit = () => {
             sx={{ marginTop: 2 }}
             value={selectedComplexity}
             onChange={(_e, newcomplexitySelected) => {
-              setselectedComplexity(newcomplexitySelected);
+              setSelectedComplexity(newcomplexitySelected);
             }}
             renderInput={(params) => (
               <TextField {...params} label="Complexity" />
@@ -162,6 +208,23 @@ const QuestionEdit = () => {
           <QuestionMarkdown
             markdownText={markdownText}
             setMarkdownText={setMarkdownText}
+          />
+
+          <QuestionTestCases
+            testCases={testCases}
+            setTestCases={setTestCases}
+          />
+
+          <QuestionTestCasesFileUpload
+            testcaseInputFile={testcaseInputFile}
+            setTestcaseInputFile={setTestcaseInputFile}
+            testcaseOutputFile={testcaseOutputFile}
+            setTestcaseOutputFile={setTestcaseOutputFile}
+          />
+
+          <QuestionCodeTemplates
+            codeTemplates={codeTemplates}
+            setCodeTemplates={setCodeTemplates}
           />
         </>
       )}
