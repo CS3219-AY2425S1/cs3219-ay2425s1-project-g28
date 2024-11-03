@@ -16,9 +16,12 @@ import { toast } from "react-toastify";
 
 import {
   ABORT_CREATE_OR_EDIT_QUESTION_CONFIRMATION_MESSAGE,
+  C_CODE_TEMPLATE,
   complexityList,
   FAILED_QUESTION_CREATE,
   FILL_ALL_FIELDS,
+  JAVA_CODE_TEMPLATE,
+  PYTHON_CODE_TEMPLATE,
   SUCCESS_QUESTION_CREATE,
 } from "../../utils/constants";
 import AppMargin from "../../components/AppMargin";
@@ -57,9 +60,9 @@ const NewQuestion = () => {
 
   const [codeTemplates, setCodeTemplates] = useState<{ [key: string]: string }>(
     {
-      python: "",
-      java: "",
-      c: "",
+      python: PYTHON_CODE_TEMPLATE,
+      java: JAVA_CODE_TEMPLATE,
+      c: C_CODE_TEMPLATE,
     }
   );
 

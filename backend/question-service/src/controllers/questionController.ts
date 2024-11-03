@@ -25,6 +25,7 @@ import { uploadFileToFirebase } from "../utils/utils";
 import { QnListSearchFilterParams, RandomQnCriteria } from "../utils/types.ts";
 
 const FIREBASE_TESTCASE_FILES_FOLDER_NAME = "testcaseFiles/";
+
 enum TestcaseFilesUploadRequestTypes {
   CREATE = "create",
   UPDATE = "update",
@@ -137,6 +138,7 @@ export const createFileLink = async (
 
     const isQuestionCreation =
       req.body.requestType === TestcaseFilesUploadRequestTypes.CREATE;
+
     const tcFiles = req.files as {
       testcaseInputFile?: Express.Multer.File[];
       testcaseOutputFile?: Express.Multer.File[];
