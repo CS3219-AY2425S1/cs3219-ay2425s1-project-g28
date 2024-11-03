@@ -384,9 +384,18 @@ export const readRandomQuestion = async (
       return;
     }
 
+    const chosenQuestion = randomQuestion[0];
+
+    const questionTemplate = await QuestionTemplate.findOne({
+      questionId: chosenQuestion._id,
+    });
+
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
-      question: formatQuestionResponse(randomQuestion[0]),
+      question: formatQuestionIndivResponse(
+        chosenQuestion,
+        questionTemplate as IQuestionTemplate,
+      ),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
