@@ -3,33 +3,22 @@ import { langs } from "@uiw/codemirror-extensions-langs";
 import { basicSetup } from "@uiw/codemirror-extensions-basic-setup";
 import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
-import { useEffect, useState } from "react";
-import {
-  awareness,
-  getDocument,
-  initDocument,
-  peerExtension,
-  receiveCursorUpdates,
-  removeCursorListener,
-  ytext,
-} from "../../utils/collabSocket";
-import Loader from "../Loader";
+import { useEffect } from "react";
+import { removeCursorListener } from "../../utils/collabSocket";
 import { cursorExtension } from "../../utils/collabCursor";
 import { yCollab } from "y-codemirror.next";
+import { Text } from "yjs";
+import { Awareness } from "y-protocols/awareness";
 
 interface CodeEditorProps {
-  uid: string;
-  username: string;
+  editorState?: { text: Text; awareness: Awareness };
+  uid?: string;
+  username?: string;
   language: string;
   template?: string;
   roomId?: string;
   isReadOnly?: boolean;
 }
-
-type CodeEditorState = {
-  version: number | null;
-  doc: string | null;
-};
 
 const languageSupport = {
   Python: langs.python(),
@@ -39,58 +28,18 @@ const languageSupport = {
 
 const CodeEditor: React.FC<CodeEditorProps> = (props) => {
   const {
-    uid,
-    username,
+    editorState,
+    uid = "",
+    username = "",
     language,
     template = "",
     roomId = "",
     isReadOnly = false,
   } = props;
 
-  const [codeEditorState, setCodeEditorState] = useState<CodeEditorState>({
-    version: null,
-    doc: null,
-  });
-
   useEffect(() => {
     return () => removeCursorListener();
   }, []);
-
-  // useEffect(() => {
-  // if (isReadOnly) {
-  //   setCodeEditorState({
-  //     version: 0,
-  //     doc: template,
-  //   });
-  //   return;
-  // }
-
-  //   const fetchDocument = async () => {
-  //     if (!roomId) {
-  //       return;
-  //     }
-
-  //     try {
-  //       if (template) {
-  //         await initDocument(roomId, template);
-  //       }
-
-  //       const { version, doc } = await getDocument(roomId);
-  //       setCodeEditorState({
-  //         version: version,
-  //         doc: doc.toString(),
-  //       });
-  //     } catch (error) {
-  //       console.error("Error fetching document: ", error);
-  //     }
-  //   };
-
-  //   fetchDocument();
-  // }, []);
-
-  // if (codeEditorState.version === null || codeEditorState.doc === null) {
-  //   return <Loader />;
-  // }
 
   return (
     <CodeMirror
@@ -102,13 +51,16 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       extensions={[
         basicSetup(),
         languageSupport[language as keyof typeof languageSupport],
-        yCollab(ytext, awareness),
-        // peerExtension(roomId, codeEditorState.version, uid),
-        cursorExtension(roomId, uid, username),
+        ...(!isReadOnly && editorState
+          ? [
+              yCollab(editorState.text, editorState.awareness),
+              cursorExtension(roomId, uid, username),
+            ]
+          : []),
         EditorView.editable.of(!isReadOnly),
         EditorState.readOnly.of(isReadOnly),
       ]}
-      // value={codeEditorState.doc}
+      value={isReadOnly ? template : undefined}
     />
   );
 };

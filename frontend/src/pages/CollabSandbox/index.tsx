@@ -22,10 +22,16 @@ import QuestionDetailComponent from "../../components/QuestionDetail";
 import { Navigate } from "react-router-dom";
 import CodeEditor from "../../components/CodeEditor";
 import { join, leave } from "../../utils/collabSocket";
+import { Text } from "yjs";
+import { Awareness } from "y-protocols/awareness";
 
 const CollabSandbox: React.FC = () => {
-  const [connected, setConnected] = useState<boolean>(false);
+  // const [connected, setConnected] = useState<boolean>(false);
   const [showErrorScreen, setShowErrorScreen] = useState<boolean>(false);
+  const [editorState, setEditorState] = useState<{
+    text: Text;
+    awareness: Awareness;
+  } | null>(null);
 
   const match = useMatch();
   if (!match) {
@@ -59,14 +65,14 @@ const CollabSandbox: React.FC = () => {
     }
     getQuestionById(questionId, dispatch);
 
-    if (!matchId || connected) {
+    if (!matchId || editorState) {
       return;
     }
 
     const connectToCollabSession = async () => {
       try {
-        await join(matchId);
-        setConnected(true);
+        const { text, awareness } = await join(matchId);
+        setEditorState({ text, awareness });
       } catch (error) {
         console.error("Error connecting to collab session: ", error);
       }
@@ -110,7 +116,7 @@ const CollabSandbox: React.FC = () => {
     );
   }
 
-  if (!selectedQuestion || !connected) {
+  if (!selectedQuestion || !editorState) {
     return <Loader />;
   }
 
@@ -185,6 +191,7 @@ const CollabSandbox: React.FC = () => {
               })}
             >
               <CodeEditor
+                editorState={editorState}
                 uid={matchUser.id}
                 username={matchUser.username}
                 language={matchCriteria.language}

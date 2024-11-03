@@ -1,15 +1,8 @@
-import { EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view";
-import { Text, ChangeSet, StateEffect } from "@codemirror/state";
-import {
-  Update,
-  receiveUpdates,
-  sendableUpdates,
-  collab,
-  getSyncedVersion,
-} from "@codemirror/collab";
+import { EditorView } from "@codemirror/view";
+// import { Text } from "@codemirror/state";
 import { io } from "socket.io-client";
 import { updateCursor, Cursor } from "./collabCursor";
-import * as Y from "yjs";
+import { Doc, Text, applyUpdate } from "yjs";
 import { Awareness } from "y-protocols/awareness";
 
 // Adapted from https://codemirror.net/examples/collab/ and https://github.com/BjornTheProgrammer/react-codemirror-collab-sockets
@@ -18,17 +11,14 @@ enum CollabEvents {
   // Send
   JOIN = "join",
   LEAVE = "leave",
-
-  PUSH_UPDATES = "push_updates",
-  PULL_UPDATES = "pull_updates",
-  INIT_DOCUMENT = "init_document",
-  GET_DOCUMENT = "get_document",
+  UPDATE_REQUEST = "update_request",
+  UPDATE_CURSOR_REQUEST = "update_cursor_request",
 
   // Receive
   USER_CONNECTED = "user_connected",
-
-  PULL_UPDATES_RESPONSE = "pull_updates_response",
-  GET_DOCUMENT_RESPONSE = "get_document_response",
+  SYNC = "sync",
+  UPDATE = "update",
+  UPDATE_CURSOR = "update_cursor",
 }
 
 const COLLAB_SOCKET_URL = "http://localhost:3003";
@@ -37,96 +27,28 @@ const collabSocket = io(COLLAB_SOCKET_URL, {
   autoConnect: false,
 });
 
-const pushUpdates = (
-  roomId: string,
-  version: number,
-  fullUpdates: readonly Update[]
-): Promise<void> => {
-  const updates = fullUpdates.map((update) => ({
-    clientID: update.clientID, // client who made the update
-    changes: update.changes.toJSON(), // document updates
-    effects: update.effects, // cursor updates
-  }));
-
-  return new Promise((resolve) => {
-    collabSocket.emit(
-      CollabEvents.PUSH_UPDATES,
-      roomId,
-      version,
-      JSON.stringify(updates),
-      () => resolve()
-    );
-  });
-};
-
-const pullUpdates = (
-  roomId: string,
-  version: number
-): Promise<readonly Update[]> => {
-  return new Promise<readonly Update[]>((resolve) => {
-    collabSocket.emit(CollabEvents.PULL_UPDATES, roomId, version);
-
-    collabSocket.once(CollabEvents.PULL_UPDATES_RESPONSE, (updates: string) => {
-      resolve(JSON.parse(updates));
-    });
-  }).then((updates) =>
-    updates.map((update) => {
-      // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-      const effects: StateEffect<any>[] = [];
-
-      update.effects?.forEach((effect) => {
-        if (
-          effect.value.uid &&
-          effect.value.username &&
-          effect.value.from &&
-          effect.value.to
-        ) {
-          const cursor: Cursor = {
-            uid: effect.value.uid,
-            username: effect.value.username,
-            from: effect.value.from,
-            to: effect.value.to,
-          };
-          effects.push(updateCursor.of(cursor));
-        }
-      });
-
-      return {
-        clientID: update.clientID,
-        changes: ChangeSet.fromJSON(update.changes),
-        effects: effects,
-      };
-    })
-  );
-};
-
-export const ydoc = new Y.Doc();
-export const ytext = ydoc.getText("codemirror");
-export const awareness = new Awareness(ydoc);
-
-export const join = (roomId: string): Promise<void> => {
+export const join = (
+  roomId: string
+): Promise<{ text: Text; awareness: Awareness }> => {
   collabSocket.connect();
   collabSocket.emit(CollabEvents.JOIN, roomId);
 
-  // Listen for local document changes and send to the server
-  ydoc.on("update", (update) => {
-    collabSocket.emit("update", roomId, update);
+  const doc = new Doc();
+  const text = doc.getText("codemirror");
+  const awareness = new Awareness(doc);
+
+  doc.on(CollabEvents.UPDATE, (update) => {
+    collabSocket.emit(CollabEvents.UPDATE_REQUEST, roomId, update);
   });
 
-  // Listen for document updates from the server
-  collabSocket.on("update", (update) => {
-    Y.applyUpdate(ydoc, new Uint8Array(update));
+  collabSocket.on(CollabEvents.UPDATE, (update) => {
+    applyUpdate(doc, new Uint8Array(update));
   });
 
   return new Promise((resolve) => {
-    // Listen for initial document state
-    collabSocket.once("sync", (update) => {
-      try {
-        Y.applyUpdate(ydoc, new Uint8Array(update));
-      } catch (error) {
-        console.error("Sync initial state error: ", error);
-      }
-      resolve();
+    collabSocket.once(CollabEvents.SYNC, (update) => {
+      applyUpdate(doc, new Uint8Array(update));
+      resolve({ text: text, awareness: awareness });
     });
   });
 };
@@ -137,15 +59,15 @@ export const leave = (roomId: string) => {
 };
 
 export const sendCursorUpdates = (roomId: string, cursor: Cursor) => {
-  collabSocket.emit("cursor_update", roomId, cursor);
+  collabSocket.emit(CollabEvents.UPDATE_CURSOR_REQUEST, roomId, cursor);
 };
 
 export const receiveCursorUpdates = (view: EditorView) => {
-  if (collabSocket.hasListeners("cursor_update")) {
+  if (collabSocket.hasListeners(CollabEvents.UPDATE_CURSOR)) {
     return;
   }
 
-  collabSocket.on("cursor_update", (cursor: Cursor) => {
+  collabSocket.on(CollabEvents.UPDATE_CURSOR, (cursor: Cursor) => {
     view.dispatch({
       effects: updateCursor.of(cursor),
     });
@@ -153,96 +75,5 @@ export const receiveCursorUpdates = (view: EditorView) => {
 };
 
 export const removeCursorListener = () => {
-  collabSocket.off("cursor_update");
-};
-
-export const initDocument = (
-  roomId: string,
-  template: string
-): Promise<void> => {
-  return new Promise((resolve) => {
-    collabSocket.emit(CollabEvents.INIT_DOCUMENT, roomId, template, () =>
-      resolve()
-    );
-  });
-};
-
-export const getDocument = (
-  roomId: string
-): Promise<{ version: number; doc: Text }> => {
-  return new Promise((resolve) => {
-    collabSocket.emit(CollabEvents.GET_DOCUMENT, roomId);
-
-    collabSocket.once(
-      CollabEvents.GET_DOCUMENT_RESPONSE,
-      (version: number, doc: string) => {
-        resolve({
-          version: version,
-          doc: Text.of(doc.split("\n")),
-        });
-      }
-    );
-  });
-};
-
-// handles push and pull updates
-export const peerExtension = (
-  roomId: string,
-  startVersion: number,
-  uid: string
-) => {
-  const plugin = ViewPlugin.fromClass(
-    class {
-      private pushingUpdates = false; // to ensure only one running push request
-      private pullUpdates = true;
-
-      constructor(private view: EditorView) {
-        this.pull();
-      }
-
-      update(update: ViewUpdate) {
-        if (update.docChanged || update.transactions.length) {
-          this.push();
-        }
-      }
-
-      async push() {
-        const updates = sendableUpdates(this.view.state);
-        if (this.pushingUpdates || !updates.length) {
-          return;
-        }
-        this.pushingUpdates = true;
-        const version = getSyncedVersion(this.view.state);
-        await pushUpdates(roomId, version, updates);
-        this.pushingUpdates = false;
-
-        // check if there are still updates to push (failed / new updates)
-        if (sendableUpdates(this.view.state).length) {
-          setTimeout(() => this.push(), 100);
-        }
-      }
-
-      async pull() {
-        while (this.pullUpdates) {
-          const version = getSyncedVersion(this.view.state);
-          const updates = await pullUpdates(roomId, version); // returns only if there are updates
-          this.view.dispatch(receiveUpdates(this.view.state, updates));
-        }
-      }
-
-      destroy() {
-        this.pullUpdates = false;
-      }
-    }
-  );
-
-  return [
-    collab({
-      startVersion: startVersion,
-      clientID: uid,
-      sharedEffects: (transaction) =>
-        transaction.effects.filter((effect) => effect.is(updateCursor)),
-    }),
-    plugin,
-  ];
+  collabSocket.off(CollabEvents.UPDATE_CURSOR);
 };

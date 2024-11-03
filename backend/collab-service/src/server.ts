@@ -1,9 +1,6 @@
 import http from "http";
 import app, { allowedOrigins } from "./app.ts";
-import {
-  handleWebsocketCollabEvents,
-  handleYWebsocketCollabEvents,
-} from "./handlers/websocketHandler.ts";
+import { handleWebsocketCollabEvents } from "./handlers/websocketHandler.ts";
 import { Server, Socket } from "socket.io";
 import { connectRedis } from "./config/redis.ts";
 
@@ -17,8 +14,7 @@ export const io = new Server(server, {
 });
 
 io.on("connection", (socket: Socket) => {
-  // handleWebsocketCollabEvents(socket);
-  handleYWebsocketCollabEvents(socket);
+  handleWebsocketCollabEvents(socket);
 });
 
 const PORT = process.env.SERVICE_PORT || 3003;
