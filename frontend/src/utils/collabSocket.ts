@@ -11,11 +11,17 @@ enum CollabEvents {
   INIT_DOCUMENT = "init_document",
   UPDATE_REQUEST = "update_request",
   UPDATE_CURSOR_REQUEST = "update_cursor_request",
+  RECONNECT_REQUEST = "reconnect_request",
 
   // Receive
   ROOM_READY = "room_ready",
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
+  SOCKET_DISCONNECT = "disconnect",
+  SOCKET_CLIENT_DISCONNECT = "io client disconnect",
+  SOCKET_SERVER_DISCONNECT = "io server disconnect",
+  SOCKET_RECONNECT_SUCCESS = "reconnect",
+  SOCKET_RECONNECT_FAILED = "reconnect_failed",
 }
 
 export type CollabSessionData = {
@@ -39,6 +45,7 @@ export const join = (
   roomId: string
 ): Promise<CollabSessionData> => {
   collabSocket.connect();
+  initConnectionStatusListeners(roomId);
 
   doc = new Doc();
   text = doc.getText();
@@ -46,22 +53,18 @@ export const join = (
 
   doc.on(CollabEvents.UPDATE, (update, origin) => {
     if (origin != uid) {
-      console.log("client sent update");
       collabSocket.emit(CollabEvents.UPDATE_REQUEST, roomId, update);
     }
   });
 
   collabSocket.on(CollabEvents.UPDATE, (update) => {
-    console.log("client received update");
     applyUpdateV2(doc, new Uint8Array(update), uid);
   });
 
   collabSocket.emit(CollabEvents.JOIN, uid, roomId);
-  console.log("join: ", roomId);
 
   return new Promise((resolve) => {
     collabSocket.once(CollabEvents.ROOM_READY, (ready: boolean) => {
-      console.log("room ready: ", ready);
       resolve({ ready: ready, text: text, awareness: awareness });
     });
   });
@@ -72,8 +75,9 @@ export const initDocument = (roomId: string, template: string) => {
 };
 
 export const leave = (uid: string, roomId: string) => {
-  console.log("leave: ", roomId);
-  collabSocket.off(CollabEvents.UPDATE);
+  collabSocket.removeAllListeners();
+  collabSocket.io.removeListener(CollabEvents.SOCKET_RECONNECT_SUCCESS);
+  collabSocket.io.removeListener(CollabEvents.SOCKET_RECONNECT_FAILED);
   collabSocket.emit(CollabEvents.LEAVE, uid, roomId);
   doc.destroy();
 };
@@ -94,6 +98,32 @@ export const receiveCursorUpdate = (view: EditorView) => {
   });
 };
 
-export const removeCursorListener = () => {
-  collabSocket.off(CollabEvents.UPDATE_CURSOR);
+export const reconnectRequest = (roomId: string) => {
+  collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
+};
+
+const initConnectionStatusListeners = (roomId: string) => {
+  if (!collabSocket.hasListeners(CollabEvents.SOCKET_DISCONNECT)) {
+    collabSocket.on(CollabEvents.SOCKET_DISCONNECT, (reason) => {
+      if (
+        reason !== CollabEvents.SOCKET_CLIENT_DISCONNECT &&
+        reason !== CollabEvents.SOCKET_SERVER_DISCONNECT
+      ) {
+        // TODO: Handle socket disconnection
+      }
+    });
+  }
+
+  if (!collabSocket.io.hasListeners(CollabEvents.SOCKET_RECONNECT_SUCCESS)) {
+    collabSocket.io.on(CollabEvents.SOCKET_RECONNECT_SUCCESS, () => {
+      console.log("reconnect request");
+      collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
+    });
+  }
+
+  if (!collabSocket.io.hasListeners(CollabEvents.SOCKET_RECONNECT_FAILED)) {
+    collabSocket.io.on(CollabEvents.SOCKET_RECONNECT_FAILED, () => {
+      console.log("reconnect failed");
+    });
+  }
 };

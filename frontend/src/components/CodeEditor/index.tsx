@@ -4,7 +4,7 @@ import { basicSetup } from "@uiw/codemirror-extensions-basic-setup";
 import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { useEffect, useRef } from "react";
-import { initDocument, removeCursorListener } from "../../utils/collabSocket";
+import { initDocument } from "../../utils/collabSocket";
 import { cursorExtension } from "../../utils/collabCursor";
 import { yCollab } from "y-codemirror.next";
 import { Text } from "yjs";
@@ -46,7 +46,6 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
 
     return () => {
       effectRan.current = true;
-      removeCursorListener();
     };
   }, []);
 

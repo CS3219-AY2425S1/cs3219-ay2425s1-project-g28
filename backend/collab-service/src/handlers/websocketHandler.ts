@@ -11,6 +11,7 @@ enum CollabEvents {
   INIT_DOCUMENT = "init_document",
   UPDATE_REQUEST = "update_request",
   UPDATE_CURSOR_REQUEST = "update_cursor_request",
+  RECONNECT_REQUEST = "reconnect_request",
 
   // Send
   ROOM_READY = "room_ready",
@@ -106,6 +107,27 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
 
     userConnections.set(connectionKey, connectionTimeout);
   });
+
+  socket.on(CollabEvents.RECONNECT_REQUEST, async (roomId: string) => {
+    // TODO: Handle recconnection
+    socket.join(roomId);
+
+    const doc = getDocument(roomId);
+    const storeData = await redisClient.get(`collaboration:${roomId}`);
+
+    if (storeData) {
+      const tempDoc = new Doc();
+      const update = Buffer.from(storeData, "base64");
+      applyUpdateV2(tempDoc, new Uint8Array(update));
+      const tempText = tempDoc.getText().toString();
+
+      const text = doc.getText();
+      doc.transact(() => {
+        text.delete(0, text.length);
+        text.insert(0, tempText);
+      });
+    }
+  });
 };
 
 const createCollabSession = (roomId: string) => {
@@ -125,10 +147,10 @@ const getDocument = (roomId: string) => {
   let doc = collabSessions.get(roomId);
   if (!doc) {
     doc = new Doc();
-    doc.on(CollabEvents.UPDATE, async (update) => {
+    doc.on(CollabEvents.UPDATE, (_update) => {
       console.log("server doc updated: ", roomId);
       saveDocument(roomId, doc!);
-      io.to(roomId).emit(CollabEvents.UPDATE, update);
+      io.to(roomId).emit(CollabEvents.UPDATE, encodeStateAsUpdateV2(doc!));
     });
     collabSessions.set(roomId, doc);
   }
@@ -143,13 +165,3 @@ const saveDocument = async (roomId: string, doc: Doc) => {
     EX: EXPIRY_TIME,
   });
 };
-
-// const getDocumentFromStore = async (roomId: string) => {
-//   const doc = getDocument(roomId);
-//   const storeData = await redisClient.get(`collaboration:${roomId}`);
-//   if (storeData) {
-//     const update = Buffer.from(storeData, "base64");
-//     applyUpdateV2(doc, new Uint8Array(update));
-//   }
-//   return !!storeData;
-// };
