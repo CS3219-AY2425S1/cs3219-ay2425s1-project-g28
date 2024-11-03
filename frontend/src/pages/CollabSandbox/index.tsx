@@ -21,17 +21,11 @@ import reducer, {
 import QuestionDetailComponent from "../../components/QuestionDetail";
 import { Navigate } from "react-router-dom";
 import CodeEditor from "../../components/CodeEditor";
-import { join, leave } from "../../utils/collabSocket";
-import { Text } from "yjs";
-import { Awareness } from "y-protocols/awareness";
+import { CollabData, join, leave } from "../../utils/collabSocket";
 
 const CollabSandbox: React.FC = () => {
-  // const [connected, setConnected] = useState<boolean>(false);
   const [showErrorScreen, setShowErrorScreen] = useState<boolean>(false);
-  const [editorState, setEditorState] = useState<{
-    text: Text;
-    awareness: Awareness;
-  } | null>(null);
+  const [editorState, setEditorState] = useState<CollabData | null>(null);
 
   const match = useMatch();
   if (!match) {
@@ -65,13 +59,13 @@ const CollabSandbox: React.FC = () => {
     }
     getQuestionById(questionId, dispatch);
 
-    if (!matchId || editorState) {
+    if (!matchUser || !matchId) {
       return;
     }
 
     const connectToCollabSession = async () => {
       try {
-        const { text, awareness } = await join(matchId);
+        const { text, awareness } = await join(matchUser.id, matchId);
         setEditorState({ text, awareness });
       } catch (error) {
         console.error("Error connecting to collab session: ", error);
@@ -80,7 +74,7 @@ const CollabSandbox: React.FC = () => {
 
     connectToCollabSession();
 
-    return () => leave(matchId);
+    return () => leave(matchUser.id, matchId);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

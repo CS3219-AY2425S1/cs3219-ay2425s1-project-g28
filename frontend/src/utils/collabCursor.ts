@@ -5,7 +5,7 @@ import {
   WidgetType,
 } from "@codemirror/view";
 import { StateField, StateEffect } from "@codemirror/state";
-import { receiveCursorUpdates, sendCursorUpdates } from "./collabSocket";
+import { receiveCursorUpdate, sendCursorUpdate } from "./collabSocket";
 
 // Adapted from https://github.com/BjornTheProgrammer/react-codemirror-collab-sockets
 
@@ -149,11 +149,11 @@ export const cursorExtension = (
             to: transaction.selection.ranges[0].to,
           };
 
-          sendCursorUpdates(roomId, cursor);
+          sendCursorUpdate(roomId, cursor);
         }
       });
 
-      receiveCursorUpdates(update.view);
+      receiveCursorUpdate(update.view);
     }),
   ];
 };

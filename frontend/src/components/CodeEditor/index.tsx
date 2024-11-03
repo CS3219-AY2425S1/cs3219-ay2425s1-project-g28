@@ -3,8 +3,8 @@ import { langs } from "@uiw/codemirror-extensions-langs";
 import { basicSetup } from "@uiw/codemirror-extensions-basic-setup";
 import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
-import { useEffect } from "react";
-import { removeCursorListener } from "../../utils/collabSocket";
+import { useEffect, useRef } from "react";
+import { initDocument, removeCursorListener } from "../../utils/collabSocket";
 import { cursorExtension } from "../../utils/collabCursor";
 import { yCollab } from "y-codemirror.next";
 import { Text } from "yjs";
@@ -37,8 +37,17 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     isReadOnly = false,
   } = props;
 
+  const effectRan = useRef<boolean>(false);
+
   useEffect(() => {
-    return () => removeCursorListener();
+    if (!effectRan.current) {
+      initDocument(roomId, "code template");
+    }
+
+    return () => {
+      effectRan.current = true;
+      removeCursorListener();
+    };
   }, []);
 
   return (
