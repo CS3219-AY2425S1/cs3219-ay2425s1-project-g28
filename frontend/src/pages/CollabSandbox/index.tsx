@@ -198,7 +198,6 @@ const CollabSandbox: React.FC = () => {
             sx={{
               flex: 1,
               maxHeight: "50vh",
-              overflow: "auto",
               display: "flex",
               flexDirection: "column",
             }}
@@ -217,7 +216,8 @@ const CollabSandbox: React.FC = () => {
               <Tab label="Test Cases" value="tests" />
               <Tab label="Chat" value="chat" />
             </Tabs>
-            <TabPanel selected={selectedTab} value="tests">
+
+            <TabPanel value={selectedTab} selected="tests">
               <Box sx={(theme) => ({ margin: theme.spacing(2, 0) })}>
                 {[...Array(testcases.length)]
                   .map((_, index) => index + 1)
@@ -242,7 +242,7 @@ const CollabSandbox: React.FC = () => {
                 result={testcases[selectedTestcase].result}
               />
             </TabPanel>
-            <TabPanel selected={selectedTab} value="chat">
+            <TabPanel value={selectedTab} selected="chat">
               <Chat isActive={selectedTab === "chat"} />
             </TabPanel>
           </Box>

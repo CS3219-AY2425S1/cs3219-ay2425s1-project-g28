@@ -356,6 +356,8 @@ const formatQuestionIndivResponse = (
     description: question.description,
     complexity: question.complexity,
     categories: question.category,
+    testcaseInputFileUrl: question.testcaseInputFileUrl,
+    testcaseOutputFileUrl: question.testcaseOutputFileUrl,
     pythonTemplate: questionTemplate ? questionTemplate.pythonTemplate : "",
     javaTemplate: questionTemplate ? questionTemplate.javaTemplate : "",
     cTemplate: questionTemplate ? questionTemplate.cTemplate : "",
