@@ -20,7 +20,7 @@ const QuestionTestCasesFileUpload: React.FC<
 }) => {
   return (
     <Box>
-      <Stack direction="row" alignItems="center" marginBottom={2}>
+      <Stack direction="row" alignItems="center" marginY={2}>
         <Typography variant="h6">Test Cases File Upload</Typography>
         <Tooltip
           title={

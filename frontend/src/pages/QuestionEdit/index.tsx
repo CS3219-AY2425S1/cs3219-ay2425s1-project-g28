@@ -28,12 +28,8 @@ import QuestionMarkdown from "../../components/QuestionMarkdown";
 import QuestionImageContainer from "../../components/QuestionImageContainer";
 import QuestionCategoryAutoComplete from "../../components/QuestionCategoryAutoComplete";
 import QuestionDetail from "../../components/QuestionDetail";
-import QuestionTestCases, {
-  TestCase,
-} from "../../components/QuestionTestCases";
 import QuestionTestCasesFileUpload from "../../components/QuestionTestCasesFileUpload";
 import QuestionCodeTemplates from "../../components/QuestionCodeTemplates";
-import { isTestcaseUnchanged } from "../../utils/validators";
 
 const QuestionEdit = () => {
   const navigate = useNavigate();
@@ -47,7 +43,6 @@ const QuestionEdit = () => {
     null
   );
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [testcaseInputFile, setTestcaseInputFile] = useState<File | null>(null);
   const [testcaseOutputFile, setTestcaseOutputFile] = useState<File | null>(
     null
@@ -77,7 +72,6 @@ const QuestionEdit = () => {
       setMarkdownText(state.selectedQuestion.description);
       setSelectedComplexity(state.selectedQuestion.complexity);
       setSelectedCategories(state.selectedQuestion.categories);
-      setTestCases(state.selectedQuestion.testcases);
       setCodeTemplates({
         python: state.selectedQuestion.pythonTemplate,
         java: state.selectedQuestion.javaTemplate,
@@ -103,7 +97,6 @@ const QuestionEdit = () => {
       markdownText === state.selectedQuestion.description &&
       selectedComplexity === state.selectedQuestion.complexity &&
       selectedCategories === state.selectedQuestion.categories &&
-      isTestcaseUnchanged(testCases, state.selectedQuestion.testcases) &&
       codeTemplates.python === state.selectedQuestion.pythonTemplate &&
       codeTemplates.java === state.selectedQuestion.javaTemplate &&
       codeTemplates.c === state.selectedQuestion.cTemplate &&
@@ -119,10 +112,6 @@ const QuestionEdit = () => {
       !markdownText ||
       !selectedComplexity ||
       selectedCategories.length === 0 ||
-      testCases.some(
-        (testCase) =>
-          testCase.input.trim() === "" || testCase.expectedOutput.trim() === ""
-      ) ||
       Object.values(codeTemplates).some((value) => value === "")
     ) {
       toast.error(FILL_ALL_FIELDS);
@@ -136,7 +125,6 @@ const QuestionEdit = () => {
         description: markdownText,
         complexity: selectedComplexity,
         categories: selectedCategories,
-        testcases: testCases,
         testcaseInputFileUrl: state.selectedQuestion.testcaseInputFileUrl,
         testcaseOutputFileUrl: state.selectedQuestion.testcaseOutputFileUrl,
         pythonTemplate: codeTemplates.python,
@@ -208,11 +196,6 @@ const QuestionEdit = () => {
           <QuestionMarkdown
             markdownText={markdownText}
             setMarkdownText={setMarkdownText}
-          />
-
-          <QuestionTestCases
-            testCases={testCases}
-            setTestCases={setTestCases}
           />
 
           <QuestionTestCasesFileUpload

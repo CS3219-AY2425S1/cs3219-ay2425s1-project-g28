@@ -41,7 +41,6 @@ export const createQuestion = async (
       description,
       complexity,
       category,
-      testcases,
       testcaseInputFileUrl,
       testcaseOutputFileUrl,
       pythonTemplate,
@@ -69,7 +68,6 @@ export const createQuestion = async (
       description,
       complexity,
       category,
-      testcases,
       testcaseInputFileUrl,
       testcaseOutputFileUrl,
     });
@@ -445,7 +443,6 @@ const formatQuestionIndivResponse = (
     description: question.description,
     complexity: question.complexity,
     categories: question.category,
-    testcases: question.testcases,
     testcaseInputFileUrl: question.testcaseInputFileUrl,
     testcaseOutputFileUrl: question.testcaseOutputFileUrl,
     pythonTemplate: questionTemplate ? questionTemplate.pythonTemplate : "",

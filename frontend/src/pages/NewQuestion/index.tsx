@@ -29,10 +29,6 @@ import QuestionMarkdown from "../../components/QuestionMarkdown";
 import QuestionImageContainer from "../../components/QuestionImageContainer";
 import QuestionCategoryAutoComplete from "../../components/QuestionCategoryAutoComplete";
 import QuestionDetail from "../../components/QuestionDetail";
-import QuestionTestCases, {
-  TestCase,
-} from "../../components/QuestionTestCases";
-import { v4 as uuidv4 } from "uuid";
 import QuestionTestCasesFileUpload from "../../components/QuestionTestCasesFileUpload";
 import QuestionCodeTemplates from "../../components/QuestionCodeTemplates";
 
@@ -50,9 +46,6 @@ const NewQuestion = () => {
   const [uploadedImagesUrl, setUploadedImagesUrl] = useState<string[]>([]);
   const [isPreviewQuestion, setIsPreviewQuestion] = useState<boolean>(false);
 
-  const [testCases, setTestCases] = useState<TestCase[]>([
-    { id: uuidv4(), input: "", expectedOutput: "" },
-  ]);
   const [testcaseInputFile, setTestcaseInputFile] = useState<File | null>(null);
   const [testcaseOutputFile, setTestcaseOutputFile] = useState<File | null>(
     null
@@ -86,10 +79,6 @@ const NewQuestion = () => {
       !markdownText ||
       !selectedComplexity ||
       selectedCategories.length === 0 ||
-      testCases.some(
-        (testCase) =>
-          testCase.input.trim() === "" || testCase.expectedOutput.trim() === ""
-      ) ||
       testcaseInputFile === null ||
       testcaseOutputFile === null ||
       Object.values(codeTemplates).some((value) => value === "")
@@ -104,7 +93,6 @@ const NewQuestion = () => {
         description: markdownText,
         complexity: selectedComplexity,
         categories: selectedCategories,
-        testcases: testCases,
         pythonTemplate: codeTemplates.python,
         javaTemplate: codeTemplates.java,
         cTemplate: codeTemplates.c,
@@ -173,11 +161,6 @@ const NewQuestion = () => {
           <QuestionMarkdown
             markdownText={markdownText}
             setMarkdownText={setMarkdownText}
-          />
-
-          <QuestionTestCases
-            testCases={testCases}
-            setTestCases={setTestCases}
           />
 
           <QuestionTestCasesFileUpload

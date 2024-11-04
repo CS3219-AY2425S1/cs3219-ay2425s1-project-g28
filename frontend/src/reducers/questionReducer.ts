@@ -7,12 +7,6 @@ type TestcaseFiles = {
   testcaseOutputFile: File | null;
 };
 
-type Testcases = {
-  id: string;
-  input: string;
-  expectedOutput: string;
-};
-
 export const enum TestcaseFilesUploadRequestTypes {
   CREATE = "create",
   UPDATE = "update",
@@ -24,7 +18,6 @@ type QuestionDetail = {
   description: string;
   complexity: string;
   categories: Array<string>;
-  testcases: Array<Testcases>;
   pythonTemplate: string;
   javaTemplate: string;
   cTemplate: string;
@@ -178,7 +171,6 @@ export const createQuestion = async (
         description: question.description,
         complexity: question.complexity,
         category: question.categories,
-        testcases: question.testcases,
         testcaseInputFileUrl,
         testcaseOutputFileUrl,
         pythonTemplate: question.pythonTemplate,
@@ -317,7 +309,6 @@ export const updateQuestionById = async (
         description: question.description,
         complexity: question.complexity,
         category: question.categories,
-        testcases: question.testcases,
         testcaseInputFileUrl: question.testcaseInputFileUrl,
         testcaseOutputFileUrl: question.testcaseOutputFileUrl,
         ...urls,
