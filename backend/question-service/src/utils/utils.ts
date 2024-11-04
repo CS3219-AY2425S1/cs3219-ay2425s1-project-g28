@@ -21,9 +21,10 @@ export const checkIsExistingQuestion = async (
 
 export const uploadFileToFirebase = async (
   file: Express.Multer.File,
+  folderName: string = "",
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const fileName = uuidv4();
+    const fileName = folderName + uuidv4();
     const ref = bucket.file(fileName);
 
     const blobStream = ref.createWriteStream({

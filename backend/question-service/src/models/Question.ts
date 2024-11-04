@@ -5,6 +5,8 @@ export interface IQuestion extends Document {
   description: string;
   complexity: string;
   category: string[];
+  testcaseInputFileUrl: string;
+  testcaseOutputFileUrl: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,10 +20,9 @@ const questionSchema: Schema<IQuestion> = new mongoose.Schema(
       enum: ["Easy", "Medium", "Hard"],
       required: true,
     },
-    category: {
-      type: [String],
-      required: true,
-    },
+    category: { type: [String], required: true },
+    testcaseInputFileUrl: { type: String, required: true },
+    testcaseOutputFileUrl: { type: String, required: true },
   },
   { timestamps: true },
 );
