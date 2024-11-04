@@ -100,6 +100,25 @@ services:
       - /communication-service/node_modules
     restart: on-failure
 
+  qn-history-service:
+    image: peerprep/qn-history-service
+    build: ./backend/qn-history-service
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    env_file: ./backend/qn-history-service/.env
+    ports:
+      - 3006:3006
+    depends_on:
+      - qn-history-service-mongo
+      - user-service
+      - question-service
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/qn-history-service:/qn-history-service
+      - /qn-history-service/node_modules
+    restart: on-failure
+
   frontend:
     image: peerprep/frontend
     build: ./frontend
@@ -112,6 +131,7 @@ services:
       - question-service
       - matching-service
       - collab-service
+      - qn-history-service
     networks:
       - peerprep-network
     volumes:
@@ -165,6 +185,29 @@ services:
       - user-service-mongo
     env_file: ./backend/user-service/.env
 
+  qn-history-service-mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27019:27017
+    networks:
+      - peerprep-network
+    volumes:
+      - qn-history-service-mongo-data:/data/db
+    env_file:
+      - ./backend/qn-history-service/.env
+
+  qn-history-service-mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8083:8081
+    networks:
+      - peerprep-network
+    depends_on:
+      - qn-history-service-mongo
+    env_file: ./backend/qn-history-service/.env
+
   rabbitmq:
     image: rabbitmq:4.0-management
     container_name: rabbitmq
@@ -214,6 +257,7 @@ services:
 volumes:
   question-service-mongo-data:
   user-service-mongo-data:
+  qn-history-service-mongo-data:
   redis-data:
   redis-insight-data:
 
