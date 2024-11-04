@@ -56,6 +56,8 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       setIsDocumentLoaded(true);
     };
     loadTemplate();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReadOnly, isEditorReady]);
 
   return (
