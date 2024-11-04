@@ -24,6 +24,7 @@ import MatchProvider from "./contexts/MatchContext";
 import CollabSandbox from "./pages/CollabSandbox";
 import NoDirectAccessRoutes from "./components/NoDirectAccessRoutes";
 import EmailVerification from "./pages/EmailVerification";
+import QuestionHistoryDetail from "./pages/QuestionHistoryDetail";
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
                 </ProfileContextProvider>
               }
             />
+            <Route path="profile/:userId/:qnHistoryId" element={<QuestionHistoryDetail />} />
             <Route path="matching" element={<ProtectedRoutes />}>
               <Route element={<NoDirectAccessRoutes />}>
                 <Route index element={<Matching />} />
