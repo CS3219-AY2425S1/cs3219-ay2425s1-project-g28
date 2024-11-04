@@ -3,7 +3,11 @@ import Question, { IQuestion } from "../models/Question.ts";
 import QuestionTemplate, {
   IQuestionTemplate,
 } from "../models/QuestionTemplate.ts";
-import { checkIsExistingQuestion, sortAlphabetically } from "../utils/utils.ts";
+import {
+  checkIsExistingQuestion,
+  getFileContent,
+  sortAlphabetically,
+} from "../utils/utils.ts";
 import {
   DUPLICATE_QUESTION_MESSAGE,
   QN_DESC_EXCEED_CHAR_LIMIT_MESSAGE,
@@ -85,7 +89,10 @@ export const createQuestion = async (
 
     res.status(201).json({
       message: QN_CREATED_MESSAGE,
-      question: formatQuestionIndivResponse(newQuestion, newQuestionTemplate),
+      question: await formatQuestionIndivResponse(
+        newQuestion,
+        newQuestionTemplate,
+      ),
     });
   } catch (error) {
     console.log(error);
@@ -243,7 +250,7 @@ export const updateQuestion = async (
 
     res.status(200).json({
       message: "Question updated successfully",
-      question: formatQuestionIndivResponse(
+      question: await formatQuestionIndivResponse(
         updatedQuestion as IQuestion,
         updatedQuestionTemplate as IQuestionTemplate,
       ),
@@ -352,7 +359,7 @@ export const readQuestionIndiv = async (
 
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
-      question: formatQuestionIndivResponse(
+      question: await formatQuestionIndivResponse(
         questionDetails,
         questionTemplate as IQuestionTemplate,
       ),
@@ -390,7 +397,7 @@ export const readRandomQuestion = async (
 
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
-      question: formatQuestionIndivResponse(
+      question: await formatQuestionIndivResponse(
         chosenQuestion,
         questionTemplate as IQuestionTemplate,
       ),
@@ -433,18 +440,27 @@ const formatQuestionResponse = (question: IQuestion) => {
   };
 };
 
-const formatQuestionIndivResponse = (
+const formatQuestionIndivResponse = async (
   question: IQuestion,
   questionTemplate: IQuestionTemplate,
 ) => {
+  const testcaseDelimiter = "\n";
+  const inputs = (await getFileContent(question.testcaseInputFileUrl)).split(
+    testcaseDelimiter,
+  );
+  const outputs = (await getFileContent(question.testcaseOutputFileUrl)).split(
+    testcaseDelimiter,
+  );
   return {
     id: question._id,
     title: question.title,
     description: question.description,
     complexity: question.complexity,
     categories: question.category,
-    testcaseInputFileUrl: question.testcaseInputFileUrl,
-    testcaseOutputFileUrl: question.testcaseOutputFileUrl,
+    // testcaseInputFileUrl: question.testcaseInputFileUrl,
+    // testcaseOutputFileUrl: question.testcaseOutputFileUrl,
+    inputs,
+    outputs,
     pythonTemplate: questionTemplate ? questionTemplate.pythonTemplate : "",
     javaTemplate: questionTemplate ? questionTemplate.javaTemplate : "",
     cTemplate: questionTemplate ? questionTemplate.cTemplate : "",

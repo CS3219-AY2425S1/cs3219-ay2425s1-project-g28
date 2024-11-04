@@ -27,30 +27,6 @@ import Chat from "../../components/Chat";
 import TabPanel from "../../components/TabPanel";
 import TestCase from "../../components/TestCase";
 
-// hardcode for now...
-
-type TestCase = {
-  input: string;
-  output: string;
-  stdout: string;
-  result: string;
-};
-
-const testcases: TestCase[] = [
-  {
-    input: "1 2 3 4",
-    output: "1 2 3 4",
-    stdout: "1\n2\n3\n4",
-    result: "1 2 3 4",
-  },
-  {
-    input: "5 6 7 8",
-    output: "5 6 7 8",
-    stdout: "5\n6\n7\n8",
-    result: "5 6 7 8",
-  },
-];
-
 const CollabSandbox: React.FC = () => {
   const [showErrorScreen, setShowErrorScreen] = useState<boolean>(false);
 
@@ -219,7 +195,7 @@ const CollabSandbox: React.FC = () => {
             </Tabs>
             <TabPanel selected={selectedTab} value="tests">
               <Box sx={(theme) => ({ margin: theme.spacing(2, 0) })}>
-                {[...Array(testcases.length)]
+                {[...Array(selectedQuestion.inputs.length)]
                   .map((_, index) => index + 1)
                   .map((i) => (
                     <Button
@@ -235,11 +211,12 @@ const CollabSandbox: React.FC = () => {
                     </Button>
                   ))}
               </Box>
+              {/* display result of each test case in the output (result) and stdout (any print statements executed) */}
               <TestCase
-                input={testcases[selectedTestcase].input}
-                output={testcases[selectedTestcase].output}
-                stdout={testcases[selectedTestcase].stdout}
-                result={testcases[selectedTestcase].result}
+                input={selectedQuestion.inputs[selectedTestcase]}
+                output={""}
+                stdout={""}
+                result={selectedQuestion.outputs[selectedTestcase]}
               />
             </TabPanel>
             <TabPanel selected={selectedTab} value="chat">

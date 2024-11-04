@@ -2,9 +2,9 @@ import { Box, styled, Typography } from "@mui/material";
 
 type TestCaseProps = {
   input: string;
-  output: string;
+  output?: string;
   stdout: string;
-  result: string;
+  result?: string;
 };
 
 const StyledBox = styled(Box)(({ theme }) => ({
@@ -30,16 +30,20 @@ const TestCase: React.FC<TestCaseProps> = ({
         <Typography variant="overline">Input</Typography>
         <StyledTypography fontFamily={"monospace"}>{input}</StyledTypography>
       </StyledBox>
+      {output && (
+        <StyledBox>
+          <Typography variant="overline">Output</Typography>
+          <StyledTypography fontFamily={"monospace"}>{output}</StyledTypography>
+        </StyledBox>
+      )}
+      {stdout && (
+        <StyledBox>
+          <Typography variant="overline">Stdout</Typography>
+          <StyledTypography fontFamily={"monospace"}>{stdout}</StyledTypography>
+        </StyledBox>
+      )}
       <StyledBox>
-        <Typography variant="overline">Output</Typography>
-        <StyledTypography fontFamily={"monospace"}>{output}</StyledTypography>
-      </StyledBox>
-      <StyledBox>
-        <Typography variant="overline">Standard output</Typography>
-        <StyledTypography fontFamily={"monospace"}>{stdout}</StyledTypography>
-      </StyledBox>
-      <StyledBox>
-        <Typography variant="overline">Result</Typography>
+        <Typography variant="overline">Expected</Typography>
         <StyledTypography fontFamily={"monospace"}>{result}</StyledTypography>
       </StyledBox>
     </Box>
