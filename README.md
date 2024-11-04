@@ -31,5 +31,6 @@ docker-compose down
 - Matching Service: http://localhost:3002
 - Collab Service: http://localhost:3003
 - Code Execution Service: http://localhost:3004
+- Communication Service: http://localhost:3005
 - Question History Service: http://localhost:3006
 - Frontend: http://localhost:5173
