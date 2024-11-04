@@ -17,6 +17,8 @@ enum CollabEvents {
   ROOM_READY = "room_ready",
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
+  // PARTNER_LEFT = "partner_left",
+  // PARTNER_DISCONNECTED = "partner_disconnected",
 }
 
 const EXPIRY_TIME = 3600;
@@ -131,13 +133,11 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
 };
 
 const createCollabSession = (roomId: string) => {
-  console.log("set up collab session: ", roomId);
   getDocument(roomId);
   partnerReadiness.set(roomId, false);
 };
 
 const removeCollabSession = (roomId: string) => {
-  console.log("delete collab session: ", roomId);
   collabSessions.get(roomId)?.destroy();
   collabSessions.delete(roomId);
   partnerReadiness.delete(roomId);
@@ -148,7 +148,6 @@ const getDocument = (roomId: string) => {
   if (!doc) {
     doc = new Doc();
     doc.on(CollabEvents.UPDATE, (_update) => {
-      console.log("server doc updated: ", roomId);
       saveDocument(roomId, doc!);
       io.to(roomId).emit(CollabEvents.UPDATE, encodeStateAsUpdateV2(doc!));
     });

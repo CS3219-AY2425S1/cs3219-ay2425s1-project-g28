@@ -40,8 +40,12 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
   const effectRan = useRef<boolean>(false);
 
   useEffect(() => {
+    if (isReadOnly) {
+      return;
+    }
+
     if (!effectRan.current) {
-      initDocument(roomId, "code template");
+      initDocument(roomId, template);
     }
 
     return () => {
