@@ -65,8 +65,8 @@ const isQnHistory = (qnHistory: any): qnHistory is QnHistoryDetail => {
   );
 };
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 const isQnHistoryList = (
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
   qnHistoryList: any
 ): qnHistoryList is QnHistoryList => {
   if (!qnHistoryList || typeof qnHistoryList !== "object") {
@@ -75,13 +75,13 @@ const isQnHistoryList = (
 
   return (
     Array.isArray(qnHistoryList.qnHistories) &&
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     qnHistoryList.qnHistories.every((qnHistory: any) =>
       isQnHistory(qnHistory)
     ) &&
     typeof qnHistoryList.qnHistoryCount === "number"
   );
 };
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export const initialQHState: QnHistoriesState = {
   qnHistories: [],
