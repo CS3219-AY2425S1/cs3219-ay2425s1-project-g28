@@ -72,7 +72,7 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
   }, []);
 
   useEffect(() => {
-    // initliase listerner for incoming messages
+    // initialize listener for incoming messages
     communicationSocket.on(
       CommunicationEvents.USER_JOINED,
       (message: Message) => {

@@ -26,6 +26,8 @@ import { Navigate } from "react-router-dom";
 import Chat from "../../components/Chat";
 import TabPanel from "../../components/TabPanel";
 import TestCase from "../../components/TestCase";
+import CodeEditor from "../../components/CodeEditor";
+import { CollabSessionData, join, leave } from "../../utils/collabSocket";
 
 // hardcode for now...
 
@@ -53,6 +55,9 @@ const testcases: TestCase[] = [
 
 const CollabSandbox: React.FC = () => {
   const [showErrorScreen, setShowErrorScreen] = useState<boolean>(false);
+  const [editorState, setEditorState] = useState<CollabSessionData | null>(
+    null
+  );
 
   const match = useMatch();
   if (!match) {
@@ -64,7 +69,9 @@ const CollabSandbox: React.FC = () => {
     getMatchId,
     handleRejectEndSession,
     handleConfirmEndSession,
+    matchUser,
     partner,
+    matchCriteria,
     loading,
     isEndSessionModalOpen,
     questionId,
@@ -86,9 +93,27 @@ const CollabSandbox: React.FC = () => {
     }
     getQuestionById(questionId, dispatch);
 
-    // TODO
-    // use getMatchId() as the room id in the collab service
-    console.log(getMatchId());
+    const matchId = getMatchId();
+    if (!matchUser || !matchId) {
+      return;
+    }
+
+    const connectToCollabSession = async () => {
+      try {
+        const editorState = await join(matchUser.id, matchId);
+        if (editorState.ready) {
+          setEditorState(editorState);
+        } else {
+          setShowErrorScreen(true);
+        }
+      } catch (error) {
+        console.error("Error connecting to collab session: ", error);
+      }
+    };
+
+    connectToCollabSession();
+
+    return () => leave(matchUser.id, matchId);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -111,20 +136,20 @@ const CollabSandbox: React.FC = () => {
     return <Loader />;
   }
 
-  if (!partner) {
+  if (!matchUser || !partner || !matchCriteria || !getMatchId()) {
     return <Navigate to="/home" replace />;
   }
 
   if (showErrorScreen) {
     return (
       <ServerError
-        title="Oops, match ended..."
-        subtitle="Unfortunately, the match has ended due to a connection loss 😥"
+        title="Oops, collaboration session ended..."
+        subtitle="Unfortunately, the session has ended due to a connection loss 😥"
       />
     );
   }
 
-  if (!selectedQuestion) {
+  if (!selectedQuestion || !editorState) {
     return <Loader />;
   }
 
@@ -193,7 +218,32 @@ const CollabSandbox: React.FC = () => {
           }}
           size={6}
         >
-          <Box sx={{ flex: 1, maxHeight: "50vh" }}>Code Editor</Box>
+          <Box
+            sx={(theme) => ({
+              flex: 1,
+              width: "100%",
+              maxHeight: "50vh",
+              paddingTop: theme.spacing(2),
+              paddingBottom: theme.spacing(2),
+            })}
+          >
+            <CodeEditor
+              editorState={editorState}
+              uid={matchUser.id}
+              username={matchUser.username}
+              language={matchCriteria.language}
+              template={
+                matchCriteria.language === "Python"
+                  ? selectedQuestion.pythonTemplate
+                  : matchCriteria.language === "Java"
+                  ? selectedQuestion.javaTemplate
+                  : matchCriteria.language === "C"
+                  ? selectedQuestion.cTemplate
+                  : ""
+              }
+              roomId={getMatchId()!}
+            />
+          </Box>
           <Box
             sx={{
               flex: 1,

@@ -3,11 +3,6 @@ import Stopwatch from "../Stopwatch";
 import { useMatch } from "../../contexts/MatchContext";
 import { USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
 import { useEffect, useState } from "react";
-// import {
-//   extractHoursFromTime,
-//   extractMinutesFromTime,
-//   extractSecondsFromTime,
-// } from "../../utils/sessionTime";
 
 const CollabSessionControls: React.FC = () => {
   const [time, setTime] = useState<number>(0);

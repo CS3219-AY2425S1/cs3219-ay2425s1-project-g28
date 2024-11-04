@@ -20,14 +20,7 @@ import { Action, type History, type Transition } from "history";
 
 import { codeExecutionClient } from "../utils/api";
 import { useReducer } from "react";
-import {
-  createQnHistory,
-  updateQnHistoryById,
-} from "../reducers/qnHistoryReducer";
-import qnReducer, {
-  getQuestionById,
-  initialState,
-} from "../reducers/questionReducer";
+import { updateQnHistoryById } from "../reducers/qnHistoryReducer";
 import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";
 
 let matchUserId: string;
@@ -109,10 +102,6 @@ type MatchContextType = {
   isEndSessionModalOpen: boolean;
   questionId: string | null;
   qnHistoryId: string | null;
-
-  questionTitle: string;
-  setQuestionTitle: React.Dispatch<React.SetStateAction<string>>;
-  code: string;
   setCode: React.Dispatch<React.SetStateAction<string>>;
 };
 
@@ -143,6 +132,13 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
     useState<boolean>(false);
+
+  // eslint-disable-next-line
+  const [qnHistoryState, qnHistoryDispatch] = useReducer(
+    qnHistoryReducer,
+    initialQHState
+  );
+  const [code, setCode] = useState<string>("");
 
   const navigator = useContext(UNSAFE_NavigationContext).navigator as History;
 
@@ -533,18 +529,11 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     return matchId;
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const [state, dispatch] = useReducer(qnHistoryReducer, initialQHState);
-  const [questionTitle, setQuestionTitle] = useState<string>("");
-  const [code, setCode] = useState<string>(
-    "a=input()\nb=input()\nc=input()\nd=input()\n\nprint(int(a)+int(b)+int(c)+int(d))"
-  );
-
   const handleSubmitSessionClick = async (time: number) => {
     try {
       const res = await codeExecutionClient.post("/", {
         questionId,
-        code: code,
+        code,
         language: matchCriteria?.language.toLowerCase(),
       });
 
@@ -570,10 +559,10 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
           timeTaken: time,
           code,
         },
-        dispatch
+        qnHistoryDispatch
       );
-    } catch (err) {
-      toast.error(err.response?.data.message || err.message);
+    } catch {
+      toast.error("Unable to submit code. Please try again later.");
     }
   };
 
@@ -614,10 +603,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         isEndSessionModalOpen,
         questionId,
         qnHistoryId,
-
-        questionTitle,
-        setQuestionTitle,
-        code,
         setCode,
       }}
     >
