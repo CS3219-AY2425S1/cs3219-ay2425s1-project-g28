@@ -36,14 +36,6 @@
 
 5. A default admin account (`email: admin@gmail.com` and `password: Admin@123`) wil be created. If you wish to change the default credentials, update them in `.env`. Alternatively, you can also edit your credentials and user profile after you have created the default account.
 
-6. To view the contents stored in Redis,
-
-   1. Go to [http://localhost:5540](http://localhost:5540).
-
-   2. Click on "Add Redis Database".
-
-   3. Enter `host.internal.docker` as the Host.
-
 ## Running User Service Individually
 
 > Make sure you have the cloud MongoDB URI in your .env file and set NODE_ENV to production already.
