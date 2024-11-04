@@ -20,10 +20,7 @@ const questionSchema: Schema<IQuestion> = new mongoose.Schema(
       enum: ["Easy", "Medium", "Hard"],
       required: true,
     },
-    category: {
-      type: [String],
-      required: true,
-    },
+    category: { type: [String], required: true },
     testcaseInputFileUrl: { type: String, required: true },
     testcaseOutputFileUrl: { type: String, required: true },
   },

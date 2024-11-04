@@ -50,9 +50,9 @@ export const executeCode = async (req: Request, res: Response) => {
     );
 
     const stdinList: string[] = testCases.input;
-    const expectedStdoutList: string[] = testCases.output;
+    const expectedResultList: string[] = testCases.output;
 
-    if (stdinList.length !== expectedStdoutList.length) {
+    if (stdinList.length !== expectedResultList.length) {
       res.status(400).json({
         message: ERROR_NOT_SAME_LENGTH_MESSAGE,
       });
@@ -64,28 +64,28 @@ export const executeCode = async (req: Request, res: Response) => {
 
     const compilerData = (compilerResponse.data as CompilerResult[]).map(
       (result, index) => {
-        const {
-          status,
-          exception,
-          stdout: actualStdout,
-          stderr,
-          stdin,
-          executionTime,
-        } = result;
-        const expectedStdout = expectedStdoutList[index];
+        let { stdout, ...restofResult } = result;
+        const expectedResultValue = expectedResultList[index].trim();
+
+        if (!stdout) {
+          stdout = "";
+        }
+
+        // Extract the last line as the result value
+        // and the rest as stdout
+        const lines = stdout.trim().split("\n");
+        const resultValue = lines.pop() || "";
+        stdout = lines.join("\n");
 
         return {
-          status,
-          exception,
-          expectedStdout,
-          actualStdout,
-          stderr,
-          stdin,
-          executionTime,
+          ...restofResult,
+          stdout,
+          actualResult: resultValue,
+          expectedResult: expectedResultValue,
           isMatch:
-            stderr !== null
+            result.stderr !== null
               ? false
-              : actualStdout.trim() === expectedStdout.trim(),
+              : resultValue === expectedResultValue,
         };
       }
     );

@@ -9,7 +9,7 @@ export const testCasesApi = async (
 
   // Split the input and output files by double new line
   return {
-    input: inputFileUrlResponse.data.split(/\r?\n\r?\n/),
-    output: outputFileUrlResponse.data.split(/\r?\n\r?\n/),
+    input: inputFileUrlResponse.data.replace(/\r\n/g, "\n").split("\n\n"),
+    output: outputFileUrlResponse.data.replace(/\r\n/g, "\n").split("\n\n"),
   };
 };

@@ -8,6 +8,7 @@ import {
   readQuestionIndiv,
   readCategories,
   readRandomQuestion,
+  createFileLink,
 } from "../controllers/questionController.ts";
 import { verifyAdminToken } from "../middlewares/basicAccessControl.ts";
 
@@ -16,6 +17,8 @@ const router = express.Router();
 router.post("/", verifyAdminToken, createQuestion);
 
 router.post("/images", verifyAdminToken, createImageLink);
+
+router.post("/tcfiles", verifyAdminToken, createFileLink);
 
 router.put("/:id", verifyAdminToken, updateQuestion);
 
