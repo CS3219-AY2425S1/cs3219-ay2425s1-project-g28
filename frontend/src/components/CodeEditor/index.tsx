@@ -69,6 +69,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
               cursorExtension(roomId, uid, username),
             ]
           : []),
+        EditorView.lineWrapping,
         EditorView.editable.of(!isReadOnly),
         EditorState.readOnly.of(isReadOnly),
       ]}

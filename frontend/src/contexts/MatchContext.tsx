@@ -81,12 +81,12 @@ type MatchContextType = {
   matchingTimeout: () => void;
   matchOfferTimeout: () => void;
   verifyMatchStatus: () => void;
+  getMatchId: () => string | null;
   handleEndSessionClick: () => void;
   handleRejectEndSession: () => void;
   handleConfirmEndSession: () => void;
   matchUser: MatchUser | null;
   matchCriteria: MatchCriteria | null;
-  matchId: string | null;
   partner: MatchUser | null;
   matchPending: boolean;
   loading: boolean;
@@ -489,6 +489,10 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     );
   };
 
+  const getMatchId = () => {
+    return matchId;
+  };
+
   const handleEndSessionClick = () => {
     setIsEndSessionModalOpen(true);
   };
@@ -513,12 +517,12 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         matchingTimeout,
         matchOfferTimeout,
         verifyMatchStatus,
+        getMatchId,
         handleEndSessionClick,
         handleRejectEndSession,
         handleConfirmEndSession,
         matchUser,
         matchCriteria,
-        matchId,
         partner,
         matchPending,
         loading,

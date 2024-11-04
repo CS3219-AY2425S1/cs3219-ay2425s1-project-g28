@@ -66,12 +66,12 @@ const CollabSandbox: React.FC = () => {
 
   const {
     verifyMatchStatus,
+    getMatchId,
     handleRejectEndSession,
     handleConfirmEndSession,
     matchUser,
     partner,
     matchCriteria,
-    matchId,
     loading,
     isEndSessionModalOpen,
     questionId,
@@ -93,6 +93,7 @@ const CollabSandbox: React.FC = () => {
     }
     getQuestionById(questionId, dispatch);
 
+    const matchId = getMatchId();
     if (!matchUser || !matchId) {
       return;
     }
@@ -135,7 +136,7 @@ const CollabSandbox: React.FC = () => {
     return <Loader />;
   }
 
-  if (!matchUser || !partner || !matchCriteria || !matchId) {
+  if (!matchUser || !partner || !matchCriteria || !getMatchId()) {
     return <Navigate to="/home" replace />;
   }
 
@@ -222,7 +223,6 @@ const CollabSandbox: React.FC = () => {
               flex: 1,
               width: "100%",
               paddingTop: theme.spacing(2),
-              paddingBottom: theme.spacing(2),
             })}
           >
             <CodeEditor
@@ -239,7 +239,7 @@ const CollabSandbox: React.FC = () => {
                   ? selectedQuestion.cTemplate
                   : ""
               }
-              roomId={matchId}
+              roomId={getMatchId()!}
             />
           </Box>
           <Box
