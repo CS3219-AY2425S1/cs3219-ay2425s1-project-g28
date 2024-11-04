@@ -7,9 +7,9 @@ export const testCasesApi = async (
   const inputFileUrlResponse = await axios.get(inputFileUrl);
   const outputFileUrlResponse = await axios.get(outputFileUrl);
 
-  // Split the input and output files by triple new line
+  // Split the input and output files by double new line
   return {
-    input: inputFileUrlResponse.data.replace(/\r\n/g, "\n").split("\n\n\n"),
-    output: outputFileUrlResponse.data.replace(/\r\n/g, "\n").split("\n\n\n"),
+    input: inputFileUrlResponse.data.replace(/\r\n/g, "\n").split("\n\n"),
+    output: outputFileUrlResponse.data.replace(/\r\n/g, "\n").split("\n\n"),
   };
 };
