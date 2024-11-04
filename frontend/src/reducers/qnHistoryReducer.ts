@@ -65,8 +65,8 @@ const isQnHistory = (qnHistory: any): qnHistory is QnHistoryDetail => {
   );
 };
 
-// eslint-disable-next-line  @typescript-eslint/no-explicit-any
 const isQnHistoryList = (
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
   qnHistoryList: any
 ): qnHistoryList is QnHistoryList => {
   if (!qnHistoryList || typeof qnHistoryList !== "object") {
