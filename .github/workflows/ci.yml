@@ -41,6 +41,7 @@ jobs:
             collab-service,
             code-execution-service,
             communication-service,
+            qn-history-service,
           ]
     steps:
       - name: Checkout code
