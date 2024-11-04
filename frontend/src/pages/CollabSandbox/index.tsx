@@ -222,7 +222,9 @@ const CollabSandbox: React.FC = () => {
             sx={(theme) => ({
               flex: 1,
               width: "100%",
+              maxHeight: "50vh",
               paddingTop: theme.spacing(2),
+              paddingBottom: theme.spacing(2),
             })}
           >
             <CodeEditor

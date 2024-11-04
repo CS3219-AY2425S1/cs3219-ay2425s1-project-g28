@@ -8,6 +8,7 @@ import {
   extractMinutesFromTime,
   extractSecondsFromTime,
 } from "../../utils/sessionTime";
+import { getDocumentContent } from "../../utils/collabSocket";
 
 const CollabSessionControls: React.FC = () => {
   const [time, setTime] = useState<number>(0);
@@ -45,6 +46,7 @@ const CollabSessionControls: React.FC = () => {
               time
             )} mins ${extractSecondsFromTime(time)} secs`
           );
+          console.log(`Code: ${getDocumentContent()}`);
         }} // TODO: implement submit function with time taken pop-up
       >
         Submit

@@ -127,3 +127,10 @@ const initConnectionStatusListeners = (roomId: string) => {
     });
   }
 };
+
+export const getDocumentContent = () => {
+  if (!doc.isDestroyed) {
+    return text.toString();
+  }
+  return "";
+};
