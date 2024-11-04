@@ -64,7 +64,7 @@ export const executeCode = async (req: Request, res: Response) => {
 
     const compilerData = (compilerResponse.data as CompilerResult[]).map(
       (result, index) => {
-        let { stdout, ...restofResult } = result;
+        let { stdout, ...restofResult } = result; // eslint-disable-line
         const expectedResultValue = expectedResultList[index].trim();
 
         if (!stdout) {

@@ -46,6 +46,7 @@ const QuestionCodeTemplates: React.FC<QuestionCodeTemplatesProps> = ({
     }));
   };
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   const handleTabKeys = (event: any) => {
     const { value } = event.target;
 
@@ -65,6 +66,7 @@ const QuestionCodeTemplates: React.FC<QuestionCodeTemplatesProps> = ({
       event.target.selectionEnd = cursorPosition + 1;
     }
   };
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   return (
     <Box display="flex" flexDirection="column" marginTop={2}>
