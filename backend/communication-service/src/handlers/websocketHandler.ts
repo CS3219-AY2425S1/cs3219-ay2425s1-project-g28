@@ -42,7 +42,7 @@ export const handleWebsocketCommunicationEvents = (socket: Socket) => {
 
       socket.leave(roomId);
       const createdTime = Date.now();
-      socket.to(roomId).emit(CommunicationEvents.LEAVE, {
+      socket.to(roomId).emit(CommunicationEvents.USER_LEFT, {
         from: BOT_NAME,
         type: MessageTypes.BOT_GENERATED,
         message: `${username} has left the chat`,
