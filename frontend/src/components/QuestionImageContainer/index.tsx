@@ -41,7 +41,7 @@ const QuestionImageContainer: React.FC<QuestionImageContainerProps> = ({
   };
 
   const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     if (!event.target.files) {
       return;

@@ -2,6 +2,16 @@ import { Dispatch } from "react";
 import { questionClient } from "../utils/api";
 import { isString, isStringArray } from "../utils/typeChecker";
 
+type TestcaseFiles = {
+  testcaseInputFile: File | null;
+  testcaseOutputFile: File | null;
+};
+
+export const enum TestcaseFilesUploadRequestTypes {
+  CREATE = "create",
+  UPDATE = "update",
+}
+
 type QuestionDetail = {
   id: string;
   title: string;
@@ -11,6 +21,11 @@ type QuestionDetail = {
   pythonTemplate: string;
   javaTemplate: string;
   cTemplate: string;
+};
+
+type QuestionDetailWithUrl = QuestionDetail & {
+  testcaseInputFileUrl: string;
+  testcaseOutputFileUrl: string;
 };
 
 type QuestionListDetail = {
@@ -41,21 +56,26 @@ enum QuestionActionTypes {
 
 type QuestionActions = {
   type: QuestionActionTypes;
-  payload: QuestionList | QuestionDetail | string[] | string;
+  payload:
+    | QuestionList
+    | QuestionDetail
+    | QuestionDetailWithUrl
+    | string[]
+    | string;
 };
 
 type QuestionsState = {
   questionCategories: Array<string>;
   questions: Array<QuestionListDetail>;
   questionCount: number;
-  selectedQuestion: QuestionDetail | null;
+  selectedQuestion: QuestionDetailWithUrl | null;
   questionCategoriesError: string | null;
   questionListError: string | null;
   selectedQuestionError: string | null;
 };
 
 // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-const isQuestion = (question: any): question is QuestionDetail => {
+const isQuestion = (question: any): question is QuestionDetailWithUrl => {
   if (!question || typeof question !== "object") {
     return false;
   }
@@ -93,10 +113,55 @@ export const initialState: QuestionsState = {
   selectedQuestionError: null,
 };
 
+export const uploadTestcaseFiles = async (
+  data: TestcaseFiles,
+  requestType: TestcaseFilesUploadRequestTypes
+): Promise<{
+  message: string;
+  urls: {
+    testcaseInputFileUrl: string;
+    testcaseOutputFileUrl: string;
+  };
+} | null> => {
+  const formData = new FormData();
+  formData.append("testcaseInputFile", data.testcaseInputFile ?? "");
+  formData.append("testcaseOutputFile", data.testcaseOutputFile ?? "");
+  formData.append("requestType", requestType);
+
+  try {
+    const accessToken = localStorage.getItem("token");
+    const res = await questionClient.post("/tcfiles", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return res.data;
+  } catch {
+    return null;
+  }
+};
+
 export const createQuestion = async (
   question: Omit<QuestionDetail, "id">,
+  testcaseFiles: TestcaseFiles,
   dispatch: Dispatch<QuestionActions>
 ): Promise<boolean> => {
+  const uploadResult = await uploadTestcaseFiles(
+    testcaseFiles,
+    TestcaseFilesUploadRequestTypes.CREATE
+  );
+
+  if (!uploadResult) {
+    dispatch({
+      type: QuestionActionTypes.ERROR_CREATING_QUESTION,
+      payload: "Failed to upload test case files.",
+    });
+    return false;
+  }
+
+  const { testcaseInputFileUrl, testcaseOutputFileUrl } = uploadResult.urls;
+
   const accessToken = localStorage.getItem("token");
   return questionClient
     .post(
@@ -106,6 +171,8 @@ export const createQuestion = async (
         description: question.description,
         complexity: question.complexity,
         category: question.categories,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
         pythonTemplate: question.pythonTemplate,
         cTemplate: question.cTemplate,
         javaTemplate: question.javaTemplate,
@@ -124,6 +191,8 @@ export const createQuestion = async (
       return true;
     })
     .catch((err) => {
+      console.log(err.response?.data.message || err.message);
+
       dispatch({
         type: QuestionActionTypes.ERROR_CREATING_QUESTION,
         payload: err.response?.data.message || err.message,
@@ -203,9 +272,34 @@ export const getQuestionById = (
 
 export const updateQuestionById = async (
   questionId: string,
-  question: Omit<QuestionDetail, "id">,
+  question: Omit<QuestionDetailWithUrl, "id">,
+  testcaseFiles: TestcaseFiles,
   dispatch: Dispatch<QuestionActions>
 ): Promise<boolean> => {
+  let urls = {};
+
+  if (Object.values(testcaseFiles).some((file) => file !== null)) {
+    const uploadResult = await uploadTestcaseFiles(
+      testcaseFiles,
+      TestcaseFilesUploadRequestTypes.UPDATE
+    );
+
+    if (!uploadResult) {
+      dispatch({
+        type: QuestionActionTypes.ERROR_CREATING_QUESTION,
+        payload: "Failed to upload test case file(s).",
+      });
+      return false;
+    }
+
+    const { testcaseInputFileUrl, testcaseOutputFileUrl } = uploadResult.urls;
+
+    urls = {
+      ...(testcaseInputFileUrl ? { testcaseInputFileUrl } : {}),
+      ...(testcaseOutputFileUrl ? { testcaseOutputFileUrl } : {}),
+    };
+  }
+
   const accessToken = localStorage.getItem("token");
   return questionClient
     .put(
@@ -215,6 +309,12 @@ export const updateQuestionById = async (
         description: question.description,
         complexity: question.complexity,
         category: question.categories,
+        testcaseInputFileUrl: question.testcaseInputFileUrl,
+        testcaseOutputFileUrl: question.testcaseOutputFileUrl,
+        ...urls,
+        pythonTemplate: question.pythonTemplate,
+        javaTemplate: question.javaTemplate,
+        cTemplate: question.cTemplate,
       },
       {
         headers: {
