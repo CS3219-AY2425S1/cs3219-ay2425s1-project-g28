@@ -38,4 +38,6 @@ docker-compose down
 
 - Communication Service: http://localhost:3005
 
+- Question History Service: http://localhost:3006
+
 - Frontend: http://localhost:5173

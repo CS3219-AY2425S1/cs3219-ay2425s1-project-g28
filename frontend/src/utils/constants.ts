@@ -113,3 +113,13 @@ export const FIND_MATCH_FORM_PATH = "/find_match_form.png";
 export const MATCH_FOUND_PATH = "/match_found.png";
 export const QUESTIONS_LIST_PATH = "/questions_list.png";
 export const COLLABORATIVE_EDITOR_PATH = "/collaborative_editor.png";
+
+/* Tooltips */
+export const ADD_QUESTION_TEST_CASE_TOOLTIP_MESSAGE = `Add at least 1 and at most 3 test cases. <br /> This will be displayed to users.`;
+export const ADD_TEST_CASE_FILES_TOOLTIP_MESSAGE = `Upload files for executing test cases backend when user submits code. <br /><br /> This is a required field. <br /> Only text files accepted.`;
+export const CODE_TEMPLATES_TOOLTIP_MESSAGE = `This is a required field. <br /> Fill in a code template for each language.`;
+
+/* Code Templates */
+export const PYTHON_CODE_TEMPLATE = `# Please do not modify the main function\ndef main():\n\tprint(convert_to_string_format(solution()))\n\n\n# Write your code here\ndef solution():\n\treturn None\n\n\nif __name__ == "__main__":\n\tmain()\n`;
+export const JAVA_CODE_TEMPLATE = `public class Main {\n\t// Please do not modify the main function\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println(convert_to_string_format(solution()));\n\t}\n\n\t// Write your code here and return the appropriate type\n\tpublic static String solution() {\n\t\treturn null;\n\t}\n}\n`;
+export const C_CODE_TEMPLATE = `#include <stdio.h>\n\n// Write your code here and return the appropriate type\nconst char* solution() {\n\treturn "";\n}\n\n// Please do not modify the main function\nint main() {\n\tprintf("%s\\n", convert_to_string_format(solution()));\n\treturn 0;\n}\n`;

@@ -16,9 +16,12 @@ import { toast } from "react-toastify";
 
 import {
   ABORT_CREATE_OR_EDIT_QUESTION_CONFIRMATION_MESSAGE,
+  C_CODE_TEMPLATE,
   complexityList,
   FAILED_QUESTION_CREATE,
   FILL_ALL_FIELDS,
+  JAVA_CODE_TEMPLATE,
+  PYTHON_CODE_TEMPLATE,
   SUCCESS_QUESTION_CREATE,
 } from "../../utils/constants";
 import AppMargin from "../../components/AppMargin";
@@ -26,6 +29,8 @@ import QuestionMarkdown from "../../components/QuestionMarkdown";
 import QuestionImageContainer from "../../components/QuestionImageContainer";
 import QuestionCategoryAutoComplete from "../../components/QuestionCategoryAutoComplete";
 import QuestionDetail from "../../components/QuestionDetail";
+import QuestionTestCasesFileUpload from "../../components/QuestionTestCasesFileUpload";
+import QuestionCodeTemplates from "../../components/QuestionCodeTemplates";
 
 const NewQuestion = () => {
   const navigate = useNavigate();
@@ -41,9 +46,18 @@ const NewQuestion = () => {
   const [uploadedImagesUrl, setUploadedImagesUrl] = useState<string[]>([]);
   const [isPreviewQuestion, setIsPreviewQuestion] = useState<boolean>(false);
 
-  const [pythonTemplate, setPythonTemplate] = useState<string>("");
-  const [javaTemplate, setJavaTemplate] = useState<string>("");
-  const [cTemplate, setCTemplate] = useState<string>("");
+  const [testcaseInputFile, setTestcaseInputFile] = useState<File | null>(null);
+  const [testcaseOutputFile, setTestcaseOutputFile] = useState<File | null>(
+    null
+  );
+
+  const [codeTemplates, setCodeTemplates] = useState<{ [key: string]: string }>(
+    {
+      python: PYTHON_CODE_TEMPLATE,
+      java: JAVA_CODE_TEMPLATE,
+      c: C_CODE_TEMPLATE,
+    }
+  );
 
   const handleBack = () => {
     if (
@@ -64,7 +78,10 @@ const NewQuestion = () => {
       !title ||
       !markdownText ||
       !selectedComplexity ||
-      selectedCategories.length === 0
+      selectedCategories.length === 0 ||
+      testcaseInputFile === null ||
+      testcaseOutputFile === null ||
+      Object.values(codeTemplates).some((value) => value === "")
     ) {
       toast.error(FILL_ALL_FIELDS);
       return;
@@ -76,9 +93,13 @@ const NewQuestion = () => {
         description: markdownText,
         complexity: selectedComplexity,
         categories: selectedCategories,
-        pythonTemplate,
-        javaTemplate,
-        cTemplate,
+        pythonTemplate: codeTemplates.python,
+        javaTemplate: codeTemplates.java,
+        cTemplate: codeTemplates.c,
+      },
+      {
+        testcaseInputFile: testcaseInputFile,
+        testcaseOutputFile: testcaseOutputFile,
       },
       dispatch
     );
@@ -142,21 +163,16 @@ const NewQuestion = () => {
             setMarkdownText={setMarkdownText}
           />
 
-          {/* for the FE ppl to redesign... */}
-          <input
-            placeholder="Python Template"
-            value={pythonTemplate}
-            onChange={(e) => setPythonTemplate(e.target.value)}
+          <QuestionTestCasesFileUpload
+            testcaseInputFile={testcaseInputFile}
+            setTestcaseInputFile={setTestcaseInputFile}
+            testcaseOutputFile={testcaseOutputFile}
+            setTestcaseOutputFile={setTestcaseOutputFile}
           />
-          <input
-            placeholder="Java Template"
-            value={javaTemplate}
-            onChange={(e) => setJavaTemplate(e.target.value)}
-          />
-          <input
-            placeholder="C Template"
-            value={cTemplate}
-            onChange={(e) => setCTemplate(e.target.value)}
+
+          <QuestionCodeTemplates
+            codeTemplates={codeTemplates}
+            setCodeTemplates={setCodeTemplates}
           />
         </>
       )}
