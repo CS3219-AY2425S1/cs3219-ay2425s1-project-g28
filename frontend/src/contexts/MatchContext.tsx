@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { matchSocket } from "../utils/matchSocket";
 import {
   ABORT_MATCH_PROCESS_CONFIRMATION_MESSAGE,
@@ -17,6 +17,18 @@ import { toast } from "react-toastify";
 import useAppNavigate from "../components/UseAppNavigate";
 import { UNSAFE_NavigationContext } from "react-router-dom";
 import { Action, type History, type Transition } from "history";
+
+import { codeExecutionClient } from "../utils/api";
+import { useReducer } from "react";
+import {
+  createQnHistory,
+  updateQnHistoryById,
+} from "../reducers/qnHistoryReducer";
+import qnReducer, {
+  getQuestionById,
+  initialState,
+} from "../reducers/questionReducer";
+import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";
 
 let matchUserId: string;
 let partnerUserId: string;
@@ -85,6 +97,7 @@ type MatchContextType = {
   matchOfferTimeout: () => void;
   verifyMatchStatus: () => void;
   getMatchId: () => string | null;
+  handleSubmitSessionClick: (time: number) => void;
   handleEndSessionClick: () => void;
   handleRejectEndSession: () => void;
   handleConfirmEndSession: () => void;
@@ -96,6 +109,11 @@ type MatchContextType = {
   isEndSessionModalOpen: boolean;
   questionId: string | null;
   qnHistoryId: string | null;
+
+  questionTitle: string;
+  setQuestionTitle: React.Dispatch<React.SetStateAction<string>>;
+  code: string;
+  setCode: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const requestTimeoutDuration = 5000;
@@ -287,12 +305,15 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const initMatchedListeners = () => {
-    matchSocket.on(MatchEvents.MATCH_SUCCESSFUL, (qnId: string, qnHistId: string) => {
-      setMatchPending(false);
-      setQuestionId(qnId);
-      setQnHistoryId(qnHistId);
-      appNavigate(MatchPaths.COLLAB);
-    });
+    matchSocket.on(
+      MatchEvents.MATCH_SUCCESSFUL,
+      (qnId: string, qnHistId: string) => {
+        setMatchPending(false);
+        setQuestionId(qnId);
+        setQnHistoryId(qnHistId);
+        appNavigate(MatchPaths.COLLAB);
+      }
+    );
 
     matchSocket.on(MatchEvents.MATCH_UNSUCCESSFUL, () => {
       toast.error(MATCH_UNSUCCESSFUL_MESSAGE);
@@ -407,7 +428,12 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const acceptMatch = () => {
-    matchSocket.emit(MatchEvents.MATCH_ACCEPT_REQUEST, matchId, matchUserId, partnerUserId);
+    matchSocket.emit(
+      MatchEvents.MATCH_ACCEPT_REQUEST,
+      matchId,
+      matchUserId,
+      partnerUserId
+    );
   };
 
   const rematch = () => {
@@ -507,9 +533,53 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     return matchId;
   };
 
+  // eslint-disable-next-line no-unused-vars
+  const [state, dispatch] = useReducer(qnHistoryReducer, initialQHState);
+  const [questionTitle, setQuestionTitle] = useState<string>("");
+  const [code, setCode] = useState<string>(
+    "a=input()\nb=input()\nc=input()\nd=input()\n\nprint(int(a)+int(b)+int(c)+int(d))"
+  );
+
+  const handleSubmitSessionClick = async (time: number) => {
+    try {
+      const res = await codeExecutionClient.post("/", {
+        questionId,
+        code: code,
+        language: matchCriteria?.language.toLowerCase(),
+      });
+
+      let isMatch = true;
+      for (let i = 0; i < res.data.data.length; i++) {
+        if (!res.data.data[i].isMatch) {
+          isMatch = false;
+        }
+        break;
+      }
+
+      if (!isMatch) {
+        toast.error("Your code did not pass all the test cases.");
+      } else {
+        toast.success("You have successfully solved the question!");
+      }
+
+      updateQnHistoryById(
+        qnHistoryId as string,
+        {
+          submissionStatus: isMatch ? "Accepted" : "Rejected",
+          dateAttempted: new Date().toISOString(),
+          timeTaken: time,
+          code,
+        },
+        dispatch
+      );
+    } catch (err) {
+      toast.error(err.response?.data.message || err.message);
+    }
+  };
+
   const handleEndSessionClick = () => {
     setIsEndSessionModalOpen(true);
-  }
+  };
 
   const handleRejectEndSession = () => {
     setIsEndSessionModalOpen(false);
@@ -532,6 +602,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         matchOfferTimeout,
         verifyMatchStatus,
         getMatchId,
+        handleSubmitSessionClick,
         handleEndSessionClick,
         handleRejectEndSession,
         handleConfirmEndSession,
@@ -543,6 +614,11 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         isEndSessionModalOpen,
         questionId,
         qnHistoryId,
+
+        questionTitle,
+        setQuestionTitle,
+        code,
+        setCode,
       }}
     >
       {children}

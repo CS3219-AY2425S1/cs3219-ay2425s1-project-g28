@@ -95,7 +95,6 @@ export const executeCode = async (req: Request, res: Response) => {
       data: compilerData,
     });
   } catch (err) {
-    console.log(err);
     res.status(500).json({ message: ERROR_FAILED_TO_EXECUTE_MESSAGE });
   }
 };

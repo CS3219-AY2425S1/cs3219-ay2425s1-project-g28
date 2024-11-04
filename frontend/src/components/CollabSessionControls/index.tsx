@@ -3,11 +3,11 @@ import Stopwatch from "../Stopwatch";
 import { useMatch } from "../../contexts/MatchContext";
 import { USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
 import { useEffect, useState } from "react";
-import {
-  extractHoursFromTime,
-  extractMinutesFromTime,
-  extractSecondsFromTime,
-} from "../../utils/sessionTime";
+// import {
+//   extractHoursFromTime,
+//   extractMinutesFromTime,
+//   extractSecondsFromTime,
+// } from "../../utils/sessionTime";
 
 const CollabSessionControls: React.FC = () => {
   const [time, setTime] = useState<number>(0);
@@ -25,7 +25,7 @@ const CollabSessionControls: React.FC = () => {
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
-  const { handleEndSessionClick } = match;
+  const { handleSubmitSessionClick, handleEndSessionClick } = match;
 
   return (
     <Stack direction={"row"} alignItems={"center"} spacing={2}>
@@ -37,15 +37,7 @@ const CollabSessionControls: React.FC = () => {
         }}
         variant="outlined"
         color="success"
-        onClick={() => {
-          console.log(
-            `Time taken: ${extractHoursFromTime(
-              time
-            )} hrs ${extractMinutesFromTime(
-              time
-            )} mins ${extractSecondsFromTime(time)} secs`
-          );
-        }} // TODO: implement submit function with time taken pop-up
+        onClick={() => handleSubmitSessionClick(time)}
       >
         Submit
       </Button>
