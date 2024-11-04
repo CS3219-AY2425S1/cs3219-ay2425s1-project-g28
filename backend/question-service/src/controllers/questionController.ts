@@ -1,8 +1,5 @@
 import { Request, Response } from "express";
 import Question, { IQuestion } from "../models/Question.ts";
-import QuestionTemplate, {
-  IQuestionTemplate,
-} from "../models/QuestionTemplate.ts";
 import { checkIsExistingQuestion, sortAlphabetically } from "../utils/utils.ts";
 import {
   DUPLICATE_QUESTION_MESSAGE,
@@ -70,22 +67,16 @@ export const createQuestion = async (
       category,
       testcaseInputFileUrl,
       testcaseOutputFileUrl,
-    });
-
-    await newQuestion.save();
-
-    const newQuestionTemplate = new QuestionTemplate({
-      questionId: newQuestion._id,
       pythonTemplate,
       javaTemplate,
       cTemplate,
     });
 
-    await newQuestionTemplate.save();
+    await newQuestion.save();
 
     res.status(201).json({
       message: QN_CREATED_MESSAGE,
-      question: formatQuestionIndivResponse(newQuestion, newQuestionTemplate),
+      question: formatQuestionIndivResponse(newQuestion),
     });
   } catch (error) {
     console.log(error);
@@ -195,10 +186,7 @@ export const updateQuestion = async (
   try {
     const { id } = req.params;
 
-    const { pythonTemplate, javaTemplate, cTemplate, ...questionBody } =
-      req.body;
-
-    const { title, description } = questionBody;
+    const { title, description } = req.body;
 
     if (!id.match(MONGO_OBJ_ID_FORMAT)) {
       res.status(400).json({ message: MONGO_OBJ_ID_MALFORMED_MESSAGE });
@@ -227,26 +215,13 @@ export const updateQuestion = async (
       return;
     }
 
-    const updatedQuestion = await Question.findByIdAndUpdate(id, questionBody, {
+    const updatedQuestion = await Question.findByIdAndUpdate(id, req.body, {
       new: true,
     });
 
-    const updatedQuestionTemplate = await QuestionTemplate.findOneAndUpdate(
-      { questionId: id },
-      {
-        pythonTemplate,
-        javaTemplate,
-        cTemplate,
-      },
-      { new: true },
-    );
-
     res.status(200).json({
       message: "Question updated successfully",
-      question: formatQuestionIndivResponse(
-        updatedQuestion as IQuestion,
-        updatedQuestionTemplate as IQuestionTemplate,
-      ),
+      question: formatQuestionIndivResponse(updatedQuestion as IQuestion),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -266,7 +241,6 @@ export const deleteQuestion = async (
     }
 
     await Question.findByIdAndDelete(id);
-    await QuestionTemplate.findOneAndDelete({ questionId: id });
 
     res.status(200).json({ message: QN_DELETED_MESSAGE });
   } catch (error) {
@@ -346,16 +320,9 @@ export const readQuestionIndiv = async (
       return;
     }
 
-    const questionTemplate = await QuestionTemplate.findOne({
-      questionId: id,
-    });
-
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
-      question: formatQuestionIndivResponse(
-        questionDetails,
-        questionTemplate as IQuestionTemplate,
-      ),
+      question: formatQuestionIndivResponse(questionDetails),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -384,16 +351,9 @@ export const readRandomQuestion = async (
 
     const chosenQuestion = randomQuestion[0];
 
-    const questionTemplate = await QuestionTemplate.findOne({
-      questionId: chosenQuestion._id,
-    });
-
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
-      question: formatQuestionIndivResponse(
-        chosenQuestion,
-        questionTemplate as IQuestionTemplate,
-      ),
+      question: formatQuestionIndivResponse(chosenQuestion),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -433,10 +393,7 @@ const formatQuestionResponse = (question: IQuestion) => {
   };
 };
 
-const formatQuestionIndivResponse = (
-  question: IQuestion,
-  questionTemplate: IQuestionTemplate,
-) => {
+const formatQuestionIndivResponse = (question: IQuestion) => {
   return {
     id: question._id,
     title: question.title,
@@ -445,8 +402,8 @@ const formatQuestionIndivResponse = (
     categories: question.category,
     testcaseInputFileUrl: question.testcaseInputFileUrl,
     testcaseOutputFileUrl: question.testcaseOutputFileUrl,
-    pythonTemplate: questionTemplate ? questionTemplate.pythonTemplate : "",
-    javaTemplate: questionTemplate ? questionTemplate.javaTemplate : "",
-    cTemplate: questionTemplate ? questionTemplate.cTemplate : "",
+    pythonTemplate: question.pythonTemplate,
+    javaTemplate: question.javaTemplate,
+    cTemplate: question.cTemplate,
   };
 };

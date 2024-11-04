@@ -105,11 +105,22 @@ describe("Question routes", () => {
       const complexity = "Easy";
       const categories = ["Algorithms"];
       const description = faker.lorem.lines();
+      const testcaseInputFileUrl = faker.internet.url();
+      const testcaseOutputFileUrl = faker.internet.url();
+      const pythonTemplate = "some python template";
+      const javaTemplate = "some java template";
+      const cTemplate = "some c template";
+
       const newQuestion = new Question({
         title,
         complexity,
         category: categories,
         description,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       });
       await newQuestion.save();
       const res = await request.get(`${BASE_URL}/${newQuestion.id}`);
@@ -147,11 +158,22 @@ describe("Question routes", () => {
       const complexity = "Easy";
       const categories = ["Algorithms"];
       const description = faker.lorem.lines();
+      const testcaseInputFileUrl = faker.internet.url();
+      const testcaseOutputFileUrl = faker.internet.url();
+      const pythonTemplate = "some python template";
+      const javaTemplate = "some java template";
+      const cTemplate = "some c template";
+
       const newQuestion = new Question({
         title,
         complexity,
         category: categories,
         description,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       });
       await newQuestion.save();
       const res = await request.delete(`${BASE_URL}/${newQuestion.id}`);
@@ -177,11 +199,22 @@ describe("Question routes", () => {
       const complexity = "Easy";
       const categories = ["Algorithms"];
       const description = faker.lorem.lines(5);
+      const testcaseInputFileUrl = faker.internet.url();
+      const testcaseOutputFileUrl = faker.internet.url();
+      const pythonTemplate = "some python template";
+      const javaTemplate = "some java template";
+      const cTemplate = "some c template";
+
       const newQuestion = {
         title,
         complexity,
         category: categories,
         description,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       };
 
       const res = await request.post(`${BASE_URL}`).send(newQuestion);
@@ -198,11 +231,22 @@ describe("Question routes", () => {
       const complexity = "Easy";
       const categories = ["Algorithms"];
       const description = faker.lorem.lines(5);
+      const testcaseInputFileUrl = faker.internet.url();
+      const testcaseOutputFileUrl = faker.internet.url();
+      const pythonTemplate = "some python template";
+      const javaTemplate = "some java template";
+      const cTemplate = "some c template";
+
       const newQuestion = new Question({
         title,
         complexity,
         category: categories,
         description,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       });
 
       await newQuestion.save();
@@ -226,11 +270,22 @@ describe("Question routes", () => {
       const complexity = "Easy";
       const categories = ["Algorithms"];
       const description = faker.lorem.lines(5);
+      const testcaseInputFileUrl = faker.internet.url();
+      const testcaseOutputFileUrl = faker.internet.url();
+      const pythonTemplate = "some python template";
+      const javaTemplate = "some java template";
+      const cTemplate = "some c template";
+
       const newQuestion = new Question({
         title,
         complexity,
         category: categories,
         description,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       });
 
       await newQuestion.save();
@@ -254,11 +309,22 @@ describe("Question routes", () => {
       const complexity = "Easy";
       const categories = ["Algorithms"];
       const description = faker.lorem.words(QN_DESC_CHAR_LIMIT + 5);
+      const testcaseInputFileUrl = faker.internet.url();
+      const testcaseOutputFileUrl = faker.internet.url();
+      const pythonTemplate = "some python template";
+      const javaTemplate = "some java template";
+      const cTemplate = "some c template";
+
       const newQuestion = {
         title,
         complexity,
         category: categories,
         description,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       };
 
       const res = await request.post(`${BASE_URL}`).send(newQuestion);
@@ -274,11 +340,22 @@ describe("Question routes", () => {
       const complexity = "Easy";
       const categories = ["Algorithms"];
       const description = faker.lorem.lines(5);
+      const testcaseInputFileUrl = faker.internet.url();
+      const testcaseOutputFileUrl = faker.internet.url();
+      const pythonTemplate = "some python template";
+      const javaTemplate = "some java template";
+      const cTemplate = "some c template";
+
       const newQuestion = new Question({
         title,
         complexity,
         category: categories,
         description,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       });
 
       await newQuestion.save();
@@ -307,11 +384,22 @@ describe("Question routes", () => {
       const complexity = "Easy";
       const categories = ["Algorithms"];
       const description = faker.lorem.lines(5);
+      const testcaseInputFileUrl = faker.internet.url();
+      const testcaseOutputFileUrl = faker.internet.url();
+      const pythonTemplate = "some python template";
+      const javaTemplate = "some java template";
+      const cTemplate = "some c template";
+
       const newQuestion = new Question({
         title,
         complexity,
         category: categories,
         description,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       });
 
       await newQuestion.save();
@@ -335,11 +423,22 @@ describe("Question routes", () => {
       const complexity = "Easy";
       const categories = ["Algorithms"];
       const description = faker.lorem.lines(5);
+      const testcaseInputFileUrl = faker.internet.url();
+      const testcaseOutputFileUrl = faker.internet.url();
+      const pythonTemplate = "some python template";
+      const javaTemplate = "some java template";
+      const cTemplate = "some c template";
+
       const newQuestion = new Question({
         title,
         complexity,
         category: categories,
         description,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       });
 
       await newQuestion.save();
@@ -365,11 +464,22 @@ describe("Question routes", () => {
       const complexity = "Easy";
       const categories = ["Algorithms"];
       const description = faker.lorem.lines(5);
+      const testcaseInputFileUrl = faker.internet.url();
+      const testcaseOutputFileUrl = faker.internet.url();
+      const pythonTemplate = "some python template";
+      const javaTemplate = "some java template";
+      const cTemplate = "some c template";
+
       const newQuestion = new Question({
         title,
         complexity,
         category: categories,
         description,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       });
 
       await newQuestion.save();
@@ -378,11 +488,22 @@ describe("Question routes", () => {
       const otherComplexity = "Medium";
       const otherCategories = ["String", "Data Structures"];
       const otherDescription = faker.lorem.lines(5);
+      const otherTestcaseInputFileUrl = faker.internet.url();
+      const otherTestcaseOutputFileUrl = faker.internet.url();
+      const otherPythonTemplate = "some python template";
+      const otherJavaTemplate = "some java template";
+      const otherCTemplate = "some c template";
+
       const otherQuestion = new Question({
         title: otherTitle,
         complexity: otherComplexity,
         category: otherCategories,
         description: otherDescription,
+        testcaseInputFileUrl: otherTestcaseInputFileUrl,
+        testcaseOutputFileUrl: otherTestcaseOutputFileUrl,
+        pythonTemplate: otherPythonTemplate,
+        javaTemplate: otherJavaTemplate,
+        cTemplate: otherCTemplate,
       });
 
       await otherQuestion.save();
@@ -407,11 +528,22 @@ describe("Question routes", () => {
       const complexity = "Easy";
       const categories = ["Algorithms"];
       const description = faker.lorem.lines(5);
+      const testcaseInputFileUrl = faker.internet.url();
+      const testcaseOutputFileUrl = faker.internet.url();
+      const pythonTemplate = "some python template";
+      const javaTemplate = "some java template";
+      const cTemplate = "some c template";
+
       const newQuestion = new Question({
         title,
         complexity,
         category: categories,
         description,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
+        pythonTemplate,
+        javaTemplate,
+        cTemplate,
       });
 
       await newQuestion.save();
