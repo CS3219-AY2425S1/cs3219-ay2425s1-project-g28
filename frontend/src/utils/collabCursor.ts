@@ -66,7 +66,6 @@ const cursorStateField = (uid: string): StateField<DecorationSet> => {
       for (const effect of transaction.effects) {
         // check for partner's cursor updates
         if (effect.is(updateCursor) && effect.value.uid !== uid) {
-          // if (effect.is(updateCursor)) {
           const cursorUpdates = [];
 
           if (effect.value.from !== effect.value.to) {
@@ -121,6 +120,7 @@ const cursorBaseTheme = EditorView.baseTheme({
     position: "absolute",
     marginTop: "-35px",
     marginLeft: "0px",
+    whiteSpace: "nowrap",
   },
   ".cm-cursor-color": {
     backgroundColor: "#f6a1a1",

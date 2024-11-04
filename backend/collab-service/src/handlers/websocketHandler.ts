@@ -15,6 +15,7 @@ enum CollabEvents {
 
   // Send
   ROOM_READY = "room_ready",
+  DOCUMENT_READY = "document_ready",
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
   // PARTNER_LEFT = "partner_left",
@@ -60,7 +61,10 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
     const isPartnerReady = partnerReadiness.get(roomId);
 
     if (isPartnerReady && doc.getText().length === 0) {
-      doc.getText().insert(0, template);
+      doc.transact(() => {
+        doc.getText().insert(0, template);
+      });
+      io.to(roomId).emit(CollabEvents.DOCUMENT_READY);
     } else {
       partnerReadiness.set(roomId, true);
     }

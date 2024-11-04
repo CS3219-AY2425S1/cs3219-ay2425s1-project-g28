@@ -15,6 +15,7 @@ enum CollabEvents {
 
   // Receive
   ROOM_READY = "room_ready",
+  DOCUMENT_READY = "document_ready",
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
   SOCKET_DISCONNECT = "disconnect",
@@ -70,8 +71,15 @@ export const join = (
   });
 };
 
-export const initDocument = (roomId: string, template: string) => {
+export const initDocument = (uid: string, roomId: string, template: string) => {
   collabSocket.emit(CollabEvents.INIT_DOCUMENT, roomId, template);
+
+  return new Promise<void>((resolve) => {
+    collabSocket.once(CollabEvents.UPDATE, (update) => {
+      applyUpdateV2(doc, new Uint8Array(update), uid);
+      resolve();
+    });
+  });
 };
 
 export const leave = (uid: string, roomId: string) => {

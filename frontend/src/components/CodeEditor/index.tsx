@@ -1,9 +1,9 @@
-import CodeMirror from "@uiw/react-codemirror";
+import CodeMirror, { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { langs } from "@uiw/codemirror-extensions-langs";
 import { basicSetup } from "@uiw/codemirror-extensions-basic-setup";
 import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { initDocument } from "../../utils/collabSocket";
 import { cursorExtension } from "../../utils/collabCursor";
 import { yCollab } from "y-codemirror.next";
@@ -37,24 +37,30 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     isReadOnly = false,
   } = props;
 
-  const effectRan = useRef<boolean>(false);
+  const [isEditorReady, setIsEditorReady] = useState<boolean>(false);
+  const [isDocumentLoaded, setIsDocumentLoaded] = useState<boolean>(false);
+
+  const onEditorReady = (editor: ReactCodeMirrorRef) => {
+    if (!isEditorReady && editor?.editor && editor?.state && editor?.view) {
+      setIsEditorReady(true);
+    }
+  };
 
   useEffect(() => {
-    if (isReadOnly) {
+    if (isReadOnly || !isEditorReady) {
       return;
     }
 
-    if (!effectRan.current) {
-      initDocument(roomId, template);
-    }
-
-    return () => {
-      effectRan.current = true;
+    const loadTemplate = async () => {
+      await initDocument(uid, roomId, template);
+      setIsDocumentLoaded(true);
     };
-  }, []);
+    loadTemplate();
+  }, [isReadOnly, isEditorReady]);
 
   return (
     <CodeMirror
+      ref={onEditorReady}
       style={{ height: "100%", width: "100%" }}
       height="100%"
       width="100%"
@@ -70,10 +76,10 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
             ]
           : []),
         EditorView.lineWrapping,
-        EditorView.editable.of(!isReadOnly),
-        EditorState.readOnly.of(isReadOnly),
+        EditorView.editable.of(!isReadOnly && isDocumentLoaded),
+        EditorState.readOnly.of(isReadOnly || !isDocumentLoaded),
       ]}
-      value={isReadOnly ? template : undefined}
+      value={isReadOnly ? template : template ? "Loading code template..." : ""}
     />
   );
 };
