@@ -1,7 +1,9 @@
-import { Box, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, IconButton, Stack, Typography } from "@mui/material";
+import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { HelpOutlined } from "@mui/icons-material";
 import QuestionFileContainer from "../QuestionFileContainer";
 import { ADD_TEST_CASE_FILES_TOOLTIP_MESSAGE } from "../../utils/constants";
+import { styled } from "@mui/material/styles";
 
 interface QuestionTestCasesFileUploadProps {
   testcaseInputFile: File | null;
@@ -9,6 +11,14 @@ interface QuestionTestCasesFileUploadProps {
   testcaseOutputFile: File | null;
   setTestcaseOutputFile: React.Dispatch<React.SetStateAction<File | null>>;
 }
+
+const CustomWidthTooltip = styled(({ className, ...props }: TooltipProps) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))({
+  [`& .${tooltipClasses.tooltip}`]: {
+    maxWidth: 400,
+  },
+});
 
 const QuestionTestCasesFileUpload: React.FC<
   QuestionTestCasesFileUploadProps
@@ -22,7 +32,7 @@ const QuestionTestCasesFileUpload: React.FC<
     <Box>
       <Stack direction="row" alignItems="center" marginY={2}>
         <Typography variant="h6">Test Cases File Upload</Typography>
-        <Tooltip
+        <CustomWidthTooltip
           title={
             <Typography variant="body2">
               <span
@@ -38,7 +48,7 @@ const QuestionTestCasesFileUpload: React.FC<
           <IconButton>
             <HelpOutlined fontSize="small" />
           </IconButton>
-        </Tooltip>
+        </CustomWidthTooltip>
       </Stack>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between">
