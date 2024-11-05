@@ -58,7 +58,7 @@ enum QuestionActionTypes {
 
 type QuestionActions = {
   type: QuestionActionTypes;
-  payload: QuestionList | QuestionDetail | QuestionDetail | string[] | string;
+  payload: QuestionList | QuestionDetail | string[] | string;
 };
 
 type QuestionsState = {
