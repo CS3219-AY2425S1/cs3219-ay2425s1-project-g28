@@ -11,9 +11,6 @@ import {
   MATCH_REQUEST_EXISTS_MESSAGE,
   MATCH_UNSUCCESSFUL_MESSAGE,
   USE_AUTH_ERROR_MESSAGE,
-  FAILED_TESTCASE_MESSAGE,
-  SUCCESS_TESTCASE_MESSAGE,
-  FAILED_TO_SUBMIT_CODE_MESSAGE,
 } from "../utils/constants";
 import { useAuth } from "./AuthContext";
 import { toast } from "react-toastify";
@@ -21,13 +18,8 @@ import useAppNavigate from "../components/UseAppNavigate";
 import { UNSAFE_NavigationContext } from "react-router-dom";
 import { Action, type History, type Transition } from "history";
 
-import { codeExecutionClient } from "../utils/api";
 import { useReducer } from "react";
-import { updateQnHistoryById } from "../reducers/qnHistoryReducer";
 import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";
-import { leave } from "../utils/collabSocket";
-import { CommunicationEvents } from "../components/Chat";
-import { communicationSocket } from "../utils/communicationSocket";
 
 let matchUserId: string;
 let partnerUserId: string;
@@ -43,18 +35,6 @@ type MatchCriteria = {
   category: string;
   language: string;
   timeout: number;
-};
-
-type CompilerResult = {
-  status: string;
-  exception: string | null;
-  stdout: string;
-  stderr: string | null;
-  executionTime: number;
-  stdin: string;
-  stout: string;
-  actualResult: string;
-  expectedResult: string;
 };
 
 enum MatchEvents {
@@ -108,21 +88,15 @@ type MatchContextType = {
   matchOfferTimeout: () => void;
   verifyMatchStatus: () => void;
   getMatchId: () => string | null;
-  handleSubmitSessionClick: (time: number) => void;
-  handleEndSessionClick: () => void;
-  handleRejectEndSession: () => void;
-  handleConfirmEndSession: () => void;
   matchUser: MatchUser | null;
   matchCriteria: MatchCriteria | null;
   partner: MatchUser | null;
   matchPending: boolean;
   loading: boolean;
   isEndSessionModalOpen: boolean;
+  setIsEndSessionModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   questionId: string | null;
   qnHistoryId: string | null;
-
-  setCode: React.Dispatch<React.SetStateAction<string>>;
-  compilerResult: CompilerResult[];
 };
 
 const requestTimeoutDuration = 5000;
@@ -158,8 +132,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     qnHistoryReducer,
     initialQHState
   );
-  const [code, setCode] = useState<string>("");
-  const [compilerResult, setCompilerResult] = useState<CompilerResult[]>([]);
 
   const navigator = useContext(UNSAFE_NavigationContext).navigator as History;
 
@@ -550,76 +522,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     return matchId;
   };
 
-  const handleSubmitSessionClick = async (time: number) => {
-    try {
-      const res = await codeExecutionClient.post("/", {
-        questionId,
-        code,
-        language: matchCriteria?.language.toLowerCase(),
-      });
-
-      setCompilerResult(res.data.data);
-
-      let isMatch = true;
-      for (let i = 0; i < res.data.data.length; i++) {
-        if (!res.data.data[i].isMatch) {
-          isMatch = false;
-        }
-        break;
-      }
-
-      if (isMatch) {
-        toast.success(SUCCESS_TESTCASE_MESSAGE);
-      } else {
-        toast.error(FAILED_TESTCASE_MESSAGE);
-      }
-
-      updateQnHistoryById(
-        qnHistoryId as string,
-        {
-          submissionStatus: isMatch ? "Accepted" : "Rejected",
-          dateAttempted: new Date().toISOString(),
-          timeTaken: time,
-          code,
-        },
-        qnHistoryDispatch
-      );
-    } catch {
-      toast.error(FAILED_TO_SUBMIT_CODE_MESSAGE);
-    }
-  };
-
-  const handleEndSessionClick = () => {
-    setIsEndSessionModalOpen(true);
-  };
-
-  const handleRejectEndSession = () => {
-    setIsEndSessionModalOpen(false);
-  };
-
-  const handleConfirmEndSession = () => {
-    setIsEndSessionModalOpen(false);
-
-    // Leave collaboration room
-    leave(matchUserId, getMatchId() as string);
-    leave(partnerUserId, getMatchId() as string);
-
-    // Leave chat room
-    communicationSocket.emit(
-      CommunicationEvents.LEAVE,
-      getMatchId(),
-      matchUser?.username
-    );
-    communicationSocket.emit(
-      CommunicationEvents.LEAVE,
-      getMatchId(),
-      partner?.username
-    );
-
-    // End match
-    stopMatch();
-  };
-
   return (
     <MatchContext.Provider
       value={{
@@ -632,20 +534,15 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         matchOfferTimeout,
         verifyMatchStatus,
         getMatchId,
-        handleSubmitSessionClick,
-        handleEndSessionClick,
-        handleRejectEndSession,
-        handleConfirmEndSession,
         matchUser,
         matchCriteria,
         partner,
         matchPending,
         loading,
         isEndSessionModalOpen,
+        setIsEndSessionModalOpen,
         questionId,
         qnHistoryId,
-        setCode,
-        compilerResult,
       }}
     >
       {children}

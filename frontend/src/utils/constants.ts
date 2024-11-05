@@ -9,6 +9,8 @@ export const USE_PROFILE_ERROR_MESSAGE =
   "useProfile() must be used within ProfileContextProvider";
 export const USE_MATCH_ERROR_MESSAGE =
   "useMatch() must be used within MatchProvider";
+export const USE_COLLAB_ERROR_MESSAGE =
+  "useCollab() must be used within CollabProvider";
 
 /* Name Validation */
 export const NAME_REQUIRED_ERROR_MESSAGE = "Name is required";

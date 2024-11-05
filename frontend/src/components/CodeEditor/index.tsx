@@ -10,8 +10,8 @@ import { cursorExtension } from "../../utils/collabCursor";
 import { yCollab } from "y-codemirror.next";
 import { Text } from "yjs";
 import { Awareness } from "y-protocols/awareness";
-import { useMatch } from "../../contexts/MatchContext";
-import { USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
+import { useCollab } from "../../contexts/CollabContext";
+import { USE_COLLAB_ERROR_MESSAGE } from "../../utils/constants";
 
 interface CodeEditorProps {
   editorState?: { text: Text; awareness: Awareness };
@@ -40,12 +40,12 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     isReadOnly = false,
   } = props;
 
-  const match = useMatch();
-  if (!match) {
-    throw new Error(USE_MATCH_ERROR_MESSAGE);
+  const collab = useCollab();
+  if (!collab) {
+    throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
-  const { setCode } = match;
+  const { setCode } = collab;
 
   const [isEditorReady, setIsEditorReady] = useState<boolean>(false);
   const [isDocumentLoaded, setIsDocumentLoaded] = useState<boolean>(false);
