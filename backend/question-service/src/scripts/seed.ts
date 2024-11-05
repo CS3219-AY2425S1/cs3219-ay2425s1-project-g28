@@ -162,7 +162,7 @@ export async function seedQuestions() {
         '- **Test Case 1**: `a = "11"` and `b = "1"`, the sum is `"100"`.\n' +
         '- **Test Case 2**: `a = "1010"` and `b = "1011"`, the sum is `"10101"`.',
       complexity: "Easy",
-      category: ["Data Structures", "Strings"],
+      category: ["Data Structures", "Strings", "Bit Manipulation"],
       testcaseInputFileUrl: "./src/scripts/testcases/addBinaryInput.txt",
       testcaseOutputFileUrl: "./src/scripts/testcases/addBinaryOutput.txt",
       pythonTemplate: `# Please do not modify the main function\ndef main():\n\ta = input().strip()\n\tb = input().strip()\n\tprint(solution(a, b))\n\n\n# Write your code here\ndef solution(a, b):\n\t# Implement your solution here\n\treturn ""\n\n\nif __name__ == "__main__":\n\tmain()\n`,
@@ -189,6 +189,42 @@ export async function seedQuestions() {
       pythonTemplate: `# Definition for a binary tree node.\nclass TreeNode:\n\tdef __init__(self, val=0, left=None, right=None):\n\t\tself.val = val\n\t\tself.left = left\n\t\tself.right = right\n\n# Please do not modify the main function\ndef main():\n\troot = deserialize(input().strip())\n\tprint(solution(root))\n\n\n# Write your code here\ndef solution(root):\n\t# Implement your solution here\n\treturn 0\n\n\n# Helper function to deserialize input\n\ndef deserialize(data):\n\t# Implement a function to build a tree from input\n\treturn None\n\n\nif __name__ == "__main__":\n\tmain()\n`,
       javaTemplate: `import java.util.*;\n\nclass TreeNode {\n\tint val;\n\tTreeNode left;\n\tTreeNode right;\n\tTreeNode(int val) { this.val = val; }\n\tTreeNode(int val, TreeNode left, TreeNode right) {\n\t\tthis.val = val;\n\t\tthis.left = left;\n\t\tthis.right = right;\n\t}\n}\n\npublic class Main {\n\t// Please do not modify the main function\n\tpublic static void main(String[] args) {\n\t\tTreeNode root = deserialize(new Scanner(System.in).nextLine().trim());\n\t\tSystem.out.println(solution(root));\n\t}\n\n\t// Write your code here\n\tpublic static int solution(TreeNode root) {\n\t\t// Implement your solution here\n\t\treturn 0;\n\t}\n\n\t// Helper function to deserialize input\n\tpublic static TreeNode deserialize(String data) {\n\t\t// Implement a function to build a tree from input\n\t\treturn null;\n\t}\n}`,
       cTemplate: `#include <stdio.h>\n#include <stdlib.h>\n\nstruct TreeNode {\n\tint val;\n\tstruct TreeNode *left;\n\tstruct TreeNode *right;\n};\n\n// Function to implement\nint solution(struct TreeNode* root) {\n\t// Implement your solution here\n\treturn 0;\n}\n\n// Please do not modify the main function\nint main() {\n\t// Implement tree deserialization if needed\n\treturn 0;\n}`,
+    },
+    {
+      title: "Jump Game",
+      description:
+        "Given an array of non-negative integers `nums`, where each element represents the maximum jump length from that position, determine if you can reach the last index.\n\n" +
+        "Return string `true` if you can reach the last index, or string `false` otherwise.\n\n" +
+        "### Explanation\n" +
+        "- **Test Case 1**: Given `nums = [2, 3, 1, 1, 4]`, you can jump from index 0 to index 1, then to the last index, so the result is `true`.\n" +
+        "- **Test Case 2**: Given `nums = [3, 2, 1, 0, 4]`, no matter what, you will always end up at index 3 (0), so the result is `false`.",
+      complexity: "Medium",
+      category: ["Algorithms", "Arrays", "Dynamic Programming"],
+      testcaseInputFileUrl: "./src/scripts/testcases/jumpGameInput.txt",
+      testcaseOutputFileUrl: "./src/scripts/testcases/jumpGameOutput.txt",
+      pythonTemplate: `# Please do not modify the main function\ndef main():\n\tnums = list(map(int, input().strip().split()))\n\tprint(solution(nums))\n\n\n# Write your code here\ndef solution(nums):\n\t# Implement your solution here\n\treturn False\n\n\nif __name__ == "__main__":\n\tmain()\n`,
+      javaTemplate: `import java.util.*;\n\npublic class Main {\n    // Please do not modify the main function\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        List<Integer> numsList = new ArrayList<>();\n        while (scanner.hasNextInt()) {\n            numsList.add(scanner.nextInt());\n        }\n        int[] nums = numsList.stream().mapToInt(i -> i).toArray();\n        System.out.println(solution(nums));\n    }\n\n    // Write your code here\n    public static boolean solution(int[] nums) {\n        // Implement your solution here\n        return false;\n    }\n}`,
+      cTemplate: `#include <stdio.h>\n#include <stdbool.h>\n\n// Function to implement\nbool solution(int* nums, int numsSize) {\n    // Implement your solution here\n    return false;\n}\n\n// Please do not modify the main function\nint main() {\n    int nums[1000], numsSize = 0, x;\n    while (scanf("%d", &x) == 1) {\n        nums[numsSize++] = x;\n    }\n    printf(solution(nums, numsSize) ? "true\\n" : "false\\n");\n    return 0;\n}`,
+    },
+    {
+      title: "Binary Tree Inorder Traversal",
+      description:
+        "Given the `root` of a binary tree, return the **inorder traversal** of its nodes' values.\n\n" +
+        "Inorder traversal is defined as visiting the left subtree, then the current node, and finally the right subtree.\n\n" +
+        "### Explanation\n" +
+        "- ![image](https://assets.leetcode.com/uploads/2024/08/29/screenshot-2024-08-29-202743.png)\n" +
+        "- **Test Case 1**: Given the tree `[1, null, 2, 3]`, the inorder traversal is `[1, 3, 2]`.\n\n\n" +
+        "- ![image](https://assets.leetcode.com/uploads/2024/08/29/tree_2.png)\n" +
+        "- **Test Case 2**: Given the tree `[1, 2, 3, 4, 5, null, 8 ,null, null, 6, 7, 9]`, the inorder traversal is `[4, 2, 6, 5, 7, 1, 3, 9, 8]`.",
+      complexity: "Easy",
+      category: ["Tree"],
+      testcaseInputFileUrl:
+        "./src/scripts/testcases/binaryTreeInorderTraversalInput.txt",
+      testcaseOutputFileUrl:
+        "./src/scripts/testcases/binaryTreeInorderTraversalOutput.txt",
+      pythonTemplate: `# Definition for a binary tree node.\nclass TreeNode:\n\tdef __init__(self, val=0, left=None, right=None):\n\t\tself.val = val\n\t\tself.left = left\n\t\tself.right = right\n\n# Please do not modify the main function\ndef main():\n\troot = deserialize(input().strip())\n\tprint(" ".join(map(str, solution(root))))\n\n\n# Write your code here\ndef solution(root):\n\t# Implement your solution here\n\treturn []\n\n\n# Helper function to deserialize input\n\ndef deserialize(data):\n\t# Implement a function to build a tree from input\n\treturn None\n\n\nif __name__ == "__main__":\n\tmain()\n`,
+      javaTemplate: `import java.util.*;\n\nclass TreeNode {\n\tint val;\n\tTreeNode left;\n\tTreeNode right;\n\tTreeNode(int val) { this.val = val; }\n\tTreeNode(int val, TreeNode left, TreeNode right) {\n\t\tthis.val = val;\n\t\tthis.left = left;\n\t\tthis.right = right;\n\t}\n}\n\npublic class Main {\n\t// Please do not modify the main function\n\tpublic static void main(String[] args) {\n\t\tTreeNode root = deserialize(new Scanner(System.in).nextLine().trim());\n\t\tList<Integer> result = solution(root);\n\t\tSystem.out.println(String.join(" ", result.stream().map(String::valueOf).toArray(String[]::new)));\n\t}\n\n\t// Write your code here\n\tpublic static List<Integer> solution(TreeNode root) {\n\t\t// Implement your solution here\n\t\treturn new ArrayList<>();\n\t}\n\n\t// Helper function to deserialize input\n\tpublic static TreeNode deserialize(String data) {\n\t\t// Implement a function to build a tree from input\n\t\treturn null;\n\t}\n}`,
+      cTemplate: `#include <stdio.h>\n#include <stdlib.h>\n\nstruct TreeNode {\n\tint val;\n\tstruct TreeNode *left;\n\tstruct TreeNode *right;\n};\n\n// Function to implement\nint* solution(struct TreeNode* root, int* returnSize) {\n\t// Implement your solution here\n\t*returnSize = 0;\n\treturn NULL;\n}\n\n// Please do not modify the main function\nint main() {\n\t// Implement tree deserialization if needed\n\treturn 0;\n}`,
     },
   ];
 

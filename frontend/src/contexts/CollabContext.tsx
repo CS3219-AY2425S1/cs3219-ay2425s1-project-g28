@@ -77,6 +77,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         language: matchCriteria?.language.toLowerCase(),
       });
 
+      console.log(res.data.data);
       setCompilerResult(res.data.data);
 
       let isMatch = true;
