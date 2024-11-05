@@ -40,14 +40,14 @@ export async function seedQuestions() {
     {
       title: "Two Sum",
       description:
-        "Given an array of integers `nums` (line 1) and an integer `target` (line 2), return indices of the two numbers in a list such that they add up to `target`. You may assume that each input would have **exactly one solution**, and you may not use the same element twice. The list should be returned in sorted order.",
+        "Given an array of integers `nums` and an integer `target`, find the indices of the two numbers in `nums` that add up to `target`. You may assume that each input has **exactly one solution**, and you cannot use the same element twice. Return the indices as a list sorted in ascending order.",
       complexity: "Easy",
       category: ["Arrays"],
       testcaseInputFileUrl: "./src/scripts/testcases/twoSumInput.txt",
       testcaseOutputFileUrl: "./src/scripts/testcases/twoSumOutput.txt",
-      pythonTemplate: `# Please do not modify the main function\ndef main():\n\tprint(" ".join(solution()))\n\n\n# Write your code here\ndef solution():\n\treturn []\n\n\nif __name__ == "__main__":\n\tmain()\n`,
-      javaTemplate: `public class Main {\n    // Please do not modify the main function\n    public static void main(String[] args) {\n        System.out.println(String.join(" ", solution()));\n    }\n\n    // Write your code here\n    public static String[] solution() {\n        return new String[]{};\n    }\n}`,
-      cTemplate: `#include <stdio.h>\n\n// Function to implement\nconst char** solution() {\n    static const char* result[] = {NULL}; // Placeholder\n    return result;\n}\n\n// Please do not modify the main function\nint main() {\n    const char** result = solution();\n    for (int i = 0; result[i] != NULL; i++) {\n        printf("%s ", result[i]);\n    }\n    printf("\\n");\n    return 0;\n}`,
+      pythonTemplate: `# Please do not modify the main function\ndef main():\n\tnums = list(map(int, input().split()))\n\ttarget = int(input().strip())\n\tprint(" ".join(map(str, solution(nums, target))))\n\n\n# Write your code here\ndef solution(nums, target):\n\t# Implement your solution here\n\treturn []\n\n\nif __name__ == "__main__":\n\tmain()\n`,
+      javaTemplate: `import java.util.Scanner;\nimport java.util.Arrays;\n\npublic class Main {\n    // Please do not modify the main function\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        int n = scanner.nextInt();\n        int[] nums = new int[n];\n        for (int i = 0; i < n; i++) {\n            nums[i] = scanner.nextInt();\n        }\n        int target = scanner.nextInt();\n        System.out.println(Arrays.toString(solution(nums, target)));\n    }\n\n    // Write your code here\n    public static int[] solution(int[] nums, int target) {\n        // Implement your solution here\n        return new int[]{};\n    }\n}`,
+      cTemplate: `#include <stdio.h>\n#include <stdlib.h>\n\n// Function to implement\nint* solution(int* nums, int numsSize, int target, int* returnSize) {\n    *returnSize = 2; // Adjust as needed\n    int* result = (int*)malloc(2 * sizeof(int));\n    // Implement your solution here\n    result[0] = -1; // Placeholder\n    result[1] = -1; // Placeholder\n    return result;\n}\n\n// Please do not modify the main function\nint main() {\n    int n, target;\n    scanf("%d", &n);\n    int nums[n];\n    for (int i = 0; i < n; i++) {\n        scanf("%d", &nums[i]);\n    }\n    scanf("%d", &target);\n    int returnSize;\n    int* result = solution(nums, n, target, &returnSize);\n    for (int i = 0; i < returnSize; i++) {\n        printf("%d ", result[i]);\n    }\n    printf("\\n");\n    free(result);\n    return 0;\n}`,
     },
     {
       title: "Longest Substring Without Repeating Characters",
@@ -101,6 +101,34 @@ export async function seedQuestions() {
       pythonTemplate: `# Please do not modify the main function\ndef main():\n\ts = input().strip()\n\tprint(solution(s))\n\n\n# Write your code here\ndef solution(s):\n\t# Implement your solution here\n\treturn ""\n\n\nif __name__ == "__main__":\n\tmain()\n`,
       javaTemplate: `import java.util.Scanner;\n\npublic class Main {\n    // Please do not modify the main function\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        String s = scanner.nextLine().trim();\n        System.out.println(solution(s));\n    }\n\n    // Write your code here\n    public static String solution(String s) {\n        // Implement your solution here\n        return "";\n    }\n}`,
       cTemplate: `#include <stdio.h>\n#include <string.h>\n\n// Function to implement\nconst char* solution(const char* s) {\n    // Implement your solution here\n    return "";\n}\n\n// Please do not modify the main function\nint main() {\n    char s[1000];\n    fgets(s, sizeof(s), stdin);\n    s[strcspn(s, "\\n")] = 0; // Remove newline\n    printf("%s\\n", solution(s));\n    return 0;\n}`,
+    },
+    {
+      title: "ZigZag Conversion",
+      description:
+        "The string `PAYPALISHIRING` is written in a zigzag pattern on a given number of rows like this:\n\n" +
+        "```\n" +
+        "P   A   H   N\n" +
+        "A P L S I I G\n" +
+        "Y   I   R\n" +
+        "```\n\n" +
+        "And then read line by line: `PAHNAPLSIIGYIR`.\n\n" +
+        "Write the code that will take a string and make this conversion given a number of rows.\n\n" +
+        "### Input\n" +
+        "Each test case consists of two lines:\n" +
+        "- The first line contains the string `s`.\n" +
+        "- The second line contains an integer `numRows`, representing the number of rows for the zigzag pattern.\n\n" +
+        "### Output\n" +
+        "For each test case, output the zigzag converted string as a single line.\n\n" +
+        "### Explanation\n" +
+        "- **Test Case 1**: `PAYPALISHIRING` with `numRows = 3` converts to `PAHNAPLSIIGYIR`.\n" +
+        "- **Test Case 2**: `PAYPALISHIRING` with `numRows = 4` converts to `HLOEL`.",
+      complexity: "Medium",
+      category: ["Strings"],
+      testcaseInputFileUrl: "./src/scripts/testcases/zigzagInput.txt",
+      testcaseOutputFileUrl: "./src/scripts/testcases/zigzagOutput.txt",
+      pythonTemplate: `# Please do not modify the main function\ndef main():\n\timport sys\n\tinput = sys.stdin.read().strip().split("\\n\\n")\n\tfor case in input:\n\t\tlines = case.split("\\n")\n\t\ts = lines[0]\n\t\tnumRows = int(lines[1])\n\t\tprint(solution(s, numRows))\n\n\n# Write your code here\ndef solution(s, numRows):\n\t# Implement your solution here\n\treturn ""\n\n\nif __name__ == "__main__":\n\tmain()\n`,
+      javaTemplate: `import java.util.*;\n\npublic class Main {\n    // Please do not modify the main function\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        String s = scanner.nextLine().trim();\n        int numRows = Integer.parseInt(scanner.nextLine().trim());\n        System.out.println(solution(s, numRows));\n    }\n\n    // Write your code here\n    public static String solution(String s, int numRows) {\n        // Implement your solution here\n        return "";\n    }\n}`,
+      cTemplate: `#include <stdio.h>\n#include <string.h>\n\n// Function to implement\nconst char* solution(const char* s, int numRows) {\n    // Implement your solution here\n    return "";\n}\n\n// Please do not modify the main function\nint main() {\n    char s[1000];\n    int numRows;\n    fgets(s, sizeof(s), stdin);\n    s[strcspn(s, "\\n")] = 0; // Remove newline\n    scanf("%d", &numRows);\n    printf("%s\\n", solution(s, numRows));\n    return 0;\n}`,
     },
   ];
 
