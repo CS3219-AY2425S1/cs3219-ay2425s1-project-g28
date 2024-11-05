@@ -10,7 +10,7 @@ interface FileType {
 
 export const oneCompilerApi = async (
   language: string,
-  stdin: string,
+  stdin: string[],
   userCode: string
 ) => {
   let files: FileType[] = [];

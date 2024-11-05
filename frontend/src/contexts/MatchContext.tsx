@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { matchSocket } from "../utils/matchSocket";
 import {
   ABORT_MATCH_PROCESS_CONFIRMATION_MESSAGE,
@@ -17,6 +17,9 @@ import { toast } from "react-toastify";
 import useAppNavigate from "../components/UseAppNavigate";
 import { UNSAFE_NavigationContext } from "react-router-dom";
 import { Action, type History, type Transition } from "history";
+
+import { useReducer } from "react";
+import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";
 
 let matchUserId: string;
 let partnerUserId: string;
@@ -85,15 +88,13 @@ type MatchContextType = {
   matchOfferTimeout: () => void;
   verifyMatchStatus: () => void;
   getMatchId: () => string | null;
-  handleEndSessionClick: () => void;
-  handleRejectEndSession: () => void;
-  handleConfirmEndSession: () => void;
   matchUser: MatchUser | null;
   matchCriteria: MatchCriteria | null;
   partner: MatchUser | null;
   matchPending: boolean;
   loading: boolean;
   isEndSessionModalOpen: boolean;
+  setIsEndSessionModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   questionId: string | null;
   qnHistoryId: string | null;
 };
@@ -125,6 +126,12 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
     useState<boolean>(false);
+
+  // eslint-disable-next-line
+  const [qnHistoryState, qnHistoryDispatch] = useReducer(
+    qnHistoryReducer,
+    initialQHState
+  );
 
   const navigator = useContext(UNSAFE_NavigationContext).navigator as History;
 
@@ -287,12 +294,15 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const initMatchedListeners = () => {
-    matchSocket.on(MatchEvents.MATCH_SUCCESSFUL, (qnId: string, qnHistId: string) => {
-      setMatchPending(false);
-      setQuestionId(qnId);
-      setQnHistoryId(qnHistId);
-      appNavigate(MatchPaths.COLLAB);
-    });
+    matchSocket.on(
+      MatchEvents.MATCH_SUCCESSFUL,
+      (qnId: string, qnHistId: string) => {
+        setMatchPending(false);
+        setQuestionId(qnId);
+        setQnHistoryId(qnHistId);
+        appNavigate(MatchPaths.COLLAB);
+      }
+    );
 
     matchSocket.on(MatchEvents.MATCH_UNSUCCESSFUL, () => {
       toast.error(MATCH_UNSUCCESSFUL_MESSAGE);
@@ -407,7 +417,12 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const acceptMatch = () => {
-    matchSocket.emit(MatchEvents.MATCH_ACCEPT_REQUEST, matchId, matchUserId, partnerUserId);
+    matchSocket.emit(
+      MatchEvents.MATCH_ACCEPT_REQUEST,
+      matchId,
+      matchUserId,
+      partnerUserId
+    );
   };
 
   const rematch = () => {
@@ -507,19 +522,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     return matchId;
   };
 
-  const handleEndSessionClick = () => {
-    setIsEndSessionModalOpen(true);
-  };
-
-  const handleRejectEndSession = () => {
-    setIsEndSessionModalOpen(false);
-  };
-
-  const handleConfirmEndSession = () => {
-    setIsEndSessionModalOpen(false);
-    stopMatch();
-  };
-
   return (
     <MatchContext.Provider
       value={{
@@ -532,15 +534,13 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         matchOfferTimeout,
         verifyMatchStatus,
         getMatchId,
-        handleEndSessionClick,
-        handleRejectEndSession,
-        handleConfirmEndSession,
         matchUser,
         matchCriteria,
         partner,
         matchPending,
         loading,
         isEndSessionModalOpen,
+        setIsEndSessionModalOpen,
         questionId,
         qnHistoryId,
       }}

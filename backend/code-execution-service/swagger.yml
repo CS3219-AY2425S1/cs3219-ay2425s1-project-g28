@@ -10,10 +10,13 @@ definitions:
       stdin:
         type: string
         required: true
-      expectedStdout:
+      stdout:
         type: string
         required: true
-      actualStdout:
+      expectedResult:
+        type: string
+        required: true
+      actualResult:
         type: string
       isMatch:
         type: boolean
@@ -82,23 +85,11 @@ paths:
                 code:
                   type: string
                   description: The source code to execute.
-                  example: "name = input()\nage = input()\nprint('Hello ' + name + '. You are ' + age + ' years old this year?')\n\n"
-                stdinList:
-                  type: array
-                  description: List of standard input values to pass to the code.
-                  items:
-                    type: string
-                  example: ["Alice\n21", "Peter\n22"]
-                stdoutList:
-                  type: array
-                  description: Expected standard output values to compare against.
-                  items:
-                    type: string
-                  example:
-                    [
-                      "Hello Alice. You are 21 years old this year?\n",
-                      "Hello Peter. You are 22 years old this year?\n",
-                    ]
+                  example: "a=input()\nb=input()\nc=input()\nd=input()\n\nprint(int(a)+int(b)+int(c)+int(d))"
+                questionId:
+                  type: string
+                  description: Question ID.
+                  example: "123456789"
       responses:
         200:
           description: Execution Result
