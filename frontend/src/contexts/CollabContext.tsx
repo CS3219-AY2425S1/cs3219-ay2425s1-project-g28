@@ -6,6 +6,7 @@ import {
   FAILED_TESTCASE_MESSAGE,
   SUCCESS_TESTCASE_MESSAGE,
   FAILED_TO_SUBMIT_CODE_MESSAGE,
+  COLLAB_ENDED_MESSAGE,
 } from "../utils/constants";
 import { toast } from "react-toastify";
 
@@ -14,9 +15,10 @@ import { codeExecutionClient } from "../utils/api";
 import { useReducer } from "react";
 import { updateQnHistoryById } from "../reducers/qnHistoryReducer";
 import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";
-import { leave } from "../utils/collabSocket";
+import { CollabEvents, collabSocket, leave } from "../utils/collabSocket";
 import { CommunicationEvents } from "../components/Chat";
 import { communicationSocket } from "../utils/communicationSocket";
+import useAppNavigate from "../components/UseAppNavigate";
 
 type CompilerResult = {
   status: string;
@@ -35,14 +37,17 @@ type CollabContextType = {
   handleEndSessionClick: () => void;
   handleRejectEndSession: () => void;
   handleConfirmEndSession: () => void;
+  checkPartnerStatus: () => void;
   setCode: React.Dispatch<React.SetStateAction<string>>;
   compilerResult: CompilerResult[];
+  isEndSessionModalOpen: boolean;
 };
 
 const CollabContext = createContext<CollabContextType | null>(null);
 
 const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const { children } = props;
+  const appNavigate = useAppNavigate();
 
   const match = useMatch();
 
@@ -58,7 +63,6 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     stopMatch,
     questionId,
     qnHistoryId,
-    setIsEndSessionModalOpen,
   } = match;
 
   // eslint-disable-next-line
@@ -68,6 +72,8 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   );
   const [code, setCode] = useState<string>("");
   const [compilerResult, setCompilerResult] = useState<CompilerResult[]>([]);
+  const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
+    useState<boolean>(false);
 
   const handleSubmitSessionClick = async (time: number) => {
     try {
@@ -135,8 +141,18 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       partner?.username
     );
 
-    // End match
+    // Delete match data
     stopMatch();
+    appNavigate("/home");
+  };
+
+  const checkPartnerStatus = () => {
+    collabSocket.on(CollabEvents.PARTNER_LEFT, () => {
+      toast.error(COLLAB_ENDED_MESSAGE);
+      setIsEndSessionModalOpen(false);
+      stopMatch();
+      appNavigate("/home");
+    });
   };
 
   return (
@@ -146,8 +162,10 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         handleEndSessionClick,
         handleRejectEndSession,
         handleConfirmEndSession,
+        checkPartnerStatus,
         setCode,
         compilerResult,
+        isEndSessionModalOpen,
       }}
     >
       {children}

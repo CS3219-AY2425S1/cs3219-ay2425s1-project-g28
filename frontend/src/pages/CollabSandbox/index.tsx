@@ -76,7 +76,6 @@ const CollabSandbox: React.FC = () => {
     partner,
     matchCriteria,
     loading,
-    isEndSessionModalOpen,
     questionId,
   } = match;
 
@@ -85,7 +84,12 @@ const CollabSandbox: React.FC = () => {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
-  const { handleRejectEndSession, handleConfirmEndSession } = collab;
+  const {
+    handleRejectEndSession,
+    handleConfirmEndSession,
+    checkPartnerStatus,
+    isEndSessionModalOpen,
+  } = collab;
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const { selectedQuestion } = state;
@@ -110,6 +114,7 @@ const CollabSandbox: React.FC = () => {
         const editorState = await join(matchUser.id, matchId);
         if (editorState.ready) {
           setEditorState(editorState);
+          checkPartnerStatus();
         } else {
           toast.error(COLLAB_CONNECTION_ERROR);
           setIsConnecting(false);

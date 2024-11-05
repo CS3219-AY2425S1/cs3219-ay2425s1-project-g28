@@ -92,7 +92,6 @@ export const FAILED_MATCH_REQUEST_MESSAGE =
   "Failed to send match request! Please try again from the home page.";
 export const MATCH_UNSUCCESSFUL_MESSAGE =
   "Unfortunately, your partner did not accept the match.";
-export const MATCH_ENDED_MESSAGE = "Your partner has left the match.";
 export const MATCH_LOGIN_REQUIRED_MESSAGE =
   "Please login first to find a match.";
 export const MATCH_OFFER_TIMEOUT_MESSAGE = "Match offer timeout!";
@@ -102,6 +101,8 @@ export const QUESTION_DOES_NOT_EXIST_ERROR =
   "There are no questions with the specified complexity and category. Please try another combination.";
 
 // Collab
+export const COLLAB_ENDED_MESSAGE =
+  "Your partner has left the collaboration session.";
 export const COLLAB_CONNECTION_ERROR =
   "Error connecting you to the collaboration session! Please try again.";
 

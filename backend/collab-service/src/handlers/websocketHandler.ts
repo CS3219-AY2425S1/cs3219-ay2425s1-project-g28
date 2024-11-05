@@ -18,8 +18,7 @@ enum CollabEvents {
   DOCUMENT_READY = "document_ready",
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
-  // PARTNER_LEFT = "partner_left",
-  // PARTNER_DISCONNECTED = "partner_disconnected",
+  PARTNER_LEFT = "partner_left",
 }
 
 const EXPIRY_TIME = 3600;
@@ -179,5 +178,7 @@ const handleUserLeave = (uid: string, roomId: string, socket: Socket) => {
   const room = io.sockets.adapter.rooms.get(roomId);
   if (!room || room.size === 0) {
     removeCollabSession(roomId);
+  } else {
+    io.to(roomId).emit(CollabEvents.PARTNER_LEFT);
   }
 };

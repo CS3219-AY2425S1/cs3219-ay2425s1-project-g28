@@ -4,7 +4,7 @@ import { updateCursor, Cursor } from "./collabCursor";
 import { Doc, Text, applyUpdateV2 } from "yjs";
 import { Awareness } from "y-protocols/awareness";
 
-enum CollabEvents {
+export enum CollabEvents {
   // Send
   JOIN = "join",
   LEAVE = "leave",
@@ -18,6 +18,7 @@ enum CollabEvents {
   DOCUMENT_READY = "document_ready",
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
+  PARTNER_LEFT = "partner_left",
   SOCKET_DISCONNECT = "disconnect",
   SOCKET_CLIENT_DISCONNECT = "io client disconnect",
   SOCKET_SERVER_DISCONNECT = "io server disconnect",
@@ -32,7 +33,7 @@ export type CollabSessionData = {
 };
 
 const COLLAB_SOCKET_URL = "http://localhost:3003";
-const collabSocket = io(COLLAB_SOCKET_URL, {
+export const collabSocket = io(COLLAB_SOCKET_URL, {
   reconnectionAttempts: 3,
   autoConnect: false,
 });
