@@ -130,6 +130,27 @@ export async function seedQuestions() {
       javaTemplate: `import java.util.*;\n\npublic class Main {\n    // Please do not modify the main function\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        String s = scanner.nextLine().trim();\n        int numRows = Integer.parseInt(scanner.nextLine().trim());\n        System.out.println(solution(s, numRows));\n    }\n\n    // Write your code here\n    public static String solution(String s, int numRows) {\n        // Implement your solution here\n        return "";\n    }\n}`,
       cTemplate: `#include <stdio.h>\n#include <string.h>\n\n// Function to implement\nconst char* solution(const char* s, int numRows) {\n    // Implement your solution here\n    return "";\n}\n\n// Please do not modify the main function\nint main() {\n    char s[1000];\n    int numRows;\n    fgets(s, sizeof(s), stdin);\n    s[strcspn(s, "\\n")] = 0; // Remove newline\n    scanf("%d", &numRows);\n    printf("%s\\n", solution(s, numRows));\n    return 0;\n}`,
     },
+    {
+      title: "Reverse Integer",
+      description:
+        "Given a signed 32-bit integer `x`, return `x` with its digits reversed.\n\n" +
+        "If reversing `x` causes the value to go outside the signed 32-bit integer range `[-2^31, 2^31 - 1]`, then return 0.\n\n" +
+        "### Input\n" +
+        "Each test case consists of a single integer `x`.\n\n" +
+        "### Output\n" +
+        "For each test case, output a single integer which is the reversed integer, or 0 if the result overflows.\n\n" +
+        "### Explanation\n" +
+        "- **Test Case 1**: `x = 123` reverses to `321`.\n" +
+        "- **Test Case 2**: `x = -123` reverses to `-321`.\n" +
+        "- **Test Case 3**: `x = 120` reverses to `21`.\n",
+      complexity: "Easy",
+      category: ["Strings"],
+      testcaseInputFileUrl: "./src/scripts/testcases/reverseIntegerInput.txt",
+      testcaseOutputFileUrl: "./src/scripts/testcases/reverseIntegerOutput.txt",
+      pythonTemplate: `# Please do not modify the main function\ndef main():\n\tx = int(input().strip())\n\tprint(solution(x))\n\n\n# Write your code here\ndef solution(x):\n\t# Implement your solution here\n\treturn 0\n\n\nif __name__ == "__main__":\n\tmain()\n`,
+      javaTemplate: `import java.util.Scanner;\n\npublic class Main {\n    // Please do not modify the main function\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        int x = scanner.nextInt();\n        System.out.println(solution(x));\n    }\n\n    // Write your code here\n    public static int solution(int x) {\n        // Implement your solution here\n        return 0;\n    }\n}`,
+      cTemplate: `#include <stdio.h>\n#include <limits.h>\n\n// Function to implement\nint solution(int x) {\n    // Implement your solution here\n    return 0;\n}\n\n// Please do not modify the main function\nint main() {\n    int x;\n    scanf("%d", &x);\n    printf("%d\\n", solution(x));\n    return 0;\n}`,
+    },
   ];
 
   try {
