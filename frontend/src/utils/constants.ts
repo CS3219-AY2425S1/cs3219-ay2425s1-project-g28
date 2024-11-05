@@ -101,6 +101,10 @@ export const MATCH_CONNECTION_ERROR =
 export const QUESTION_DOES_NOT_EXIST_ERROR =
   "There are no questions with the specified complexity and category. Please try another combination.";
 
+// Collab
+export const COLLAB_CONNECTION_ERROR =
+  "Error connecting you to the collaboration session! Please try again.";
+
 // Code execution
 export const FAILED_TESTCASE_MESSAGE =
   "Your code did not pass all the test cases.";

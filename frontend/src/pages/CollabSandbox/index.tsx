@@ -15,12 +15,12 @@ import classes from "./index.module.css";
 import { useCollab } from "../../contexts/CollabContext";
 import { useMatch } from "../../contexts/MatchContext";
 import {
+  COLLAB_CONNECTION_ERROR,
   USE_COLLAB_ERROR_MESSAGE,
   USE_MATCH_ERROR_MESSAGE,
 } from "../../utils/constants";
 import { useEffect, useReducer, useState } from "react";
 import Loader from "../../components/Loader";
-import ServerError from "../../components/ServerError";
 import reducer, {
   getQuestionById,
   initialState,
@@ -32,6 +32,7 @@ import TabPanel from "../../components/TabPanel";
 import TestCase from "../../components/TestCase";
 import CodeEditor from "../../components/CodeEditor";
 import { CollabSessionData, join, leave } from "../../utils/collabSocket";
+import { toast } from "react-toastify";
 
 // hardcode for now...
 
@@ -58,10 +59,10 @@ const testcases: TestCase[] = [
 ];
 
 const CollabSandbox: React.FC = () => {
-  const [showErrorScreen, setShowErrorScreen] = useState<boolean>(false);
   const [editorState, setEditorState] = useState<CollabSessionData | null>(
     null
   );
+  const [isConnecting, setIsConnecting] = useState<boolean>(true);
 
   const match = useMatch();
   if (!match) {
@@ -92,10 +93,6 @@ const CollabSandbox: React.FC = () => {
   const [selectedTestcase, setSelectedTestcase] = useState(0);
 
   useEffect(() => {
-    if (!partner) {
-      return;
-    }
-
     verifyMatchStatus();
 
     if (!questionId) {
@@ -114,10 +111,12 @@ const CollabSandbox: React.FC = () => {
         if (editorState.ready) {
           setEditorState(editorState);
         } else {
-          setShowErrorScreen(true);
+          toast.error(COLLAB_CONNECTION_ERROR);
+          setIsConnecting(false);
         }
       } catch (error) {
-        console.error("Error connecting to collab session: ", error);
+        toast.error(COLLAB_CONNECTION_ERROR);
+        setIsConnecting(false);
       }
     };
 
@@ -128,35 +127,18 @@ const CollabSandbox: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    let timeout: number | undefined;
-
-    if (!selectedQuestion) {
-      timeout = setTimeout(() => {
-        setShowErrorScreen(true);
-      }, 2000);
-    } else {
-      setShowErrorScreen(false);
-    }
-
-    return () => clearTimeout(timeout);
-  }, [selectedQuestion]);
-
   if (loading) {
     return <Loader />;
   }
 
-  if (!matchUser || !partner || !matchCriteria || !getMatchId()) {
+  if (
+    !matchUser ||
+    !partner ||
+    !matchCriteria ||
+    !getMatchId() ||
+    !isConnecting
+  ) {
     return <Navigate to="/home" replace />;
-  }
-
-  if (showErrorScreen) {
-    return (
-      <ServerError
-        title="Oops, collaboration session ended..."
-        subtitle="Unfortunately, the session has ended due to a connection loss 😥"
-      />
-    );
   }
 
   if (!selectedQuestion || !editorState) {
@@ -234,8 +216,7 @@ const CollabSandbox: React.FC = () => {
               width: "100%",
               minHeight: "44vh",
               maxHeight: "44vh",
-              paddingTop: theme.spacing(2),
-              paddingBottom: theme.spacing(2),
+              paddingTop: theme.spacing(1),
             })}
           >
             <CodeEditor
@@ -256,12 +237,13 @@ const CollabSandbox: React.FC = () => {
             />
           </Box>
           <Box
-            sx={{
+            sx={(theme) => ({
               flex: 1,
               maxHeight: "44vh",
               display: "flex",
               flexDirection: "column",
-            }}
+              paddingTop: theme.spacing(1),
+            })}
           >
             <Tabs
               value={selectedTab}
