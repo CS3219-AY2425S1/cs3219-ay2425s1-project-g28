@@ -57,15 +57,10 @@ describe("Code execution routes", () => {
       (questionService.get as jest.Mock).mockResolvedValue({
         data: {
           question: {
-            testcaseInputFileUrl: "https://peerprep.com/input",
-            testcaseOutputFileUrl: "https://peerprep.com/output",
+            inputs: ["1", "2"],
+            outputs: ["1"],
           },
         },
-      });
-
-      (testCasesApi as jest.Mock).mockResolvedValue({
-        input: ["1", "2"],
-        output: ["1"],
       });
 
       const response = await request.post(`${BASE_URL}/run`).send({
@@ -81,15 +76,10 @@ describe("Code execution routes", () => {
       (questionService.get as jest.Mock).mockResolvedValue({
         data: {
           question: {
-            testcaseInputFileUrl: "https://peerprep.com/input",
-            testcaseOutputFileUrl: "https://peerprep.com/output",
+            inputs: ["1", "2"],
+            outputs: ["1", "2"],
           },
         },
-      });
-
-      (testCasesApi as jest.Mock).mockResolvedValue({
-        input: ["1", "2"],
-        output: ["1", "4"],
       });
 
       const response = await request.post(`${BASE_URL}/run`).send({
@@ -97,6 +87,8 @@ describe("Code execution routes", () => {
         code: "print(input())",
         questionId: "1234",
       });
+
+      console.log(response.body);
 
       expect(response.status).toBe(200);
       expect(response.body.message).toBe(SUCCESS_MESSAGE);
