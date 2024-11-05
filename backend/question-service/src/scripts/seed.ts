@@ -54,7 +54,7 @@ export async function seedQuestions() {
       description:
         "Given a string `s`, find the length of the **longest substring** without repeating characters.",
       complexity: "Medium",
-      category: ["Strings"],
+      category: ["Strings", "Algorithms"],
       testcaseInputFileUrl: "./src/scripts/testcases/longestSubstringInput.txt",
       testcaseOutputFileUrl:
         "./src/scripts/testcases/longestSubstringOutput.txt",
@@ -150,6 +150,45 @@ export async function seedQuestions() {
       pythonTemplate: `# Please do not modify the main function\ndef main():\n\tx = int(input().strip())\n\tprint(solution(x))\n\n\n# Write your code here\ndef solution(x):\n\t# Implement your solution here\n\treturn 0\n\n\nif __name__ == "__main__":\n\tmain()\n`,
       javaTemplate: `import java.util.Scanner;\n\npublic class Main {\n    // Please do not modify the main function\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        int x = scanner.nextInt();\n        System.out.println(solution(x));\n    }\n\n    // Write your code here\n    public static int solution(int x) {\n        // Implement your solution here\n        return 0;\n    }\n}`,
       cTemplate: `#include <stdio.h>\n#include <limits.h>\n\n// Function to implement\nint solution(int x) {\n    // Implement your solution here\n    return 0;\n}\n\n// Please do not modify the main function\nint main() {\n    int x;\n    scanf("%d", &x);\n    printf("%d\\n", solution(x));\n    return 0;\n}`,
+    },
+    {
+      title: "Add Binary",
+      description:
+        "Given two binary strings `a` and `b`, return their sum as a binary string.\n\n" +
+        "Each test case consists of two lines:\n" +
+        "- The first line contains the binary string `a`.\n" +
+        "- The second line contains the binary string `b`.\n\n" +
+        "### Explanation\n" +
+        '- **Test Case 1**: `a = "11"` and `b = "1"`, the sum is `"100"`.\n' +
+        '- **Test Case 2**: `a = "1010"` and `b = "1011"`, the sum is `"10101"`.',
+      complexity: "Easy",
+      category: ["Data Structures", "Strings"],
+      testcaseInputFileUrl: "./src/scripts/testcases/addBinaryInput.txt",
+      testcaseOutputFileUrl: "./src/scripts/testcases/addBinaryOutput.txt",
+      pythonTemplate: `# Please do not modify the main function\ndef main():\n\ta = input().strip()\n\tb = input().strip()\n\tprint(solution(a, b))\n\n\n# Write your code here\ndef solution(a, b):\n\t# Implement your solution here\n\treturn ""\n\n\nif __name__ == "__main__":\n\tmain()\n`,
+      javaTemplate: `import java.util.Scanner;\n\npublic class Main {\n    // Please do not modify the main function\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        String a = scanner.nextLine().trim();\n        String b = scanner.nextLine().trim();\n        System.out.println(solution(a, b));\n    }\n\n    // Write your code here\n    public static String solution(String a, String b) {\n        // Implement your solution here\n        return "";\n    }\n}`,
+      cTemplate: `#include <stdio.h>\n#include <string.h>\n\n// Function to implement\nconst char* solution(const char* a, const char* b) {\n    // Implement your solution here\n    return "";\n}\n\n// Please do not modify the main function\nint main() {\n    char a[1000], b[1000];\n    fgets(a, sizeof(a), stdin);\n    fgets(b, sizeof(b), stdin);\n    // Remove newline from input if exists\n    a[strcspn(a, "\\n")] = 0;\n    b[strcspn(b, "\\n")] = 0;\n    printf("%s\\n", solution(a, b));\n    return 0;\n}`,
+    },
+    {
+      title: "Binary Tree Maximum Path Sum",
+      description:
+        "Given the `root` of a binary tree, return the **maximum path sum** of any **non-empty path**.\n\n" +
+        "A path in a binary tree is defined as a sequence of nodes where each pair of adjacent nodes in the sequence has an edge connecting them.\n" +
+        "A node can only appear once in the path, and the path does not necessarily need to pass through the root.\n\n" +
+        "### Explanation\n" +
+        "- ![image](https://assets.leetcode.com/uploads/2020/10/13/exx1.jpg)\n" +
+        "- **Test Case 1**: Given the tree `[1, 2, 3]`, the maximum path sum is `6` (2 → 1 → 3).\n\n\n" +
+        "- ![image](https://assets.leetcode.com/uploads/2020/10/13/exx2.jpg)\n" +
+        "- **Test Case 2**: Given the tree `[-10, 9, 20, null, null, 15, 7]`, the maximum path sum is `42` (15 → 20 → 7).",
+      complexity: "Hard",
+      category: ["Tree", "Dynamic Programming", "Recursion"],
+      testcaseInputFileUrl:
+        "./src/scripts/testcases/binaryTreeMaxPathSumInput.txt",
+      testcaseOutputFileUrl:
+        "./src/scripts/testcases/binaryTreeMaxPathSumOutput.txt",
+      pythonTemplate: `# Definition for a binary tree node.\nclass TreeNode:\n\tdef __init__(self, val=0, left=None, right=None):\n\t\tself.val = val\n\t\tself.left = left\n\t\tself.right = right\n\n# Please do not modify the main function\ndef main():\n\troot = deserialize(input().strip())\n\tprint(solution(root))\n\n\n# Write your code here\ndef solution(root):\n\t# Implement your solution here\n\treturn 0\n\n\n# Helper function to deserialize input\n\ndef deserialize(data):\n\t# Implement a function to build a tree from input\n\treturn None\n\n\nif __name__ == "__main__":\n\tmain()\n`,
+      javaTemplate: `import java.util.*;\n\nclass TreeNode {\n\tint val;\n\tTreeNode left;\n\tTreeNode right;\n\tTreeNode(int val) { this.val = val; }\n\tTreeNode(int val, TreeNode left, TreeNode right) {\n\t\tthis.val = val;\n\t\tthis.left = left;\n\t\tthis.right = right;\n\t}\n}\n\npublic class Main {\n\t// Please do not modify the main function\n\tpublic static void main(String[] args) {\n\t\tTreeNode root = deserialize(new Scanner(System.in).nextLine().trim());\n\t\tSystem.out.println(solution(root));\n\t}\n\n\t// Write your code here\n\tpublic static int solution(TreeNode root) {\n\t\t// Implement your solution here\n\t\treturn 0;\n\t}\n\n\t// Helper function to deserialize input\n\tpublic static TreeNode deserialize(String data) {\n\t\t// Implement a function to build a tree from input\n\t\treturn null;\n\t}\n}`,
+      cTemplate: `#include <stdio.h>\n#include <stdlib.h>\n\nstruct TreeNode {\n\tint val;\n\tstruct TreeNode *left;\n\tstruct TreeNode *right;\n};\n\n// Function to implement\nint solution(struct TreeNode* root) {\n\t// Implement your solution here\n\treturn 0;\n}\n\n// Please do not modify the main function\nint main() {\n\t// Implement tree deserialization if needed\n\treturn 0;\n}`,
     },
   ];
 
