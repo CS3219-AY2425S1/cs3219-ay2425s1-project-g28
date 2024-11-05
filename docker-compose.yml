@@ -9,7 +9,7 @@ services:
       - 3001:3001
     depends_on:
       - user-service-mongo
-      - redis
+      - user-service-redis
     networks:
       - peerprep-network
     volumes:
@@ -63,6 +63,8 @@ services:
     env_file: ./backend/collab-service/.env
     ports:
       - 3003:3003
+    depends_on:
+      - collab-service-redis
     networks:
       - peerprep-network
     volumes:
@@ -131,6 +133,8 @@ services:
       - question-service
       - matching-service
       - collab-service
+      - code-execution-service
+      - communication-service
       - qn-history-service
     networks:
       - peerprep-network
@@ -224,15 +228,31 @@ services:
       timeout: 10s
       retries: 10
 
-  redis:
+  user-service-redis:
     image: redis:8.0-M01
-    container_name: redis
+    container_name: user-service-redis
     ports:
       - 6379:6379
     networks:
       - peerprep-network
     volumes:
-      - redis-data:/data
+      - user-service-redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    command: ["redis-server"]
+
+  collab-service-redis:
+    image: redis:8.0-M01
+    container_name: collab-service-redis
+    ports:
+      - 6380:6379
+    networks:
+      - peerprep-network
+    volumes:
+      - collab-service-redis-data:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
       interval: 10s
@@ -249,16 +269,13 @@ services:
       - peerprep-network
     volumes:
       - redis-insight-data:/data
-    depends_on:
-      redis:
-        condition: service_healthy
-        restart: true
 
 volumes:
   question-service-mongo-data:
   user-service-mongo-data:
   qn-history-service-mongo-data:
-  redis-data:
+  user-service-redis-data:
+  collab-service-redis-data:
   redis-insight-data:
 
 networks:

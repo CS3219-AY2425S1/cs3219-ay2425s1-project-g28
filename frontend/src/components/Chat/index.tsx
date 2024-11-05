@@ -15,7 +15,7 @@ type Message = {
   createdTime: number;
 };
 
-enum CommunicationEvents {
+export enum CommunicationEvents {
   // receive
   JOIN = "join",
   LEAVE = "leave",
@@ -39,6 +39,7 @@ const StyledTypography = styled(Typography)(({ theme }) => ({
   borderRadius: theme.spacing(2),
   maxWidth: "80%",
   whiteSpace: "pre-line",
+  wordBreak: "break-word",
 }));
 
 const Chat: React.FC<ChatProps> = ({ isActive }) => {
@@ -67,11 +68,11 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
       roomId: getMatchId(),
       username: user?.username,
     });
-    // joinedRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    // initliase listerner for incoming messages
+    // initialize listener for incoming messages
     communicationSocket.on(
       CommunicationEvents.USER_JOINED,
       (message: Message) => {

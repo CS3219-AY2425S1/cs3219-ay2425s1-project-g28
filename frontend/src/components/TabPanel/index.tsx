@@ -12,6 +12,7 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, selected }) => {
       role="tabpanel"
       sx={(theme) => ({
         display: selected === value ? "flex" : "none",
+        overflow: "auto",
         flexDirection: "column",
         padding: theme.spacing(0, 2),
         flex: 1,

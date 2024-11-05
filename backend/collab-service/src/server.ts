@@ -1,7 +1,7 @@
 import http from "http";
 import app, { allowedOrigins } from "./app.ts";
 import { handleWebsocketCollabEvents } from "./handlers/websocketHandler.ts";
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 import { connectRedis } from "./config/redis.ts";
 
 const server = http.createServer(app);
@@ -13,7 +13,7 @@ export const io = new Server(server, {
   connectionStateRecovery: {},
 });
 
-io.on("connection", (socket) => {
+io.on("connection", (socket: Socket) => {
   handleWebsocketCollabEvents(socket);
 });
 
