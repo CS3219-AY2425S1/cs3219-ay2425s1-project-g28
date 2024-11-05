@@ -46,7 +46,7 @@ const QuestionCodeTemplates: React.FC<QuestionCodeTemplatesProps> = ({
     }));
   };
 
-  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleTabKeys = (event: any) => {
     const { value } = event.target;
 
