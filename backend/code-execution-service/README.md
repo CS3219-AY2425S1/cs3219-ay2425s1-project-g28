@@ -6,15 +6,21 @@
 
 2. Sign up for a free OneCompiler API [here](https://rapidapi.com/onecompiler-onecompiler-default/api/onecompiler-apis).
 
-3. Update `ONE_COMPILER_KEY` in `.env` with the the value of `x-rapidapi-key`.
+3. Update `ONE_COMPILER_KEY` in the `.env` file with the value of `x-rapidapi-key`.
 
-## Running Code Execution Service without Docker
+## Running Code Execution Service Locally
 
 1. Open Command Line/Terminal and navigate into the `code-execution-service` directory.
 
 2. Run the command: `npm install`. This will install all the necessary dependencies.
 
 3. Run the command `npm start` to start the Code Execution Service in production mode, or use `npm run dev` for development mode, which includes features like automatic server restart when you make code changes.
+
+## Running Code Execution Service with Docker
+
+1. Open the Command Line/Terminal.
+
+2. Run the command `docker compose run code-execution-service` to start up the Code Execution Service and its dependencies.
 
 ## After running
 

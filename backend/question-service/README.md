@@ -8,19 +8,37 @@
 
 2. To connect to your cloud MongoDB instead of your local MongoDB, set the `NODE_ENV` to `production` instead of `development`.
 
-3. Update `FIREBASE_PROJECT_ID`, `FIREBASE_PRIVATE_KEY`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_STORAGE_BUCKET`, `MONGO_CLOUD_URI` with the env variables obtained from following the instructions in the backend README. Then update `MONGO_INITDB_ROOT_USERNAME`, `MONGO_INITDB_ROOT_PASSWORD` to change your MongoDB credentials if necessary.
+3. Update the following variables in the `.env` file:
+
+   - `FIREBASE_PROJECT_ID`
+
+   - `FIREBASE_PRIVATE_KEY`
+
+   - `FIREBASE_CLIENT_EMAIL`
+
+   - `FIREBASE_STORAGE_BUCKET`
+
+   - `MONGO_CLOUD_URI`
+
+   You can also update `MONGO_INITDB_ROOT_USERNAME`, `MONGO_INITDB_ROOT_PASSWORD` to change your MongoDB credentials if necessary.
 
 4. You can view the MongoDB collections locally using Mongo Express. To set up Mongo Express, update `ME_CONFIG_BASICAUTH_USERNAME` and `ME_CONFIG_BASICAUTH_PASSWORD`. The username and password will be the login credentials when you access Mongo Express at http://localhost:8081.
 
-## Running Question Service without Docker
+## Running Question Service Locally
 
-> Make sure you have the cloud MongoDB URI in your .env file and set NODE_ENV to production already.
+> Make sure you have the cloud MongoDB URI in your `.env` file and set `NODE_ENV` to `production` already.
 
 1. Open Command Line/Terminal and navigate into the `question-service` directory.
 
 2. Run the command: `npm install`. This will install all the necessary dependencies.
 
 3. Run the command `npm start` to start the Question Service in production mode, or use `npm run dev` for development mode, which includes features like automatic server restart when you make code changes.
+
+## Running Question Service with Docker
+
+1. Open the Command Line/Terminal.
+
+2. Run the command `docker compose run question-service` to start up the Question Service and its dependencies.
 
 ## Seeding questions into MongoDB
 
