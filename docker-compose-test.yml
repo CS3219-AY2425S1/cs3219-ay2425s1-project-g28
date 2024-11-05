@@ -75,6 +75,8 @@ services:
       - NODE_ENV=test
       - SERVICE_PORT=3003
       - REDIS_URI_TEST=redis://test-redis:6379
+    depends_on:
+      - test-redis
     networks:
       - peerprep-network
     volumes:

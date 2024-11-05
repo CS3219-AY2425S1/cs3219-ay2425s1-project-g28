@@ -14,6 +14,10 @@
 
    3. Enter `host.docker.internal` as the Host.
 
+   4. Enter the port used by the respective service:
+      - User Service: `6379`
+      - Collab Service: `6380`
+
 4. Follow the instructions [here](https://nodejs.org/en/download/package-manager) to set up Node v20.
 
 ## Setting-up cloud MongoDB (in production)

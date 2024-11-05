@@ -151,8 +151,7 @@ const getDocument = (roomId: string) => {
   let doc = collabSessions.get(roomId);
   if (!doc) {
     doc = new Doc();
-    // eslint-disable-next-line
-    doc.on(CollabEvents.UPDATE, (_update) => {
+    doc.on(CollabEvents.UPDATE, () => {
       saveDocument(roomId, doc!);
       io.to(roomId).emit(CollabEvents.UPDATE, encodeStateAsUpdateV2(doc!));
     });
