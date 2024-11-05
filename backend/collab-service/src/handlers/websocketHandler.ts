@@ -18,8 +18,7 @@ enum CollabEvents {
   DOCUMENT_READY = "document_ready",
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
-  // PARTNER_LEFT = "partner_left",
-  // PARTNER_DISCONNECTED = "partner_disconnected",
+  PARTNER_LEFT = "partner_left",
 }
 
 const EXPIRY_TIME = 3600;
@@ -92,27 +91,24 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
     }
   );
 
-  socket.on(CollabEvents.LEAVE, (uid: string, roomId: string) => {
-    const connectionKey = `${uid}:${roomId}`;
-    if (!userConnections.has(connectionKey)) {
-      return;
-    }
-
-    clearTimeout(userConnections.get(connectionKey)!);
-
-    const connectionTimeout = setTimeout(() => {
-      userConnections.delete(connectionKey);
-      socket.leave(roomId);
-      socket.disconnect();
-
-      const room = io.sockets.adapter.rooms.get(roomId);
-      if (!room || room.size === 0) {
-        removeCollabSession(roomId);
+  socket.on(
+    CollabEvents.LEAVE,
+    (uid: string, roomId: string, isImmediate: boolean) => {
+      const connectionKey = `${uid}:${roomId}`;
+      if (isImmediate || !userConnections.has(connectionKey)) {
+        handleUserLeave(uid, roomId, socket);
+        return;
       }
-    }, CONNECTION_DELAY);
 
-    userConnections.set(connectionKey, connectionTimeout);
-  });
+      clearTimeout(userConnections.get(connectionKey)!);
+
+      const connectionTimeout = setTimeout(() => {
+        handleUserLeave(uid, roomId, socket);
+      }, CONNECTION_DELAY);
+
+      userConnections.set(connectionKey, connectionTimeout);
+    }
+  );
 
   socket.on(CollabEvents.RECONNECT_REQUEST, async (roomId: string) => {
     // TODO: Handle recconnection
@@ -167,4 +163,22 @@ const saveDocument = async (roomId: string, doc: Doc) => {
   await redisClient.set(`collaboration:${roomId}`, docAsString, {
     EX: EXPIRY_TIME,
   });
+};
+
+const handleUserLeave = (uid: string, roomId: string, socket: Socket) => {
+  const connectionKey = `${uid}:${roomId}`;
+  if (userConnections.has(connectionKey)) {
+    clearTimeout(userConnections.get(connectionKey)!);
+    userConnections.delete(connectionKey);
+  }
+
+  socket.leave(roomId);
+  socket.disconnect();
+
+  const room = io.sockets.adapter.rooms.get(roomId);
+  if (!room || room.size === 0) {
+    removeCollabSession(roomId);
+  } else {
+    io.to(roomId).emit(CollabEvents.PARTNER_LEFT);
+  }
 };

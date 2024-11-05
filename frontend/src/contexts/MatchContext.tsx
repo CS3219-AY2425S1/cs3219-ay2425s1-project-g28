@@ -6,7 +6,6 @@ import {
   ABORT_MATCH_PROCESS_CONFIRMATION_MESSAGE,
   FAILED_MATCH_REQUEST_MESSAGE,
   MATCH_CONNECTION_ERROR,
-  MATCH_ENDED_MESSAGE,
   MATCH_LOGIN_REQUIRED_MESSAGE,
   MATCH_REQUEST_EXISTS_MESSAGE,
   MATCH_UNSUCCESSFUL_MESSAGE,
@@ -17,9 +16,6 @@ import { toast } from "react-toastify";
 import useAppNavigate from "../components/UseAppNavigate";
 import { UNSAFE_NavigationContext } from "react-router-dom";
 import { Action, type History, type Transition } from "history";
-
-import { useReducer } from "react";
-import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";
 
 let matchUserId: string;
 let partnerUserId: string;
@@ -54,7 +50,6 @@ enum MatchEvents {
   MATCH_FOUND = "match_found",
   MATCH_SUCCESSFUL = "match_successful",
   MATCH_UNSUCCESSFUL = "match_unsuccessful",
-  MATCH_ENDED = "match_ended",
   MATCH_REQUEST_EXISTS = "match_request_exists",
   MATCH_REQUEST_ERROR = "match_request_error",
 
@@ -93,8 +88,6 @@ type MatchContextType = {
   partner: MatchUser | null;
   matchPending: boolean;
   loading: boolean;
-  isEndSessionModalOpen: boolean;
-  setIsEndSessionModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   questionId: string | null;
   qnHistoryId: string | null;
 };
@@ -123,15 +116,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [questionId, setQuestionId] = useState<string | null>(null);
   const [qnHistoryId, setQnHistoryId] = useState<string | null>(null);
-
-  const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
-    useState<boolean>(false);
-
-  // eslint-disable-next-line
-  const [qnHistoryState, qnHistoryDispatch] = useReducer(
-    qnHistoryReducer,
-    initialQHState
-  );
 
   const navigator = useContext(UNSAFE_NavigationContext).navigator as History;
 
@@ -233,9 +217,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       case MatchPaths.MATCHED:
         initMatchedListeners();
         return;
-      case MatchPaths.COLLAB:
-        initCollabListeners();
-        return;
       default:
         return;
     }
@@ -315,14 +296,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
     matchSocket.on(MatchEvents.MATCH_REQUEST_ERROR, () => {
       toast.error(FAILED_MATCH_REQUEST_MESSAGE);
-    });
-  };
-
-  const initCollabListeners = () => {
-    matchSocket.on(MatchEvents.MATCH_ENDED, () => {
-      toast.error(MATCH_ENDED_MESSAGE);
-      setIsEndSessionModalOpen(false);
-      appNavigate(MatchPaths.HOME);
     });
   };
 
@@ -409,7 +382,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         return;
       case MatchPaths.COLLAB:
         matchSocket.emit(MatchEvents.MATCH_END_REQUEST, matchUser?.id, matchId);
-        appNavigate(MatchPaths.HOME);
         return;
       default:
         return;
@@ -539,8 +511,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         partner,
         matchPending,
         loading,
-        isEndSessionModalOpen,
-        setIsEndSessionModalOpen,
         questionId,
         qnHistoryId,
       }}
