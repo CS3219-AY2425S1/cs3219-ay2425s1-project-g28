@@ -7,6 +7,7 @@ import {
   ERROR_FAILED_TO_EXECUTE_MESSAGE,
   ERROR_NOT_SAME_LENGTH_MESSAGE,
   SUCCESS_MESSAGE,
+  ERROR_INVALID_TEST_CASES_MESSAGE,
 } from "../utils/constants";
 import { questionService } from "../utils/questionApi";
 import { testCasesApi } from "../utils/testCasesApi";
@@ -59,6 +60,13 @@ export const executeCode = async (req: Request, res: Response) => {
       return;
     }
 
+    if (stdinList.length === 0) {
+      res.status(400).json({
+        message: ERROR_INVALID_TEST_CASES_MESSAGE,
+      });
+      return;
+    }
+
     // Execute code for each test case
     const compilerResponse = await oneCompilerApi(language, stdinList, code);
 
@@ -94,8 +102,7 @@ export const executeCode = async (req: Request, res: Response) => {
       message: SUCCESS_MESSAGE,
       data: compilerData,
     });
-  } catch (err) {
-    console.log(err);
+  } catch {
     res.status(500).json({ message: ERROR_FAILED_TO_EXECUTE_MESSAGE });
   }
 };

@@ -9,6 +9,8 @@ export const USE_PROFILE_ERROR_MESSAGE =
   "useProfile() must be used within ProfileContextProvider";
 export const USE_MATCH_ERROR_MESSAGE =
   "useMatch() must be used within MatchProvider";
+export const USE_COLLAB_ERROR_MESSAGE =
+  "useCollab() must be used within CollabProvider";
 
 /* Name Validation */
 export const NAME_REQUIRED_ERROR_MESSAGE = "Name is required";
@@ -98,6 +100,14 @@ export const MATCH_CONNECTION_ERROR =
   "Connection error! Please try again later.";
 export const QUESTION_DOES_NOT_EXIST_ERROR =
   "There are no questions with the specified complexity and category. Please try another combination.";
+
+// Code execution
+export const FAILED_TESTCASE_MESSAGE =
+  "Your code did not pass all the test cases.";
+export const SUCCESS_TESTCASE_MESSAGE =
+  "You have successfully solved the question!";
+export const FAILED_TO_SUBMIT_CODE_MESSAGE =
+  "Unable to submit code. Please try again later.";
 
 /* Alerts & Dialog Boxes */
 // Questions

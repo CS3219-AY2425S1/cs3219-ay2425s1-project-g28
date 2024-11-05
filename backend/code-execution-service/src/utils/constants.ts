@@ -11,3 +11,5 @@ export const ERROR_NOT_SAME_LENGTH_MESSAGE =
 export const ERROR_FAILED_TO_EXECUTE_MESSAGE = "Failed to execute code";
 
 export const SUCCESS_MESSAGE = "Code executed successfully";
+
+export const ERROR_INVALID_TEST_CASES_MESSAGE = "Invalid test cases";
