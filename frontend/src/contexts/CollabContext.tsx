@@ -30,7 +30,7 @@ type CompilerResult = {
   expectedResult: string;
 };
 
-type ContextContextType = {
+type CollabContextType = {
   handleSubmitSessionClick: (time: number) => void;
   handleEndSessionClick: () => void;
   handleRejectEndSession: () => void;
@@ -39,7 +39,7 @@ type ContextContextType = {
   compilerResult: CompilerResult[];
 };
 
-const CollabContext = createContext<ContextContextType | null>(null);
+const CollabContext = createContext<CollabContextType | null>(null);
 
 const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const { children } = props;
