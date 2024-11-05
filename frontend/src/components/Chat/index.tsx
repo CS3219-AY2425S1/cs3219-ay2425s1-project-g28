@@ -75,7 +75,7 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
   }, []);
 
   useEffect(() => {
-    // initliase listerner for incoming messages
+    // initialize listener for incoming messages
     const listener = (message: Message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
     };
