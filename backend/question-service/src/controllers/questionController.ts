@@ -398,10 +398,10 @@ const formatQuestionResponse = (question: IQuestion) => {
 };
 
 const formatQuestionIndivResponse = async (question: IQuestion) => {
-  const testcaseDelimiter = "\n";
-  const inputs = (await getFileContent(question.testcaseInputFileUrl)).split(
-    testcaseDelimiter,
-  );
+  const testcaseDelimiter = "\n\n";
+  const inputs = (await getFileContent(question.testcaseInputFileUrl))
+    .replace(/\r\n/g, "\n")
+    .split(testcaseDelimiter);
   const outputs = (await getFileContent(question.testcaseOutputFileUrl)).split(
     testcaseDelimiter,
   );
