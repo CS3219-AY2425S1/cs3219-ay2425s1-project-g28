@@ -43,7 +43,7 @@ const CollabSessionControls: React.FC = () => {
         }}
         variant="outlined"
         color="error"
-        onClick={() => handleEndSessionClick()}
+        onClick={() =>{ handleEndSessionClick()}}
       >
         End Session
       </Button>

@@ -70,7 +70,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       setIsDocumentLoaded(true);
     };
     loadTemplate();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReadOnly, isEditorReady]);
 
   return (
@@ -83,7 +83,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       id="codeEditor"
       onChange={handleChange}
       extensions={[
-        indentUnit.of("    "),
+        indentUnit.of("\t"),
         basicSetup(),
         languageSupport[language as keyof typeof languageSupport],
         ...(!isReadOnly && editorState

@@ -22,7 +22,6 @@ interface CompilerResult {
 
 export const executeCode = async (req: Request, res: Response) => {
   const { questionId, language, code } = req.body;
-  console.log(code);
 
   if (!language || !code || !questionId) {
     res.status(400).json({
@@ -95,7 +94,7 @@ export const executeCode = async (req: Request, res: Response) => {
       message: SUCCESS_MESSAGE,
       data: compilerData,
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: ERROR_FAILED_TO_EXECUTE_MESSAGE });
   }
 };

@@ -15,7 +15,7 @@ type Message = {
   createdTime: number;
 };
 
-enum CommunicationEvents {
+export enum CommunicationEvents {
   // receive
   JOIN = "join",
   LEAVE = "leave",

@@ -11,6 +11,9 @@ import {
   MATCH_REQUEST_EXISTS_MESSAGE,
   MATCH_UNSUCCESSFUL_MESSAGE,
   USE_AUTH_ERROR_MESSAGE,
+  FAILED_TESTCASE_MESSAGE,
+  SUCCESS_TESTCASE_MESSAGE,
+  FAILED_TO_SUBMIT_CODE_MESSAGE,
 } from "../utils/constants";
 import { useAuth } from "./AuthContext";
 import { toast } from "react-toastify";
@@ -22,6 +25,9 @@ import { codeExecutionClient } from "../utils/api";
 import { useReducer } from "react";
 import { updateQnHistoryById } from "../reducers/qnHistoryReducer";
 import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";
+import { leave } from "../utils/collabSocket";
+import { CommunicationEvents } from "../components/Chat";
+import { communicationSocket } from "../utils/communicationSocket";
 
 let matchUserId: string;
 let partnerUserId: string;
@@ -37,6 +43,18 @@ type MatchCriteria = {
   category: string;
   language: string;
   timeout: number;
+};
+
+type CompilerResult = {
+  status: string;
+  exception: string | null;
+  stdout: string;
+  stderr: string | null;
+  executionTime: number;
+  stdin: string;
+  stout: string;
+  actualResult: string;
+  expectedResult: string;
 };
 
 enum MatchEvents {
@@ -102,7 +120,9 @@ type MatchContextType = {
   isEndSessionModalOpen: boolean;
   questionId: string | null;
   qnHistoryId: string | null;
+
   setCode: React.Dispatch<React.SetStateAction<string>>;
+  compilerResult: CompilerResult[];
 };
 
 const requestTimeoutDuration = 5000;
@@ -139,6 +159,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     initialQHState
   );
   const [code, setCode] = useState<string>("");
+  const [compilerResult, setCompilerResult] = useState<CompilerResult[]>([]);
 
   const navigator = useContext(UNSAFE_NavigationContext).navigator as History;
 
@@ -537,6 +558,8 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         language: matchCriteria?.language.toLowerCase(),
       });
 
+      setCompilerResult(res.data.data);
+
       let isMatch = true;
       for (let i = 0; i < res.data.data.length; i++) {
         if (!res.data.data[i].isMatch) {
@@ -545,10 +568,10 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         break;
       }
 
-      if (!isMatch) {
-        toast.error("Your code did not pass all the test cases.");
+      if (isMatch) {
+        toast.success(SUCCESS_TESTCASE_MESSAGE);
       } else {
-        toast.success("You have successfully solved the question!");
+        toast.error(FAILED_TESTCASE_MESSAGE);
       }
 
       updateQnHistoryById(
@@ -562,7 +585,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         qnHistoryDispatch
       );
     } catch {
-      toast.error("Unable to submit code. Please try again later.");
+      toast.error(FAILED_TO_SUBMIT_CODE_MESSAGE);
     }
   };
 
@@ -576,6 +599,24 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
   const handleConfirmEndSession = () => {
     setIsEndSessionModalOpen(false);
+
+    // Leave collaboration room
+    leave(matchUserId, getMatchId() as string);
+    leave(partnerUserId, getMatchId() as string);
+
+    // Leave chat room
+    communicationSocket.emit(
+      CommunicationEvents.LEAVE,
+      getMatchId(),
+      matchUser?.username
+    );
+    communicationSocket.emit(
+      CommunicationEvents.LEAVE,
+      getMatchId(),
+      partner?.username
+    );
+
+    // End match
     stopMatch();
   };
 
@@ -604,6 +645,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         questionId,
         qnHistoryId,
         setCode,
+        compilerResult,
       }}
     >
       {children}
