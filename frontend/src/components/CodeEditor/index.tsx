@@ -3,12 +3,15 @@ import { langs } from "@uiw/codemirror-extensions-langs";
 import { basicSetup } from "@uiw/codemirror-extensions-basic-setup";
 import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
+import { indentUnit } from "@codemirror/language";
 import { useEffect, useState } from "react";
 import { initDocument } from "../../utils/collabSocket";
 import { cursorExtension } from "../../utils/collabCursor";
 import { yCollab } from "y-codemirror.next";
 import { Text } from "yjs";
 import { Awareness } from "y-protocols/awareness";
+import { useCollab } from "../../contexts/CollabContext";
+import { USE_COLLAB_ERROR_MESSAGE } from "../../utils/constants";
 
 interface CodeEditorProps {
   editorState?: { text: Text; awareness: Awareness };
@@ -37,6 +40,13 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     isReadOnly = false,
   } = props;
 
+  const collab = useCollab();
+  if (!collab) {
+    throw new Error(USE_COLLAB_ERROR_MESSAGE);
+  }
+
+  const { setCode } = collab;
+
   const [isEditorReady, setIsEditorReady] = useState<boolean>(false);
   const [isDocumentLoaded, setIsDocumentLoaded] = useState<boolean>(false);
 
@@ -44,6 +54,10 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     if (!isEditorReady && editor?.editor && editor?.state && editor?.view) {
       setIsEditorReady(true);
     }
+  };
+
+  const handleChange = (value: string) => {
+    setCode(value);
   };
 
   useEffect(() => {
@@ -56,6 +70,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       setIsDocumentLoaded(true);
     };
     loadTemplate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReadOnly, isEditorReady]);
 
   return (
@@ -66,7 +81,9 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       width="100%"
       basicSetup={false}
       id="codeEditor"
+      onChange={handleChange}
       extensions={[
+        indentUnit.of("\t"),
         basicSetup(),
         languageSupport[language as keyof typeof languageSupport],
         ...(!isReadOnly && editorState

@@ -6,6 +6,8 @@ import { Complexities, Categories, Languages } from "../utils/constants";
 
 dotenv.config();
 
+const RABBITMQ_ADDR = process.env.RABBITMQ_ADDR || "amqp://localhost:5672";
+
 let mrConnection: Connection;
 const queues: string[] = [];
 const pendingQueueRequests = new Map<string, Map<string, MatchRequestItem>>();
@@ -35,7 +37,7 @@ const setUpQueue = async (queueName: string) => {
 export const connectToRabbitMq = async () => {
   try {
     initQueueNames();
-    mrConnection = await amqplib.connect(`${process.env.RABBITMQ_ADDR}`);
+    mrConnection = await amqplib.connect(RABBITMQ_ADDR);
     for (const queue of queues) {
       await setUpQueue(queue);
       pendingQueueRequests.set(queue, new Map<string, MatchRequestItem>());

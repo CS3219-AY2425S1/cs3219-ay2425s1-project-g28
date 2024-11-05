@@ -7,7 +7,10 @@ import {
   ERROR_FAILED_TO_EXECUTE_MESSAGE,
   ERROR_NOT_SAME_LENGTH_MESSAGE,
   SUCCESS_MESSAGE,
+  ERROR_INVALID_TEST_CASES_MESSAGE,
 } from "../utils/constants";
+import { questionService } from "../utils/questionApi";
+import { testCasesApi } from "../utils/testCasesApi";
 
 interface CompilerResult {
   status: string;
@@ -19,14 +22,9 @@ interface CompilerResult {
 }
 
 export const executeCode = async (req: Request, res: Response) => {
-  const {
-    language,
-    code,
-    stdinList,
-    stdoutList: expectedStdoutList,
-  } = req.body;
+  const { questionId, language, code } = req.body;
 
-  if (!language || !code || !stdinList || !expectedStdoutList) {
+  if (!language || !code || !questionId) {
     res.status(400).json({
       message: ERROR_MISSING_REQUIRED_FIELDS_MESSAGE,
     });
@@ -40,48 +38,71 @@ export const executeCode = async (req: Request, res: Response) => {
     return;
   }
 
-  if (stdinList.length !== expectedStdoutList.length) {
-    res.status(400).json({
-      message: ERROR_NOT_SAME_LENGTH_MESSAGE,
-    });
-    return;
-  }
-
   try {
-    const response = await oneCompilerApi(language, stdinList, code);
+    // Get question test case files
+    const qnsResponse = await questionService.get(`/${questionId}`);
+    const { testcaseInputFileUrl, testcaseOutputFileUrl } =
+      qnsResponse.data.question;
 
-    const data = (response.data as CompilerResult[]).map((result, index) => {
-      const {
-        status,
-        exception,
-        stdout: actualStdout,
-        stderr,
-        stdin,
-        executionTime,
-      } = result;
-      const expectedStdout = expectedStdoutList[index];
+    // Extract test cases from input and output files
+    const testCases = await testCasesApi(
+      testcaseInputFileUrl,
+      testcaseOutputFileUrl
+    );
 
-      return {
-        status,
-        exception,
-        expectedStdout,
-        actualStdout,
-        stderr,
-        stdin,
-        executionTime,
-        isMatch:
-          stderr !== null
-            ? false
-            : actualStdout.trim() === expectedStdout.trim(),
-      };
-    });
+    const stdinList: string[] = testCases.input;
+    const expectedResultList: string[] = testCases.output;
+
+    if (stdinList.length !== expectedResultList.length) {
+      res.status(400).json({
+        message: ERROR_NOT_SAME_LENGTH_MESSAGE,
+      });
+      return;
+    }
+
+    if (stdinList.length === 0) {
+      res.status(400).json({
+        message: ERROR_INVALID_TEST_CASES_MESSAGE,
+      });
+      return;
+    }
+
+    // Execute code for each test case
+    const compilerResponse = await oneCompilerApi(language, stdinList, code);
+
+    const compilerData = (compilerResponse.data as CompilerResult[]).map(
+      (result, index) => {
+        let { stdout, ...restofResult } = result; // eslint-disable-line
+        const expectedResultValue = expectedResultList[index].trim();
+
+        if (!stdout) {
+          stdout = "";
+        }
+
+        // Extract the last line as the result value
+        // and the rest as stdout
+        const lines = stdout.trim().split("\n");
+        const resultValue = lines.pop() || "";
+        stdout = lines.join("\n");
+
+        return {
+          ...restofResult,
+          stdout,
+          actualResult: resultValue,
+          expectedResult: expectedResultValue,
+          isMatch:
+            result.stderr !== null
+              ? false
+              : resultValue === expectedResultValue,
+        };
+      }
+    );
 
     res.status(200).json({
       message: SUCCESS_MESSAGE,
-      data,
+      data: compilerData,
     });
-  } catch (err) {
-    console.log(err);
+  } catch {
     res.status(500).json({ message: ERROR_FAILED_TO_EXECUTE_MESSAGE });
   }
 };

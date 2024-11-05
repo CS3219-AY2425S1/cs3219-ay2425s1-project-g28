@@ -30,6 +30,10 @@ import { useAuth } from "../../contexts/AuthContext";
 import { USE_AUTH_ERROR_MESSAGE } from "../../utils/constants";
 import Loader from "../../components/Loader";
 import CodeEditor from "../../components/CodeEditor";
+import {
+  extractMinutesFromTime,
+  extractSecondsFromTime,
+} from "../../utils/sessionTime";
 
 const QuestionHistoryDetail: React.FC = () => {
   const { qnHistoryId } = useParams<{ qnHistoryId: string }>();
@@ -171,7 +175,11 @@ const QuestionHistoryDetail: React.FC = () => {
                   }}
                 >
                   <Typography component="span">
-                    {`${qnhistState.selectedQnHistory.timeTaken} mins`}
+                    {`${extractMinutesFromTime(
+                      qnhistState.selectedQnHistory.timeTaken
+                    )} min ${extractSecondsFromTime(
+                      qnhistState.selectedQnHistory.timeTaken
+                    )} sec`}
                   </Typography>
                 </TableCell>
                 <TableCell

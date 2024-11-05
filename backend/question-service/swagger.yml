@@ -45,6 +45,12 @@ components:
           items:
             type: string
           description: Categories
+        testcaseInputFileUrl:
+          type: string
+          description: URL of the test case input file
+        testcaseOutputFileUrl:
+          type: string
+          description: URL of the test case output file
         pythonTemplate:
           type: string
           description: Code template in Python

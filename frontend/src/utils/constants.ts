@@ -9,6 +9,8 @@ export const USE_PROFILE_ERROR_MESSAGE =
   "useProfile() must be used within ProfileContextProvider";
 export const USE_MATCH_ERROR_MESSAGE =
   "useMatch() must be used within MatchProvider";
+export const USE_COLLAB_ERROR_MESSAGE =
+  "useCollab() must be used within CollabProvider";
 
 /* Name Validation */
 export const NAME_REQUIRED_ERROR_MESSAGE = "Name is required";
@@ -99,6 +101,14 @@ export const MATCH_CONNECTION_ERROR =
 export const QUESTION_DOES_NOT_EXIST_ERROR =
   "There are no questions with the specified complexity and category. Please try another combination.";
 
+// Code execution
+export const FAILED_TESTCASE_MESSAGE =
+  "Your code did not pass all the test cases.";
+export const SUCCESS_TESTCASE_MESSAGE =
+  "You have successfully solved the question!";
+export const FAILED_TO_SUBMIT_CODE_MESSAGE =
+  "Unable to submit code. Please try again later.";
+
 /* Alerts & Dialog Boxes */
 // Questions
 export const ABORT_CREATE_OR_EDIT_QUESTION_CONFIRMATION_MESSAGE =
@@ -116,7 +126,21 @@ export const COLLABORATIVE_EDITOR_PATH = "/collaborative_editor.png";
 
 /* Tooltips */
 export const ADD_QUESTION_TEST_CASE_TOOLTIP_MESSAGE = `Add at least 1 and at most 3 test cases. <br /> This will be displayed to users.`;
-export const ADD_TEST_CASE_FILES_TOOLTIP_MESSAGE = `Upload files for executing test cases backend when user submits code. <br /><br /> This is a required field. <br /> Only text files accepted.`;
+export const ADD_TEST_CASE_FILES_TOOLTIP_MESSAGE = `
+  Upload files for executing test cases when the user submits code. <br /><br />
+  This is a required field. Only text files are accepted. <br /><br />
+  Please ensure that each test case in the file is <u>separated by a double newline</u>. <br /><br />
+  For example, if the question is "Two Sum", an input file with 2 test cases could look like:<br />
+  """
+  <br />2 7 11 15<br />9<br /><br />3 2 4<br />6<br />
+  """<br /><br />
+  The first line of each test case is the input array, while the second line is the target value. <br /><br />
+  The corresponding output file, with each result in a single line, should look like:<br />
+  """
+  <br />0 1<br /><br />1 2<br />
+  """<br /><br />
+  Each line in the output file represents the indices of the two numbers that add up to the target for each respective test case.
+`;
 export const CODE_TEMPLATES_TOOLTIP_MESSAGE = `This is a required field. <br /> Fill in a code template for each language.`;
 
 /* Code Templates */
