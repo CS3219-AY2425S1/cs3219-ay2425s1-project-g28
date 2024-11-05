@@ -402,9 +402,9 @@ const formatQuestionIndivResponse = async (question: IQuestion) => {
   const inputs = (await getFileContent(question.testcaseInputFileUrl))
     .replace(/\r\n/g, "\n")
     .split(testcaseDelimiter);
-  const outputs = (await getFileContent(question.testcaseOutputFileUrl)).split(
-    testcaseDelimiter,
-  );
+  const outputs = (await getFileContent(question.testcaseOutputFileUrl))
+    .replace(/\r\n/g, "\n")
+    .split(testcaseDelimiter);
   return {
     id: question._id,
     title: question.title,
