@@ -232,7 +232,8 @@ const CollabSandbox: React.FC = () => {
             sx={(theme) => ({
               flex: 1,
               width: "100%",
-              maxHeight: "50vh",
+              minHeight: "44vh",
+              maxHeight: "44vh",
               paddingTop: theme.spacing(2),
               paddingBottom: theme.spacing(2),
             })}
@@ -257,7 +258,7 @@ const CollabSandbox: React.FC = () => {
           <Box
             sx={{
               flex: 1,
-              maxHeight: "50vh",
+              maxHeight: "44vh",
               display: "flex",
               flexDirection: "column",
             }}

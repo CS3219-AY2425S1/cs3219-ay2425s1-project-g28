@@ -82,11 +82,11 @@ export const initDocument = (uid: string, roomId: string, template: string) => {
   });
 };
 
-export const leave = (uid: string, roomId: string) => {
+export const leave = (uid: string, roomId: string, isImmediate?: boolean) => {
   collabSocket.removeAllListeners();
   collabSocket.io.removeListener(CollabEvents.SOCKET_RECONNECT_SUCCESS);
   collabSocket.io.removeListener(CollabEvents.SOCKET_RECONNECT_FAILED);
-  collabSocket.emit(CollabEvents.LEAVE, uid, roomId);
+  collabSocket.emit(CollabEvents.LEAVE, uid, roomId, isImmediate);
   doc.destroy();
 };
 
@@ -134,11 +134,4 @@ const initConnectionStatusListeners = (roomId: string) => {
       console.log("reconnect failed");
     });
   }
-};
-
-export const getDocumentContent = () => {
-  if (!doc.isDestroyed) {
-    return text.toString();
-  }
-  return "";
 };

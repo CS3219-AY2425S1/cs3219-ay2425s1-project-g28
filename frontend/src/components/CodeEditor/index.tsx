@@ -76,7 +76,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
   return (
     <CodeMirror
       ref={onEditorReady}
-      style={{ height: "100%", width: "100%" }}
+      style={{ height: "100%", width: "100%", fontSize: "14px" }}
       height="100%"
       width="100%"
       basicSetup={false}
@@ -96,7 +96,12 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
         EditorView.editable.of(!isReadOnly && isDocumentLoaded),
         EditorState.readOnly.of(isReadOnly || !isDocumentLoaded),
       ]}
-      value={isReadOnly ? template : template ? "Loading code template..." : ""}
+      value={isReadOnly ? template : undefined}
+      placeholder={
+        !isReadOnly && !isDocumentLoaded
+          ? "Loading code template..."
+          : undefined
+      }
     />
   );
 };

@@ -62,7 +62,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   } = match;
 
   // eslint-disable-next-line
-  const [qnHistoryState, qnHistoryDispatch] = useReducer(
+  const [_qnHistoryState, qnHistoryDispatch] = useReducer(
     qnHistoryReducer,
     initialQHState
   );
@@ -120,8 +120,8 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     setIsEndSessionModalOpen(false);
 
     // Leave collaboration room
-    leave(matchUser?.id as string, getMatchId() as string);
-    leave(partner?.id as string, getMatchId() as string);
+    leave(matchUser?.id as string, getMatchId() as string, true);
+    leave(partner?.id as string, getMatchId() as string, true);
 
     // Leave chat room
     communicationSocket.emit(
