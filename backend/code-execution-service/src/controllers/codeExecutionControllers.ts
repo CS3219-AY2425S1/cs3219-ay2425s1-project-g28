@@ -7,6 +7,7 @@ import {
   ERROR_FAILED_TO_EXECUTE_MESSAGE,
   ERROR_NOT_SAME_LENGTH_MESSAGE,
   SUCCESS_MESSAGE,
+  ERROR_INVALID_TEST_CASES_MESSAGE,
 } from "../utils/constants";
 import { questionService } from "../utils/questionApi";
 import { testCasesApi } from "../utils/testCasesApi";
@@ -55,6 +56,13 @@ export const executeCode = async (req: Request, res: Response) => {
     if (stdinList.length !== expectedResultList.length) {
       res.status(400).json({
         message: ERROR_NOT_SAME_LENGTH_MESSAGE,
+      });
+      return;
+    }
+
+    if (stdinList.length === 0) {
+      res.status(400).json({
+        message: ERROR_INVALID_TEST_CASES_MESSAGE,
       });
       return;
     }
