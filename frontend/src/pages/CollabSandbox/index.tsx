@@ -12,8 +12,12 @@ import {
   Tabs,
 } from "@mui/material";
 import classes from "./index.module.css";
+import { useCollab } from "../../contexts/CollabContext";
 import { useMatch } from "../../contexts/MatchContext";
-import { USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
+import {
+  USE_COLLAB_ERROR_MESSAGE,
+  USE_MATCH_ERROR_MESSAGE,
+} from "../../utils/constants";
 import { useEffect, useReducer, useState } from "react";
 import Loader from "../../components/Loader";
 import ServerError from "../../components/ServerError";
@@ -67,8 +71,6 @@ const CollabSandbox: React.FC = () => {
   const {
     verifyMatchStatus,
     getMatchId,
-    handleRejectEndSession,
-    handleConfirmEndSession,
     matchUser,
     partner,
     matchCriteria,
@@ -76,6 +78,14 @@ const CollabSandbox: React.FC = () => {
     isEndSessionModalOpen,
     questionId,
   } = match;
+
+  const collab = useCollab();
+  if (!collab) {
+    throw new Error(USE_COLLAB_ERROR_MESSAGE);
+  }
+
+  const { handleRejectEndSession, handleConfirmEndSession } = collab;
+
   const [state, dispatch] = useReducer(reducer, initialState);
   const { selectedQuestion } = state;
   const [selectedTab, setSelectedTab] = useState<"tests" | "chat">("tests");
@@ -248,7 +258,6 @@ const CollabSandbox: React.FC = () => {
             sx={{
               flex: 1,
               maxHeight: "50vh",
-              overflow: "auto",
               display: "flex",
               flexDirection: "column",
             }}
@@ -267,7 +276,8 @@ const CollabSandbox: React.FC = () => {
               <Tab label="Test Cases" value="tests" />
               <Tab label="Chat" value="chat" />
             </Tabs>
-            <TabPanel selected={selectedTab} value="tests">
+
+            <TabPanel value={selectedTab} selected="tests">
               <Box sx={(theme) => ({ margin: theme.spacing(2, 0) })}>
                 {[...Array(testcases.length)]
                   .map((_, index) => index + 1)
@@ -292,7 +302,7 @@ const CollabSandbox: React.FC = () => {
                 result={testcases[selectedTestcase].result}
               />
             </TabPanel>
-            <TabPanel selected={selectedTab} value="chat">
+            <TabPanel value={selectedTab} selected="chat">
               <Chat isActive={selectedTab === "chat"} />
             </TabPanel>
           </Box>
