@@ -13,7 +13,6 @@ export const handleWebsocketCommunicationEvents = (socket: Socket) => {
 
       const room = io.sockets.adapter.rooms.get(roomId);
       if (room?.has(socket.id)) {
-        // todo: fetch messages from cache and send to the user
         socket.emit(CommunicationEvents.ALREADY_JOINED);
         return;
       }
@@ -28,24 +27,6 @@ export const handleWebsocketCommunicationEvents = (socket: Socket) => {
         from: BOT_NAME,
         type: MessageTypes.BOT_GENERATED,
         message: `${username} has joined the chat`,
-        createdTime,
-      });
-    }
-  );
-
-  socket.on(
-    CommunicationEvents.LEAVE,
-    ({ roomId, username }: { roomId: string; username: string }) => {
-      if (!roomId) {
-        return;
-      }
-
-      socket.leave(roomId);
-      const createdTime = Date.now();
-      socket.to(roomId).emit(CommunicationEvents.USER_LEFT, {
-        from: BOT_NAME,
-        type: MessageTypes.BOT_GENERATED,
-        message: `${username} has left the chat`,
         createdTime,
       });
     }
@@ -71,14 +52,13 @@ export const handleWebsocketCommunicationEvents = (socket: Socket) => {
         message,
         createdTime,
       });
-
-      // todo: store the message in a cache
     }
   );
 
   socket.on(CommunicationEvents.DISCONNECT, () => {
     const { roomId } = socket.data;
     if (roomId) {
+      console.log("disconnected", roomId, socket.data.username);
       const createdTime = Date.now();
       socket.to(roomId).emit(CommunicationEvents.DISCONNECTED, {
         from: BOT_NAME,
