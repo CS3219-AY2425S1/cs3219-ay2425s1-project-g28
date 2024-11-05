@@ -18,15 +18,17 @@ type QuestionDetail = {
   description: string;
   complexity: string;
   categories: Array<string>;
+  inputs: Array<string>;
+  outputs: Array<string>;
   pythonTemplate: string;
   javaTemplate: string;
   cTemplate: string;
 };
 
-type QuestionDetailWithUrl = QuestionDetail & {
-  testcaseInputFileUrl: string;
-  testcaseOutputFileUrl: string;
-};
+// type QuestionDetailWithUrl = QuestionDetail & {
+//   testcaseInputFileUrl: string;
+//   testcaseOutputFileUrl: string;
+// };
 
 type QuestionListDetail = {
   id: string;
@@ -56,26 +58,21 @@ enum QuestionActionTypes {
 
 type QuestionActions = {
   type: QuestionActionTypes;
-  payload:
-    | QuestionList
-    | QuestionDetail
-    | QuestionDetailWithUrl
-    | string[]
-    | string;
+  payload: QuestionList | QuestionDetail | string[] | string;
 };
 
 type QuestionsState = {
   questionCategories: Array<string>;
   questions: Array<QuestionListDetail>;
   questionCount: number;
-  selectedQuestion: QuestionDetailWithUrl | null;
+  selectedQuestion: QuestionDetail | null;
   questionCategoriesError: string | null;
   questionListError: string | null;
   selectedQuestionError: string | null;
 };
 
 // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-const isQuestion = (question: any): question is QuestionDetailWithUrl => {
+const isQuestion = (question: any): question is QuestionDetail => {
   if (!question || typeof question !== "object") {
     return false;
   }
@@ -272,7 +269,7 @@ export const getQuestionById = (
 
 export const updateQuestionById = async (
   questionId: string,
-  question: Omit<QuestionDetailWithUrl, "id">,
+  question: Omit<QuestionDetail, "id">,
   testcaseFiles: TestcaseFiles,
   dispatch: Dispatch<QuestionActions>
 ): Promise<boolean> => {
@@ -309,8 +306,8 @@ export const updateQuestionById = async (
         description: question.description,
         complexity: question.complexity,
         category: question.categories,
-        testcaseInputFileUrl: question.testcaseInputFileUrl,
-        testcaseOutputFileUrl: question.testcaseOutputFileUrl,
+        // testcaseInputFileUrl: question.testcaseInputFileUrl,
+        // testcaseOutputFileUrl: question.testcaseOutputFileUrl,
         ...urls,
         pythonTemplate: question.pythonTemplate,
         javaTemplate: question.javaTemplate,

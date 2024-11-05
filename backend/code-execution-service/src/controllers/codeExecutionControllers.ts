@@ -41,17 +41,17 @@ export const executeCode = async (req: Request, res: Response) => {
   try {
     // Get question test case files
     const qnsResponse = await questionService.get(`/${questionId}`);
-    const { testcaseInputFileUrl, testcaseOutputFileUrl } =
+    const { inputs: stdinList, outputs: expectedResultList } =
       qnsResponse.data.question;
 
     // Extract test cases from input and output files
-    const testCases = await testCasesApi(
-      testcaseInputFileUrl,
-      testcaseOutputFileUrl
-    );
+    // const testCases = await testCasesApi(
+    //   testcaseInputFileUrl,
+    //   testcaseOutputFileUrl
+    // );
 
-    const stdinList: string[] = testCases.input;
-    const expectedResultList: string[] = testCases.output;
+    // const stdinList: string[] = testCases.input;
+    // const expectedResultList: string[] = testCases.output;
 
     if (stdinList.length !== expectedResultList.length) {
       res.status(400).json({

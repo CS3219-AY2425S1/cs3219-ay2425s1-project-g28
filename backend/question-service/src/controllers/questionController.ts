@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import Question, { IQuestion } from "../models/Question.ts";
-import { checkIsExistingQuestion, sortAlphabetically } from "../utils/utils.ts";
+import {
+  checkIsExistingQuestion,
+  getFileContent,
+  sortAlphabetically,
+} from "../utils/utils.ts";
 import {
   DUPLICATE_QUESTION_MESSAGE,
   QN_DESC_EXCEED_CHAR_LIMIT_MESSAGE,
@@ -76,7 +80,7 @@ export const createQuestion = async (
 
     res.status(201).json({
       message: QN_CREATED_MESSAGE,
-      question: formatQuestionIndivResponse(newQuestion),
+      question: await formatQuestionIndivResponse(newQuestion),
     });
   } catch (error) {
     console.log(error);
@@ -221,7 +225,7 @@ export const updateQuestion = async (
 
     res.status(200).json({
       message: "Question updated successfully",
-      question: formatQuestionIndivResponse(updatedQuestion as IQuestion),
+      question: await formatQuestionIndivResponse(updatedQuestion as IQuestion),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -322,7 +326,7 @@ export const readQuestionIndiv = async (
 
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
-      question: formatQuestionIndivResponse(questionDetails),
+      question: await formatQuestionIndivResponse(questionDetails),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -353,7 +357,7 @@ export const readRandomQuestion = async (
 
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
-      question: formatQuestionIndivResponse(chosenQuestion),
+      question: await formatQuestionIndivResponse(chosenQuestion),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -393,15 +397,22 @@ const formatQuestionResponse = (question: IQuestion) => {
   };
 };
 
-const formatQuestionIndivResponse = (question: IQuestion) => {
+const formatQuestionIndivResponse = async (question: IQuestion) => {
+  const testcaseDelimiter = "\n\n";
+  const inputs = (await getFileContent(question.testcaseInputFileUrl))
+    .replace(/\r\n/g, "\n")
+    .split(testcaseDelimiter);
+  const outputs = (await getFileContent(question.testcaseOutputFileUrl))
+    .replace(/\r\n/g, "\n")
+    .split(testcaseDelimiter);
   return {
     id: question._id,
     title: question.title,
     description: question.description,
     complexity: question.complexity,
     categories: question.category,
-    testcaseInputFileUrl: question.testcaseInputFileUrl,
-    testcaseOutputFileUrl: question.testcaseOutputFileUrl,
+    inputs,
+    outputs,
     pythonTemplate: question.pythonTemplate,
     javaTemplate: question.javaTemplate,
     cTemplate: question.cTemplate,
