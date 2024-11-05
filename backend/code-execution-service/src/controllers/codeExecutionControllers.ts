@@ -79,11 +79,16 @@ export const executeCode = async (req: Request, res: Response) => {
           stdout = "";
         }
 
-        // Extract the last line as the result value
-        // and the rest as stdout
-        const lines = stdout.trim().split("\n");
-        const resultValue = lines.pop() || "";
-        stdout = lines.join("\n");
+        let resultValue = "";
+        if (restofResult.stderr) {
+          resultValue = "";
+          stdout = stdout.trim();
+        } else {
+          // Extract the last line as the result value and the rest as stdout only if there is no error
+          const lines = stdout.trim().split("\n");
+          resultValue = lines.pop() || "";
+          stdout = lines.join("\n");
+        }
 
         return {
           ...restofResult,

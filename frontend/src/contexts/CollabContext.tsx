@@ -83,8 +83,8 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       for (let i = 0; i < res.data.data.length; i++) {
         if (!res.data.data[i].isMatch) {
           isMatch = false;
+          break;
         }
-        break;
       }
 
       if (isMatch) {
