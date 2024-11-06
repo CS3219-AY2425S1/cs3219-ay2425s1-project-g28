@@ -36,13 +36,17 @@
 
    ![image2.png](./docs/images/postman-setup2.png)
 
-   - To send a message, go to the `Message` tab and ensure that your message is being parsed as `JSON`.
+   - Add a valid JWT token in the `Authorization` header.
 
    ![image3.png](./docs/images/postman-setup3.png)
 
    - In the `Event name` input, input the correct event name. Click on `Send` to send a message.
 
    ![image4.png](./docs/images/postman-setup4.png)
+
+   - To send a message, go to the `Message` tab and ensure that your message is being parsed as `JSON`.
+
+   ![image5.png](./docs/images/postman-setup5.png)
 
 ## Events Available
 
