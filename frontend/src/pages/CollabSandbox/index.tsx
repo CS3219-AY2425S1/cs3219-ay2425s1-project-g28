@@ -62,7 +62,6 @@ const CollabSandbox: React.FC = () => {
 
   const {
     compilerResult,
-    setCompilerResult,
     handleRejectEndSession,
     handleConfirmEndSession,
     checkPartnerStatus,
@@ -81,7 +80,6 @@ const CollabSandbox: React.FC = () => {
       return;
     }
     getQuestionById(questionId, dispatch);
-    setCompilerResult([]);
 
     const matchId = getMatchId();
     if (!matchUser || !matchId) {
