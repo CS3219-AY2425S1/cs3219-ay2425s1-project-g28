@@ -15,15 +15,13 @@ type Message = {
   createdTime: number;
 };
 
-enum CommunicationEvents {
+export enum CommunicationEvents {
   // receive
   JOIN = "join",
-  LEAVE = "leave",
   SEND_TEXT_MESSAGE = "send_text_message",
   DISCONNECT = "disconnect",
 
   // send
-  USER_LEFT = "user_left",
   USER_JOINED = "user_joined",
   ALREADY_JOINED = "already_joined",
   TEXT_MESSAGE_RECEIVED = "text_message_received",
@@ -39,6 +37,7 @@ const StyledTypography = styled(Typography)(({ theme }) => ({
   borderRadius: theme.spacing(2),
   maxWidth: "80%",
   whiteSpace: "pre-line",
+  wordBreak: "break-word",
 }));
 
 const Chat: React.FC<ChatProps> = ({ isActive }) => {
@@ -67,33 +66,32 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
       roomId: getMatchId(),
       username: user?.username,
     });
-    // joinedRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    return () => {
+      console.log("closing socket...");
+      communicationSocket.close();
+      setMessages([]); // clear the earlier messages in dev mode
+    };
   }, []);
 
   useEffect(() => {
-    // initliase listerner for incoming messages
-    communicationSocket.on(
-      CommunicationEvents.USER_JOINED,
-      (message: Message) => {
-        setMessages((prevMessages) => [...prevMessages, message]);
-      }
-    );
-    communicationSocket.on(
-      CommunicationEvents.TEXT_MESSAGE_RECEIVED,
-      (message: Message) => {
-        setMessages((prevMessages) => [...prevMessages, message]);
-      }
-    );
-    communicationSocket.on(
-      CommunicationEvents.DISCONNECTED,
-      (message: Message) => {
-        setMessages((prevMessages) => [...prevMessages, message]);
-      }
-    );
+    // initialize listener for incoming messages
+    const listener = (message: Message) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+    };
+
+    communicationSocket.on(CommunicationEvents.USER_JOINED, listener);
+    communicationSocket.on(CommunicationEvents.TEXT_MESSAGE_RECEIVED, listener);
+    communicationSocket.on(CommunicationEvents.DISCONNECTED, listener);
 
     return () => {
-      communicationSocket.off(CommunicationEvents.USER_JOINED);
-      communicationSocket.off(CommunicationEvents.TEXT_MESSAGE_RECEIVED);
+      communicationSocket.off(CommunicationEvents.USER_JOINED, listener);
+      communicationSocket.off(
+        CommunicationEvents.TEXT_MESSAGE_RECEIVED,
+        listener
+      );
+      communicationSocket.off(CommunicationEvents.DISCONNECTED, listener);
     };
   }, []);
 

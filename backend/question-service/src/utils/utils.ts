@@ -1,8 +1,8 @@
+import axios from "axios";
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
 import { bucket } from "../config/firebase";
-
 import Question from "../models/Question";
 
 export const checkIsExistingQuestion = async (
@@ -21,9 +21,10 @@ export const checkIsExistingQuestion = async (
 
 export const uploadFileToFirebase = async (
   file: Express.Multer.File,
+  folderName: string = "",
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const fileName = uuidv4();
+    const fileName = folderName + uuidv4();
     const ref = bucket.file(fileName);
 
     const blobStream = ref.createWriteStream({
@@ -47,6 +48,16 @@ export const uploadFileToFirebase = async (
 
     blobStream.end(file.buffer);
   });
+};
+
+export const getFileContent = async (url: string): Promise<string> => {
+  try {
+    const { data } = await axios.get(url);
+    return data;
+  } catch (error) {
+    console.error(error);
+    return "";
+  }
 };
 
 export const sortAlphabetically = (arr: string[]) => {

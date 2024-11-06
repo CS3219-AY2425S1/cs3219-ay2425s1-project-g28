@@ -2,11 +2,23 @@
 
 > Before proceeding to each microservice for more instructions:
 
-1. Set up cloud MongoDB if not using docker. We recommend this if you are just testing out each microservice separately to avoid needing to manually set up multiple instances of local MongoDB. Else, if you are using docker-compose.yml to run PeerPrep, check out the READMEs in the different backend microservices to set up the env for the local MongoDB instances.
+1. Set up cloud MongoDB if you are not using Docker. We recommend this if you are just testing out each microservice separately to avoid needing to manually set up multiple instances of local MongoDB. Otherwise, if you are using `docker-compose.yml` to run PeerPrep, check out the READMEs in the different backend microservices to set up the `.env` files for the local MongoDB instances.
 
 2. Set up Firebase.
 
-3. Follow the instructions [here](https://nodejs.org/en/download/package-manager) to set up Node v20.
+3. For the microservices that use Redis, to view the contents stored:
+
+   1. Go to [http://localhost:5540](http://localhost:5540).
+
+   2. Click on "Add Redis Database".
+
+   3. Enter `host.docker.internal` as the Host.
+
+   4. Enter the port used by the respective service:
+      - User Service: `6379`
+      - Collab Service: `6380`
+
+4. Follow the instructions [here](https://nodejs.org/en/download/package-manager) to set up Node v20.
 
 ## Setting-up cloud MongoDB (in production)
 

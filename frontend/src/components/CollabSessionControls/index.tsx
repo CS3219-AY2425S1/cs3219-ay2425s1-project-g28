@@ -1,13 +1,8 @@
 import { Button, Stack } from "@mui/material";
 import Stopwatch from "../Stopwatch";
-import { useMatch } from "../../contexts/MatchContext";
-import { USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
+import { useCollab } from "../../contexts/CollabContext";
+import { USE_COLLAB_ERROR_MESSAGE } from "../../utils/constants";
 import { useEffect, useState } from "react";
-import {
-  extractHoursFromTime,
-  extractMinutesFromTime,
-  extractSecondsFromTime,
-} from "../../utils/sessionTime";
 
 const CollabSessionControls: React.FC = () => {
   const [time, setTime] = useState<number>(0);
@@ -21,11 +16,12 @@ const CollabSessionControls: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [time]);
 
-  const match = useMatch();
-  if (!match) {
-    throw new Error(USE_MATCH_ERROR_MESSAGE);
+  const collab = useCollab();
+  if (!collab) {
+    throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
-  const { handleEndSessionClick } = match;
+
+  const { handleSubmitSessionClick, handleEndSessionClick } = collab;
 
   return (
     <Stack direction={"row"} alignItems={"center"} spacing={2}>
@@ -37,15 +33,7 @@ const CollabSessionControls: React.FC = () => {
         }}
         variant="outlined"
         color="success"
-        onClick={() => {
-          console.log(
-            `Time taken: ${extractHoursFromTime(
-              time
-            )} hrs ${extractMinutesFromTime(
-              time
-            )} mins ${extractSecondsFromTime(time)} secs`
-          );
-        }} // TODO: implement submit function with time taken pop-up
+        onClick={() => handleSubmitSessionClick(time)}
       >
         Submit
       </Button>
@@ -56,7 +44,9 @@ const CollabSessionControls: React.FC = () => {
         }}
         variant="outlined"
         color="error"
-        onClick={() => handleEndSessionClick()}
+        onClick={() => {
+          handleEndSessionClick();
+        }}
       >
         End Session
       </Button>

@@ -12,11 +12,15 @@ import {
   Tabs,
 } from "@mui/material";
 import classes from "./index.module.css";
+import { useCollab } from "../../contexts/CollabContext";
 import { useMatch } from "../../contexts/MatchContext";
-import { USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
+import {
+  COLLAB_CONNECTION_ERROR,
+  USE_COLLAB_ERROR_MESSAGE,
+  USE_MATCH_ERROR_MESSAGE,
+} from "../../utils/constants";
 import { useEffect, useReducer, useState } from "react";
 import Loader from "../../components/Loader";
-import ServerError from "../../components/ServerError";
 import reducer, {
   getQuestionById,
   initialState,
@@ -26,33 +30,15 @@ import { Navigate } from "react-router-dom";
 import Chat from "../../components/Chat";
 import TabPanel from "../../components/TabPanel";
 import TestCase from "../../components/TestCase";
-
-// hardcode for now...
-
-type TestCase = {
-  input: string;
-  output: string;
-  stdout: string;
-  result: string;
-};
-
-const testcases: TestCase[] = [
-  {
-    input: "1 2 3 4",
-    output: "1 2 3 4",
-    stdout: "1\n2\n3\n4",
-    result: "1 2 3 4",
-  },
-  {
-    input: "5 6 7 8",
-    output: "5 6 7 8",
-    stdout: "5\n6\n7\n8",
-    result: "5 6 7 8",
-  },
-];
+import CodeEditor from "../../components/CodeEditor";
+import { CollabSessionData, join, leave } from "../../utils/collabSocket";
+import { toast } from "react-toastify";
 
 const CollabSandbox: React.FC = () => {
-  const [showErrorScreen, setShowErrorScreen] = useState<boolean>(false);
+  const [editorState, setEditorState] = useState<CollabSessionData | null>(
+    null
+  );
+  const [isConnecting, setIsConnecting] = useState<boolean>(true);
 
   const match = useMatch();
   if (!match) {
@@ -62,23 +48,31 @@ const CollabSandbox: React.FC = () => {
   const {
     verifyMatchStatus,
     getMatchId,
-    handleRejectEndSession,
-    handleConfirmEndSession,
+    matchUser,
     partner,
+    matchCriteria,
     loading,
-    isEndSessionModalOpen,
     questionId,
   } = match;
+
+  const collab = useCollab();
+  if (!collab) {
+    throw new Error(USE_COLLAB_ERROR_MESSAGE);
+  }
+
+  const {
+    handleRejectEndSession,
+    handleConfirmEndSession,
+    checkPartnerStatus,
+    isEndSessionModalOpen,
+  } = collab;
+
   const [state, dispatch] = useReducer(reducer, initialState);
   const { selectedQuestion } = state;
   const [selectedTab, setSelectedTab] = useState<"tests" | "chat">("tests");
   const [selectedTestcase, setSelectedTestcase] = useState(0);
 
   useEffect(() => {
-    if (!partner) {
-      return;
-    }
-
     verifyMatchStatus();
 
     if (!questionId) {
@@ -86,45 +80,49 @@ const CollabSandbox: React.FC = () => {
     }
     getQuestionById(questionId, dispatch);
 
-    // TODO
-    // use getMatchId() as the room id in the collab service
-    console.log(getMatchId());
+    const matchId = getMatchId();
+    if (!matchUser || !matchId) {
+      return;
+    }
+
+    const connectToCollabSession = async () => {
+      try {
+        const editorState = await join(matchUser.id, matchId);
+        if (editorState.ready) {
+          setEditorState(editorState);
+          checkPartnerStatus();
+        } else {
+          toast.error(COLLAB_CONNECTION_ERROR);
+          setIsConnecting(false);
+        }
+      } catch (error) {
+        toast.error(COLLAB_CONNECTION_ERROR);
+        setIsConnecting(false);
+      }
+    };
+
+    connectToCollabSession();
+
+    return () => leave(matchUser.id, matchId);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    let timeout: number | undefined;
-
-    if (!selectedQuestion) {
-      timeout = setTimeout(() => {
-        setShowErrorScreen(true);
-      }, 2000);
-    } else {
-      setShowErrorScreen(false);
-    }
-
-    return () => clearTimeout(timeout);
-  }, [selectedQuestion]);
 
   if (loading) {
     return <Loader />;
   }
 
-  if (!partner) {
+  if (
+    !matchUser ||
+    !partner ||
+    !matchCriteria ||
+    !getMatchId() ||
+    !isConnecting
+  ) {
     return <Navigate to="/home" replace />;
   }
 
-  if (showErrorScreen) {
-    return (
-      <ServerError
-        title="Oops, match ended..."
-        subtitle="Unfortunately, the match has ended due to a connection loss 😥"
-      />
-    );
-  }
-
-  if (!selectedQuestion) {
+  if (!selectedQuestion || !editorState) {
     return <Loader />;
   }
 
@@ -193,15 +191,40 @@ const CollabSandbox: React.FC = () => {
           }}
           size={6}
         >
-          <Box sx={{ flex: 1, maxHeight: "50vh" }}>Code Editor</Box>
           <Box
-            sx={{
+            sx={(theme) => ({
               flex: 1,
-              maxHeight: "50vh",
-              overflow: "auto",
+              width: "100%",
+              minHeight: "44vh",
+              maxHeight: "44vh",
+              paddingTop: theme.spacing(1),
+            })}
+          >
+            <CodeEditor
+              editorState={editorState}
+              uid={matchUser.id}
+              username={matchUser.username}
+              language={matchCriteria.language}
+              template={
+                matchCriteria.language === "Python"
+                  ? selectedQuestion.pythonTemplate
+                  : matchCriteria.language === "Java"
+                  ? selectedQuestion.javaTemplate
+                  : matchCriteria.language === "C"
+                  ? selectedQuestion.cTemplate
+                  : ""
+              }
+              roomId={getMatchId()!}
+            />
+          </Box>
+          <Box
+            sx={(theme) => ({
+              flex: 1,
+              maxHeight: "44vh",
               display: "flex",
               flexDirection: "column",
-            }}
+              paddingTop: theme.spacing(1),
+            })}
           >
             <Tabs
               value={selectedTab}
@@ -217,9 +240,10 @@ const CollabSandbox: React.FC = () => {
               <Tab label="Test Cases" value="tests" />
               <Tab label="Chat" value="chat" />
             </Tabs>
-            <TabPanel selected={selectedTab} value="tests">
+
+            <TabPanel value={selectedTab} selected="tests">
               <Box sx={(theme) => ({ margin: theme.spacing(2, 0) })}>
-                {[...Array(testcases.length)]
+                {[...Array(selectedQuestion.inputs.length)]
                   .map((_, index) => index + 1)
                   .map((i) => (
                     <Button
@@ -235,14 +259,15 @@ const CollabSandbox: React.FC = () => {
                     </Button>
                   ))}
               </Box>
+              {/* display result of each test case in the output (result) and stdout (any print statements executed) */}
               <TestCase
-                input={testcases[selectedTestcase].input}
-                output={testcases[selectedTestcase].output}
-                stdout={testcases[selectedTestcase].stdout}
-                result={testcases[selectedTestcase].result}
+                input={selectedQuestion.inputs[selectedTestcase]}
+                output={""}
+                stdout={""}
+                result={selectedQuestion.outputs[selectedTestcase]}
               />
             </TabPanel>
-            <TabPanel selected={selectedTab} value="chat">
+            <TabPanel value={selectedTab} selected="chat">
               <Chat isActive={selectedTab === "chat"} />
             </TabPanel>
           </Box>

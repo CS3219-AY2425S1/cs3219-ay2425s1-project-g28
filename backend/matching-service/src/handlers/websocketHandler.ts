@@ -32,7 +32,6 @@ enum MatchEvents {
   MATCH_FOUND = "match_found",
   MATCH_SUCCESSFUL = "match_successful",
   MATCH_UNSUCCESSFUL = "match_unsuccessful",
-  MATCH_ENDED = "match_ended",
   MATCH_REQUEST_EXISTS = "match_request_exists",
   MATCH_REQUEST_ERROR = "match_request_error",
 }
@@ -199,10 +198,7 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
 
   socket.on(MatchEvents.MATCH_END_REQUEST, (uid: string, matchId: string) => {
     userConnections.delete(uid);
-    const matchDeleted = handleMatchDelete(matchId);
-    if (matchDeleted) {
-      socket.to(matchId).emit(MatchEvents.MATCH_ENDED);
-    }
+    handleMatchDelete(matchId);
   });
 
   socket.on(
@@ -257,7 +253,6 @@ const endMatchOnUserDisconnect = (socket: Socket, uid: string) => {
     const matchDeleted = handleMatchDelete(matchId);
     if (matchDeleted) {
       socket.to(matchId).emit(MatchEvents.MATCH_UNSUCCESSFUL); // on matching page
-      socket.to(matchId).emit(MatchEvents.MATCH_ENDED); // on collab page
     }
   }
 };

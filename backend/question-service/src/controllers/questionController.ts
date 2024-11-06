@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import Question, { IQuestion } from "../models/Question.ts";
-import QuestionTemplate, {
-  IQuestionTemplate,
-} from "../models/QuestionTemplate.ts";
-import { checkIsExistingQuestion, sortAlphabetically } from "../utils/utils.ts";
+import {
+  checkIsExistingQuestion,
+  getFileContent,
+  sortAlphabetically,
+} from "../utils/utils.ts";
 import {
   DUPLICATE_QUESTION_MESSAGE,
   QN_DESC_EXCEED_CHAR_LIMIT_MESSAGE,
@@ -20,9 +21,16 @@ import {
   MONGO_OBJ_ID_MALFORMED_MESSAGE,
 } from "../utils/constants.ts";
 
-import { upload } from "../config/multer.ts";
+import { upload, uploadTestcaseFiles } from "../config/multer.ts";
 import { uploadFileToFirebase } from "../utils/utils";
 import { QnListSearchFilterParams, RandomQnCriteria } from "../utils/types.ts";
+
+const FIREBASE_TESTCASE_FILES_FOLDER_NAME = "testcaseFiles/";
+
+enum TestcaseFilesUploadRequestTypes {
+  CREATE = "create",
+  UPDATE = "update",
+}
 
 export const createQuestion = async (
   req: Request,
@@ -34,6 +42,8 @@ export const createQuestion = async (
       description,
       complexity,
       category,
+      testcaseInputFileUrl,
+      testcaseOutputFileUrl,
       pythonTemplate,
       javaTemplate,
       cTemplate,
@@ -59,24 +69,21 @@ export const createQuestion = async (
       description,
       complexity,
       category,
-    });
-
-    await newQuestion.save();
-
-    const newQuestionTemplate = new QuestionTemplate({
-      questionId: newQuestion._id,
+      testcaseInputFileUrl,
+      testcaseOutputFileUrl,
       pythonTemplate,
       javaTemplate,
       cTemplate,
     });
 
-    await newQuestionTemplate.save();
+    await newQuestion.save();
 
     res.status(201).json({
       message: QN_CREATED_MESSAGE,
-      question: formatQuestionIndivResponse(newQuestion, newQuestionTemplate),
+      question: await formatQuestionIndivResponse(newQuestion),
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
   }
 };
@@ -110,6 +117,72 @@ export const createImageLink = async (
   });
 };
 
+export const createFileLink = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  uploadTestcaseFiles(req, res, async (err) => {
+    if (err) {
+      return res.status(500).json({
+        message: "Failed to upload testcase files",
+        error: err.message,
+      });
+    }
+
+    const isQuestionCreation =
+      req.body.requestType === TestcaseFilesUploadRequestTypes.CREATE;
+
+    const tcFiles = req.files as {
+      testcaseInputFile?: Express.Multer.File[];
+      testcaseOutputFile?: Express.Multer.File[];
+    };
+
+    if (
+      isQuestionCreation &&
+      (!tcFiles || !tcFiles.testcaseInputFile || !tcFiles.testcaseOutputFile)
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Missing one or both testcase file(s)" });
+    }
+
+    try {
+      const uploadPromises = [];
+
+      if (tcFiles.testcaseInputFile) {
+        const inputFile = tcFiles.testcaseInputFile[0] as Express.Multer.File;
+        uploadPromises.push(
+          uploadFileToFirebase(inputFile, FIREBASE_TESTCASE_FILES_FOLDER_NAME),
+        );
+      } else {
+        uploadPromises.push(Promise.resolve(null));
+      }
+
+      if (tcFiles.testcaseOutputFile) {
+        const outputFile = tcFiles.testcaseOutputFile[0] as Express.Multer.File;
+        uploadPromises.push(
+          uploadFileToFirebase(outputFile, FIREBASE_TESTCASE_FILES_FOLDER_NAME),
+        );
+      } else {
+        uploadPromises.push(Promise.resolve(null));
+      }
+
+      const [tcInputFileUrl, tcOutputFileUrl] =
+        await Promise.all(uploadPromises);
+
+      return res.status(200).json({
+        message: "Files uploaded successfully",
+        urls: {
+          testcaseInputFileUrl: tcInputFileUrl || "",
+          testcaseOutputFileUrl: tcOutputFileUrl || "",
+        },
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "Server error", error });
+    }
+  });
+};
+
 export const updateQuestion = async (
   req: Request,
   res: Response,
@@ -117,10 +190,7 @@ export const updateQuestion = async (
   try {
     const { id } = req.params;
 
-    const { pythonTemplate, javaTemplate, cTemplate, ...questionBody } =
-      req.body;
-
-    const { title, description } = questionBody;
+    const { title, description } = req.body;
 
     if (!id.match(MONGO_OBJ_ID_FORMAT)) {
       res.status(400).json({ message: MONGO_OBJ_ID_MALFORMED_MESSAGE });
@@ -149,26 +219,13 @@ export const updateQuestion = async (
       return;
     }
 
-    const updatedQuestion = await Question.findByIdAndUpdate(id, questionBody, {
+    const updatedQuestion = await Question.findByIdAndUpdate(id, req.body, {
       new: true,
     });
 
-    const updatedQuestionTemplate = await QuestionTemplate.findOneAndUpdate(
-      { questionId: id },
-      {
-        ...(pythonTemplate !== undefined && { pythonTemplate }),
-        ...(javaTemplate !== undefined && { javaTemplate }),
-        ...(cTemplate !== undefined && { cTemplate }),
-      },
-      { new: true },
-    );
-
     res.status(200).json({
       message: "Question updated successfully",
-      question: formatQuestionIndivResponse(
-        updatedQuestion as IQuestion,
-        updatedQuestionTemplate as IQuestionTemplate,
-      ),
+      question: await formatQuestionIndivResponse(updatedQuestion as IQuestion),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -188,7 +245,6 @@ export const deleteQuestion = async (
     }
 
     await Question.findByIdAndDelete(id);
-    await QuestionTemplate.findOneAndDelete({ questionId: id });
 
     res.status(200).json({ message: QN_DELETED_MESSAGE });
   } catch (error) {
@@ -268,16 +324,9 @@ export const readQuestionIndiv = async (
       return;
     }
 
-    const questionTemplate = await QuestionTemplate.findOne({
-      questionId: id,
-    });
-
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
-      question: formatQuestionIndivResponse(
-        questionDetails,
-        questionTemplate as IQuestionTemplate,
-      ),
+      question: await formatQuestionIndivResponse(questionDetails),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -304,9 +353,11 @@ export const readRandomQuestion = async (
       return;
     }
 
+    const chosenQuestion = randomQuestion[0];
+
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
-      question: formatQuestionResponse(randomQuestion[0]),
+      question: await formatQuestionIndivResponse(chosenQuestion),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -346,18 +397,24 @@ const formatQuestionResponse = (question: IQuestion) => {
   };
 };
 
-const formatQuestionIndivResponse = (
-  question: IQuestion,
-  questionTemplate: IQuestionTemplate,
-) => {
+const formatQuestionIndivResponse = async (question: IQuestion) => {
+  const testcaseDelimiter = "\n\n";
+  const inputs = (await getFileContent(question.testcaseInputFileUrl))
+    .replace(/\r\n/g, "\n")
+    .split(testcaseDelimiter);
+  const outputs = (await getFileContent(question.testcaseOutputFileUrl))
+    .replace(/\r\n/g, "\n")
+    .split(testcaseDelimiter);
   return {
     id: question._id,
     title: question.title,
     description: question.description,
     complexity: question.complexity,
     categories: question.category,
-    pythonTemplate: questionTemplate ? questionTemplate.pythonTemplate : "",
-    javaTemplate: questionTemplate ? questionTemplate.javaTemplate : "",
-    cTemplate: questionTemplate ? questionTemplate.cTemplate : "",
+    inputs,
+    outputs,
+    pythonTemplate: question.pythonTemplate,
+    javaTemplate: question.javaTemplate,
+    cTemplate: question.cTemplate,
   };
 };

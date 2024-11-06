@@ -64,6 +64,7 @@ const Home: React.FC = () => {
       }
     }
     setIsQueryingQnDB(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.questions]);
 
   if (loading) {
