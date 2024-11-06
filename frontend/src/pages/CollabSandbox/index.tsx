@@ -12,7 +12,7 @@ import {
   Tabs,
 } from "@mui/material";
 import classes from "./index.module.css";
-import { useCollab } from "../../contexts/CollabContext";
+import { CompilerResult, useCollab } from "../../contexts/CollabContext";
 import { useMatch } from "../../contexts/MatchContext";
 import {
   COLLAB_CONNECTION_ERROR,
@@ -61,6 +61,8 @@ const CollabSandbox: React.FC = () => {
   }
 
   const {
+    compilerResult,
+    setCompilerResult,
     handleRejectEndSession,
     handleConfirmEndSession,
     checkPartnerStatus,
@@ -79,6 +81,7 @@ const CollabSandbox: React.FC = () => {
       return;
     }
     getQuestionById(questionId, dispatch);
+    setCompilerResult([]);
 
     const matchId = getMatchId();
     if (!matchUser || !matchId) {
@@ -95,7 +98,7 @@ const CollabSandbox: React.FC = () => {
           toast.error(COLLAB_CONNECTION_ERROR);
           setIsConnecting(false);
         }
-      } catch (error) {
+      } catch {
         toast.error(COLLAB_CONNECTION_ERROR);
         setIsConnecting(false);
       }
@@ -122,7 +125,7 @@ const CollabSandbox: React.FC = () => {
     return <Navigate to="/home" replace />;
   }
 
-  if (!selectedQuestion || !editorState) {
+  if (!selectedQuestion || !editorState || !compilerResult) {
     return <Loader />;
   }
 
@@ -262,9 +265,12 @@ const CollabSandbox: React.FC = () => {
               {/* display result of each test case in the output (result) and stdout (any print statements executed) */}
               <TestCase
                 input={selectedQuestion.inputs[selectedTestcase]}
-                output={""}
-                stdout={""}
-                result={selectedQuestion.outputs[selectedTestcase]}
+                expected={selectedQuestion.outputs[selectedTestcase]}
+                result={
+                  compilerResult.length > 0
+                    ? compilerResult[selectedTestcase]
+                    : ({} as CompilerResult)
+                }
               />
             </TabPanel>
             <TabPanel value={selectedTab} selected="chat">

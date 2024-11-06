@@ -19,7 +19,7 @@ import { CollabEvents, collabSocket, leave } from "../utils/collabSocket";
 import { communicationSocket } from "../utils/communicationSocket";
 import useAppNavigate from "../components/UseAppNavigate";
 
-type CompilerResult = {
+export type CompilerResult = {
   status: string;
   exception: string | null;
   stdout: string;
@@ -29,6 +29,7 @@ type CompilerResult = {
   stout: string;
   actualResult: string;
   expectedResult: string;
+  isMatch: boolean;
 };
 
 type CollabContextType = {
@@ -39,6 +40,7 @@ type CollabContextType = {
   checkPartnerStatus: () => void;
   setCode: React.Dispatch<React.SetStateAction<string>>;
   compilerResult: CompilerResult[];
+  setCompilerResult: React.Dispatch<React.SetStateAction<CompilerResult[]>>;
   isEndSessionModalOpen: boolean;
 };
 
@@ -78,12 +80,12 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     try {
       const res = await codeExecutionClient.post("/", {
         questionId,
-        code,
+        // Replace tabs with 4 spaces to prevent formatting issues
+        code: code.replace(/\t/g, " ".repeat(4)),
         language: matchCriteria?.language.toLowerCase(),
       });
-
-      console.log(res.data.data);
-      setCompilerResult(res.data.data);
+      console.log([...res.data.data]);
+      setCompilerResult([...res.data.data]);
 
       let isMatch = true;
       for (let i = 0; i < res.data.data.length; i++) {
@@ -156,6 +158,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         checkPartnerStatus,
         setCode,
         compilerResult,
+        setCompilerResult,
         isEndSessionModalOpen,
       }}
     >
