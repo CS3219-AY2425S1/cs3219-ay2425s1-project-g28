@@ -6,7 +6,6 @@ import {
   ERROR_NOT_SAME_LENGTH_MESSAGE,
   SUCCESS_MESSAGE,
 } from "../src/utils/constants";
-import { testCasesApi } from "../src/utils/testCasesApi";
 import { questionService } from "../src/utils/questionApi";
 
 const request = supertest(app);

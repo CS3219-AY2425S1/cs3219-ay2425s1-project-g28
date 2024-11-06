@@ -10,7 +10,6 @@ import {
   ERROR_INVALID_TEST_CASES_MESSAGE,
 } from "../utils/constants";
 import { questionService } from "../utils/questionApi";
-import { testCasesApi } from "../utils/testCasesApi";
 
 interface CompilerResult {
   status: string;
