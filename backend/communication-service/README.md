@@ -30,19 +30,19 @@
 
    - Select the `Socket.IO` option and set URL to `http://localhost:3005`. Click `Connect`.
 
-   ![image1.png](./docs/image1.png)
+   ![image1.png](./docs/images/postman-setup1.png)
 
    - Add the following events in the `Events` tab and listen to them.
 
-   ![image2.png](./docs/image2.png)
+   ![image2.png](./docs/images/postman-setup2.png)
 
    - To send a message, go to the `Message` tab and ensure that your message is being parsed as `JSON`.
 
-   ![image3.png](./docs/image3.png)
+   ![image3.png](./docs/images/postman-setup3.png)
 
    - In the `Event name` input, input the correct event name. Click on `Send` to send a message.
 
-   ![image4.png](./docs/image4.png)
+   ![image4.png](./docs/images/postman-setup4.png)
 
 ## Events Available
 
@@ -50,5 +50,5 @@
 | --------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | **join**              | Joins a communication rooms       | `roomId` (string): ID of the room. <br> `username` (string): Username of the user that joined.                                                                                                       | **user_joined**: Notify the other user that a new user has joined the room.           |
 | **send_text_message** | Sends a message to the other user | `roomId` (string): ID of the room. <br> `message` (string): Message to send. <br> `username` (string): User that sent the message. <br> `createdTime` (number): Time that the user sent the message. | **text_message_received**: Notify the user that a message is sent                     |
-| **leave**             | Leaves the communication room.    | `roomId` (string): ID of the room to leave. <br> `username` (string): User that wants to leave.                                                                                                      | **user_left**: To notify the user when one user leaves.                               |
+| **user_disconnect**   | User disconnection.               | None                                                                                                                                                                                                 | **user_left**: To notify the user when one user leaves.                               |
 | **disconnect**        | Disconnects from the server.      | None                                                                                                                                                                                                 | **disconnected**: To notify the user when one user gets disconnected from the server. |
