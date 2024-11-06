@@ -51,16 +51,14 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
   useEffect(() => {
     // join the room automatically when this loads
     communicationSocket.open();
-    // to make sure this does not run twice
     communicationSocket.emit(CommunicationEvents.JOIN, {
       roomId: getMatchId(),
       username: user?.username,
     });
 
     return () => {
-      console.log("closing socket...");
-      communicationSocket.close();
-      setMessages([]); // clear the earlier messages in dev mode
+      communicationSocket.emit(CommunicationEvents.USER_DISCONNECT);
+      // setMessages([]); // clear the earlier messages in dev mode
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

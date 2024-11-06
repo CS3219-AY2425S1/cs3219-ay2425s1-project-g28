@@ -67,6 +67,7 @@ const CollabSandbox: React.FC = () => {
     checkPartnerStatus,
     isEndSessionModalOpen,
     resetCollab,
+    setCompilerResult,
   } = collab;
 
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -264,7 +265,6 @@ const CollabSandbox: React.FC = () => {
                     </Button>
                   ))}
               </Box>
-              {/* display result of each test case in the output (result) and stdout (any print statements executed) */}
               <TestCase
                 input={selectedQuestion.inputs[selectedTestcase]}
                 expected={selectedQuestion.outputs[selectedTestcase]}

@@ -16,8 +16,11 @@ import { useReducer } from "react";
 import { updateQnHistoryById } from "../reducers/qnHistoryReducer";
 import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";
 import { CollabEvents, collabSocket, leave } from "../utils/collabSocket";
-import { communicationSocket } from "../utils/communicationSocket";
-import useAppNavigate from "../components/UseAppNavigate";
+import {
+  CommunicationEvents,
+  communicationSocket,
+} from "../utils/communicationSocket";
+import useAppNavigate from "../hooks/useAppNavigate";
 
 export type CompilerResult = {
   status: string;
@@ -162,7 +165,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     leave(partner?.id as string, getMatchId() as string, true);
 
     // Leave chat room
-    communicationSocket.disconnect();
+    communicationSocket.emit(CommunicationEvents.USER_DISCONNECT);
 
     // Delete match data
     stopMatch();
