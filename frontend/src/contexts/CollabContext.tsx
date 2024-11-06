@@ -16,7 +16,6 @@ import { useReducer } from "react";
 import { updateQnHistoryById } from "../reducers/qnHistoryReducer";
 import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";
 import { CollabEvents, collabSocket, leave } from "../utils/collabSocket";
-import { CommunicationEvents } from "../components/Chat";
 import { communicationSocket } from "../utils/communicationSocket";
 import useAppNavigate from "../components/UseAppNavigate";
 
@@ -133,16 +132,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     leave(partner?.id as string, getMatchId() as string, true);
 
     // Leave chat room
-    communicationSocket.emit(
-      CommunicationEvents.LEAVE,
-      getMatchId(),
-      matchUser?.username
-    );
-    communicationSocket.emit(
-      CommunicationEvents.LEAVE,
-      getMatchId(),
-      partner?.username
-    );
+    communicationSocket.disconnect();
 
     // Delete match data
     stopMatch();
