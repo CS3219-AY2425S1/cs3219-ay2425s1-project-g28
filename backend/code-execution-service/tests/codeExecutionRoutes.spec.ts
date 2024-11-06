@@ -18,10 +18,6 @@ jest.mock("../src/utils/questionApi", () => ({
   },
 }));
 
-jest.mock("../src/utils/testCasesApi", () => ({
-  testCasesApi: jest.fn(),
-}));
-
 describe("Code execution routes", () => {
   beforeEach(() => {
     jest.clearAllMocks();
