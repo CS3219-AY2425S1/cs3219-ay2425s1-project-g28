@@ -62,11 +62,11 @@ const CollabSandbox: React.FC = () => {
 
   const {
     compilerResult,
-    setCompilerResult,
     handleRejectEndSession,
     handleConfirmEndSession,
     checkPartnerStatus,
     isEndSessionModalOpen,
+    resetCollab,
   } = collab;
 
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -81,7 +81,8 @@ const CollabSandbox: React.FC = () => {
       return;
     }
     getQuestionById(questionId, dispatch);
-    setCompilerResult([]);
+
+    resetCollab();
 
     const matchId = getMatchId();
     if (!matchUser || !matchId) {
