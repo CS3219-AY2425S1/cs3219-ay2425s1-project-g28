@@ -40,6 +40,7 @@ type CollabContextType = {
   checkPartnerStatus: () => void;
   setCode: React.Dispatch<React.SetStateAction<string>>;
   compilerResult: CompilerResult[];
+  setCompilerResult: React.Dispatch<React.SetStateAction<CompilerResult[]>>;
   isEndSessionModalOpen: boolean;
   time: number;
   resetCollab: () => void;
@@ -195,6 +196,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         checkPartnerStatus,
         setCode,
         compilerResult,
+        setCompilerResult,
         isEndSessionModalOpen,
         time,
         resetCollab,

@@ -81,6 +81,7 @@ const CollabSandbox: React.FC = () => {
       return;
     }
     getQuestionById(questionId, dispatch);
+    setCompilerResult([]);
 
     resetCollab();
 
