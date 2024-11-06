@@ -1,6 +1,9 @@
 import { Box, styled, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import { communicationSocket } from "../../utils/communicationSocket";
+import {
+  CommunicationEvents,
+  communicationSocket,
+} from "../../utils/communicationSocket";
 import { useMatch } from "../../contexts/MatchContext";
 import {
   USE_AUTH_ERROR_MESSAGE,
@@ -14,19 +17,6 @@ type Message = {
   message: string;
   createdTime: number;
 };
-
-export enum CommunicationEvents {
-  // receive
-  JOIN = "join",
-  SEND_TEXT_MESSAGE = "send_text_message",
-  DISCONNECT = "disconnect",
-
-  // send
-  USER_JOINED = "user_joined",
-  ALREADY_JOINED = "already_joined",
-  TEXT_MESSAGE_RECEIVED = "text_message_received",
-  DISCONNECTED = "disconnected",
-}
 
 type ChatProps = {
   isActive: boolean;
@@ -66,13 +56,13 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
       roomId: getMatchId(),
       username: user?.username,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
 
     return () => {
       console.log("closing socket...");
       communicationSocket.close();
       setMessages([]); // clear the earlier messages in dev mode
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
