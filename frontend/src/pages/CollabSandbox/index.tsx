@@ -67,6 +67,7 @@ const CollabSandbox: React.FC = () => {
     checkPartnerStatus,
     isEndSessionModalOpen,
     resetCollab,
+    setCompilerResult,
   } = collab;
 
   const [state, dispatch] = useReducer(reducer, initialState);
