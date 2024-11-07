@@ -11,7 +11,7 @@ import {
 import { toast } from "react-toastify";
 
 import { useMatch } from "./MatchContext";
-import { qnHistoryClient, codeExecutionClient } from "../utils/api";
+import { codeExecutionClient } from "../utils/api";
 import { useReducer } from "react";
 import { updateQnHistoryById } from "../reducers/qnHistoryReducer";
 import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";

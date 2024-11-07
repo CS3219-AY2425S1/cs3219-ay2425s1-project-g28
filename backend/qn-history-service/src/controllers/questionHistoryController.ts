@@ -27,7 +27,6 @@ export const createQnHistory = async (
       timeTaken,
       code,
       language,
-      //compilerRes,
     } = req.body;
 
     const newQnHistory = new QnHistory({
@@ -39,7 +38,6 @@ export const createQnHistory = async (
       timeTaken,
       code,
       language,
-      //compilerRes,
     });
 
     await newQnHistory.save();
@@ -237,21 +235,5 @@ const formatQnHistoryResponse = (qnHistory: IQnHistory) => {
     timeTaken: qnHistory.timeTaken,
     code: qnHistory.code,
     language: qnHistory.language,
-    //compilerRes: qnHistory.compilerRes.map(formatCompilerRes),
   };
 };
-
-/*const formatCompilerRes = (compilerRes: ICompilerRes) => {
-  return {
-    status: compilerRes.status,
-    exception: compilerRes.exception,
-    stdout: compilerRes.stdout,
-    stderr: compilerRes.stderr,
-    executionTime: compilerRes.executionTime,
-    stdin: compilerRes.stdin,
-    stout: compilerRes.stdout,
-    actualResult: compilerRes.actualResult,
-    expectedResult: compilerRes.expectedResult,
-    isMatch: compilerRes.isMatch,
-  };
-};*/

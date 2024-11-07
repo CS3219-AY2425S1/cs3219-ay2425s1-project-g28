@@ -83,7 +83,6 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
             language: language,
           })
           .then((res) => {
-            console.log("created in collab");
             doc.transact(() => {
               doc.getText().insert(0, template);
             });

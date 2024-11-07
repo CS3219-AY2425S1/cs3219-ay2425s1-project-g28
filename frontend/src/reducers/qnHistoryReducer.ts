@@ -2,19 +2,6 @@ import { Dispatch } from "react";
 import { qnHistoryClient } from "../utils/api";
 import { isString, isStringArray } from "../utils/typeChecker";
 
-/*type CompilerResult = {
-  status?: string;
-  exception?: string;
-  stdout?: string;
-  stderr?: string;
-  executionTime?: number;
-  stdin: string;
-  stout?: string;
-  actualResult?: string;
-  expectedResult: string;
-  isMatch?: boolean;
-};*/
-
 type QnHistoryDetail = {
   id: string;
   userIds: Array<string>;
@@ -25,7 +12,6 @@ type QnHistoryDetail = {
   timeTaken: number;
   code: string;
   language: string;
-  //compilerRes: CompilerResult;
 };
 
 type QnHistoryList = {
@@ -119,7 +105,6 @@ export const createQnHistory = async (
       timeTaken: qnHistory.timeTaken,
       code: qnHistory.code,
       language: qnHistory.language,
-      //compilerRes: qnHistory.compilerRes,
     })
     .then((res) => {
       dispatch({
