@@ -3,6 +3,7 @@ import supertest from "supertest";
 import app from "../src/app";
 import {
   MONGO_OBJ_ID_MALFORMED_MESSAGE,
+  ORDER_INCORRECT_FORMAT_MESSAGE,
   PAGE_LIMIT_INCORRECT_FORMAT_MESSAGE,
   PAGE_LIMIT_USERID_ORDER_REQUIRED_MESSAGE,
   QN_HIST_NOT_FOUND_MESSAGE,
@@ -24,6 +25,7 @@ describe("Qn History Routes", () => {
       const submissionStatus = "Attempted";
       const dateAttempted = new Date();
       const timeTaken = 0;
+      const code = "hi";
       const language = "Python";
       const newQnHistory = {
         userIds,
@@ -32,6 +34,7 @@ describe("Qn History Routes", () => {
         submissionStatus,
         dateAttempted,
         timeTaken,
+        code,
         language,
       };
 
@@ -46,6 +49,7 @@ describe("Qn History Routes", () => {
         dateAttempted.toISOString()
       );
       expect(res.body.qnHistory.timeTaken).toBe(timeTaken);
+      expect(res.body.qnHistory.code).toBe(code);
       expect(res.body.qnHistory.language).toBe(language);
     });
   });
@@ -84,6 +88,14 @@ describe("Qn History Routes", () => {
       expect(res.body.message).toBe(PAGE_LIMIT_USERID_ORDER_REQUIRED_MESSAGE);
     });
 
+    it("Does not read without order", async () => {
+      const res = await request.get(
+        `${BASE_URL}?page=1&qnHistLimit=10&userId=66f77e9f27ab3f794bdae664`
+      );
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe(PAGE_LIMIT_USERID_ORDER_REQUIRED_MESSAGE);
+    });
+
     it("Does not read with negative page", async () => {
       const res = await request.get(
         `${BASE_URL}?page=-1&qnHistLimit=10&userId=66f77e9f27ab3f794bdae664&order=1`
@@ -106,6 +118,14 @@ describe("Qn History Routes", () => {
       );
       expect(res.status).toBe(400);
       expect(res.body.message).toBe(MONGO_OBJ_ID_MALFORMED_MESSAGE);
+    });
+
+    it("Does not read with invalid order", async () => {
+      const res = await request.get(
+        `${BASE_URL}?page=1&qnHistLimit=10&userId=66f77e9f27ab3f794bdae664&order=2`
+      );
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe(ORDER_INCORRECT_FORMAT_MESSAGE);
     });
   });
 

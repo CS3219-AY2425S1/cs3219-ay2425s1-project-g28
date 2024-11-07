@@ -142,8 +142,9 @@ export const readQnHistoryList = async (
       return;
     }
 
-    if (!(orderInt == 1 || orderInt == -1)) {
+    if (orderInt !== 1 && orderInt !== -1) {
       res.status(400).json({ message: ORDER_INCORRECT_FORMAT_MESSAGE });
+      return;
     }
 
     if (!userId.match(MONGO_OBJ_ID_FORMAT)) {
