@@ -12,9 +12,9 @@ type CustomDialogProps = {
   bodyText: React.ReactNode;
   primaryAction: string;
   handlePrimaryAction: () => void;
-  secondaryAction: string;
+  secondaryAction?: string;
   open: boolean;
-  handleClose: () => void;
+  handleClose?: () => void;
 };
 
 const CustomDialog: React.FC<CustomDialogProps> = (props) => {
@@ -38,11 +38,27 @@ const CustomDialog: React.FC<CustomDialogProps> = (props) => {
       open={open}
       onClose={handleClose}
     >
-      <DialogTitle sx={{ textAlign: "center", fontSize: 20 }}>
+      <DialogTitle
+        sx={{
+          textAlign: "center",
+          fontSize: 20,
+          overflowX: "hidden",
+          whiteSpace: "normal",
+          wordBreak: "break-word",
+        }}
+      >
         {titleText}
       </DialogTitle>
       <DialogContent>
-        <DialogContentText sx={{ textAlign: "center", fontSize: 16 }}>
+        <DialogContentText
+          sx={{
+            textAlign: "center",
+            fontSize: 16,
+            overflowX: "hidden",
+            whiteSpace: "normal",
+            wordBreak: "break-word",
+          }}
+        >
           {bodyText}
         </DialogContentText>
       </DialogContent>
@@ -52,18 +68,23 @@ const CustomDialog: React.FC<CustomDialogProps> = (props) => {
           paddingBottom: theme.spacing(2.5),
         })}
       >
-        <Button
-          sx={{ flex: 1 }}
-          variant="contained"
-          color="secondary"
-          onClick={handleClose}
-        >
-          {secondaryAction}
-        </Button>
+        {secondaryAction ? (
+          <Button
+            sx={{ flex: 1 }}
+            variant="contained"
+            color="secondary"
+            onClick={handleClose}
+          >
+            {secondaryAction}
+          </Button>
+        ) : (
+          <></>
+        )}
         <Button
           sx={{ flex: 1 }}
           variant="contained"
           onClick={handlePrimaryAction}
+          autoFocus
         >
           {primaryAction}
         </Button>

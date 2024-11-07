@@ -12,12 +12,13 @@ enum CollabEvents {
   UPDATE_REQUEST = "update_request",
   UPDATE_CURSOR_REQUEST = "update_cursor_request",
   RECONNECT_REQUEST = "reconnect_request",
+  END_SESSION_REQUEST = "end_session_request",
 
   // Send
   ROOM_READY = "room_ready",
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
-  PARTNER_LEFT = "partner_left",
+  END_SESSION = "end_session",
   PARTNER_DISCONNECTED = "partner_disconnected",
 }
 
@@ -92,20 +93,35 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
 
   socket.on(
     CollabEvents.LEAVE,
-    (uid: string, roomId: string, isIntentional: boolean) => {
+    (uid: string, roomId: string, isPartnerNotified: boolean) => {
+      console.log("leave: ", uid);
       const connectionKey = `${uid}:${roomId}`;
-      if (isIntentional || !userConnections.has(connectionKey)) {
-        handleUserLeave(uid, roomId, socket, isIntentional);
+      if (userConnections.has(connectionKey)) {
+        console.log("clear disconnect timeout: ", uid);
+        clearTimeout(userConnections.get(connectionKey)!);
+      }
+
+      if (isPartnerNotified || !userConnections.has(connectionKey)) {
+        handleUserLeave(uid, roomId, socket);
         return;
       }
 
-      clearTimeout(userConnections.get(connectionKey)!);
-
+      console.log("set disconnect timeout: ", uid);
       const connectionTimeout = setTimeout(() => {
-        handleUserLeave(uid, roomId, socket, isIntentional);
+        handleUserLeave(uid, roomId, socket);
+        console.log("notify partner of disconnect: ", uid);
+        console.log("room: ", roomId);
+        io.to(roomId).emit(CollabEvents.PARTNER_DISCONNECTED);
       }, CONNECTION_DELAY);
 
       userConnections.set(connectionKey, connectionTimeout);
+    }
+  );
+
+  socket.on(
+    CollabEvents.END_SESSION_REQUEST,
+    (roomId: string, timeTaken: number) => {
+      socket.to(roomId).emit(CollabEvents.END_SESSION, timeTaken);
     }
   );
 
@@ -165,29 +181,12 @@ const saveDocument = async (roomId: string, doc: Doc) => {
   });
 };
 
-const handleUserLeave = (
-  uid: string,
-  roomId: string,
-  socket: Socket,
-  isIntentional: boolean
-) => {
+const handleUserLeave = (uid: string, roomId: string, socket: Socket) => {
   const connectionKey = `${uid}:${roomId}`;
-  if (userConnections.has(connectionKey)) {
-    clearTimeout(userConnections.get(connectionKey)!);
-    userConnections.delete(connectionKey);
-  }
+  userConnections.delete(connectionKey);
 
   socket.leave(roomId);
   socket.disconnect();
 
-  const room = io.sockets.adapter.rooms.get(roomId);
-  if (!room || room.size === 0) {
-    removeCollabSession(roomId);
-  } else {
-    io.to(roomId).emit(
-      isIntentional
-        ? CollabEvents.PARTNER_LEFT
-        : CollabEvents.PARTNER_DISCONNECTED
-    );
-  }
+  removeCollabSession(roomId);
 };

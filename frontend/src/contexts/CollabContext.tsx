@@ -1,6 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   USE_MATCH_ERROR_MESSAGE,
   FAILED_TESTCASE_MESSAGE,
@@ -41,7 +47,10 @@ type CollabContextType = {
   handleSubmitSessionClick: () => void;
   handleEndSessionClick: () => void;
   handleRejectEndSession: () => void;
-  handleConfirmEndSession: () => void;
+  handleConfirmEndSession: (
+    isInitiatedByPartner: boolean,
+    time?: number
+  ) => void;
   checkPartnerStatus: () => void;
   setCode: React.Dispatch<React.SetStateAction<string>>;
   compilerResult: CompilerResult[];
@@ -49,6 +58,8 @@ type CollabContextType = {
   isEndSessionModalOpen: boolean;
   time: number;
   resetCollab: () => void;
+  handleExitSession: () => void;
+  isExitSessionModalOpen: boolean;
 };
 
 const CollabContext = createContext<CollabContextType | null>(null);
@@ -72,17 +83,6 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     qnHistoryId,
   } = match;
 
-  const [time, setTime] = useState<number>(0);
-
-  useEffect(() => {
-    const intervalId = setInterval(
-      () => setTime((prevTime) => prevTime + 1),
-      1000
-    );
-
-    return () => clearInterval(intervalId);
-  }, [time]);
-
   // eslint-disable-next-line
   const [_qnHistoryState, qnHistoryDispatch] = useReducer(
     qnHistoryReducer,
@@ -92,6 +92,31 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const [compilerResult, setCompilerResult] = useState<CompilerResult[]>([]);
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
     useState<boolean>(false);
+  const [isExitSessionModalOpen, setIsExitSessionModalOpen] =
+    useState<boolean>(false);
+  const [time, setTime] = useState<number>(0);
+  const [stopTime, setStopTime] = useState<boolean>(true);
+
+  const timeRef = useRef<number>(time);
+  const codeRef = useRef<string>(code);
+
+  useEffect(() => {
+    timeRef.current = time;
+    codeRef.current = code;
+  }, [time, code]);
+
+  useEffect(() => {
+    if (stopTime) {
+      return;
+    }
+
+    const intervalId = setInterval(
+      () => setTime((prevTime) => prevTime + 1),
+      1000
+    );
+
+    return () => clearInterval(intervalId);
+  }, [time, stopTime]);
 
   const handleSubmitSessionClick = async () => {
     try {
@@ -141,7 +166,10 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     setIsEndSessionModalOpen(false);
   };
 
-  const handleConfirmEndSession = async () => {
+  const handleConfirmEndSession = async (
+    isInitiatedByPartner: boolean,
+    timeTaken?: number
+  ) => {
     setIsEndSessionModalOpen(false);
 
     const roomId = getMatchId();
@@ -150,29 +178,44 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       return;
     }
 
-    // Get question history
-    const data = await qnHistoryClient.get(qnHistoryId);
+    setStopTime(true);
+    setIsExitSessionModalOpen(true);
 
-    // Only update question history if it has not been submitted before
-    if (!data.data.qnHistory.code) {
-      updateQnHistoryById(
-        qnHistoryId as string,
-        {
-          submissionStatus: "Attempted",
-          dateAttempted: new Date().toISOString(),
-          timeTaken: time,
-          code: code.replace(/\t/g, " ".repeat(4)),
-        },
-        qnHistoryDispatch
-      );
+    if (isInitiatedByPartner && timeTaken) {
+      setTime(timeTaken);
+    } else {
+      // Get question history
+      const data = await qnHistoryClient.get(qnHistoryId);
+
+      // Only update question history if it has not been submitted before
+      if (!data.data.qnHistory.code) {
+        updateQnHistoryById(
+          qnHistoryId as string,
+          {
+            submissionStatus: "Attempted",
+            dateAttempted: new Date().toISOString(),
+            timeTaken: timeRef.current,
+            code: codeRef.current.replace(/\t/g, " ".repeat(4)),
+          },
+          qnHistoryDispatch
+        );
+      }
+    }
+
+    if (!isInitiatedByPartner) {
+      // Notify partner
+      collabSocket.emit(CollabEvents.END_SESSION_REQUEST, roomId, time);
     }
 
     // Leave collaboration room
-    leave(matchUser.id as string, roomId, true);
-    // TODO: partner leave
+    leave(matchUser.id, roomId, true);
 
     // Leave chat room
     communicationSocket.emit(CommunicationEvents.USER_DISCONNECT);
+  };
+
+  const handleExitSession = () => {
+    setIsExitSessionModalOpen(false);
 
     // Delete match data
     stopMatch();
@@ -183,24 +226,21 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const checkPartnerStatus = () => {
-    collabSocket.on(CollabEvents.PARTNER_LEFT, () => {
+    collabSocket.on(CollabEvents.END_SESSION, (timeTaken: number) => {
       toast.info(COLLAB_ENDED_MESSAGE);
-      setIsEndSessionModalOpen(false);
-      stopMatch();
-      appNavigate("/home");
+      handleConfirmEndSession(true, timeTaken);
     });
 
     collabSocket.on(CollabEvents.PARTNER_DISCONNECTED, () => {
       toast.error(COLLAB_PARTNER_DISCONNECTED_MESSAGE);
-      setIsEndSessionModalOpen(false);
-      stopMatch();
-      appNavigate("/home");
+      handleConfirmEndSession(true);
     });
   };
 
   const resetCollab = () => {
     setCompilerResult([]);
     setTime(0);
+    setStopTime(false);
   };
 
   return (
@@ -217,6 +257,8 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         isEndSessionModalOpen,
         time,
         resetCollab,
+        handleExitSession,
+        isExitSessionModalOpen,
       }}
     >
       {children}

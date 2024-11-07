@@ -12,13 +12,14 @@ export enum CollabEvents {
   UPDATE_REQUEST = "update_request",
   UPDATE_CURSOR_REQUEST = "update_cursor_request",
   RECONNECT_REQUEST = "reconnect_request",
+  END_SESSION_REQUEST = "end_session_request",
 
   // Receive
   ROOM_READY = "room_ready",
   DOCUMENT_READY = "document_ready",
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
-  PARTNER_LEFT = "partner_left",
+  END_SESSION = "end_session",
   PARTNER_DISCONNECTED = "partner_disconnected",
   SOCKET_DISCONNECT = "disconnect",
   SOCKET_CLIENT_DISCONNECT = "io client disconnect",
@@ -84,14 +85,16 @@ export const initDocument = (uid: string, roomId: string, template: string) => {
   });
 };
 
-export const leave = (uid: string, roomId: string, isIntentional?: boolean) => {
+export const leave = (
+  uid: string,
+  roomId: string,
+  isPartnerNotified: boolean
+) => {
   collabSocket.removeAllListeners();
   collabSocket.io.removeListener(CollabEvents.SOCKET_RECONNECT_SUCCESS);
   collabSocket.io.removeListener(CollabEvents.SOCKET_RECONNECT_FAILED);
-  collabSocket.emit(CollabEvents.LEAVE, uid, roomId, isIntentional);
-  if (doc) {
-    doc.destroy();
-  }
+  collabSocket.emit(CollabEvents.LEAVE, uid, roomId, isPartnerNotified);
+  doc?.destroy();
 };
 
 export const sendCursorUpdate = (roomId: string, cursor: Cursor) => {

@@ -23,6 +23,10 @@ import CodeEditor from "../../components/CodeEditor";
 import { CollabSessionData, join, leave } from "../../utils/collabSocket";
 import { toast } from "react-toastify";
 import CustomDialog from "../../components/CustomDialog";
+import {
+  extractMinutesFromTime,
+  extractSecondsFromTime,
+} from "../../utils/sessionTime";
 
 const CollabSandbox: React.FC = () => {
   const match = useMatch();
@@ -44,6 +48,9 @@ const CollabSandbox: React.FC = () => {
     checkPartnerStatus,
     isEndSessionModalOpen,
     resetCollab,
+    handleExitSession,
+    isExitSessionModalOpen,
+    time,
   } = collab;
 
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -57,12 +64,12 @@ const CollabSandbox: React.FC = () => {
   const matchId = getMatchId();
 
   useEffect(() => {
+    resetCollab();
+
     if (!questionId) {
       return;
     }
     getQuestionById(questionId, dispatch);
-
-    resetCollab();
 
     if (!matchUser || !matchId) {
       return;
@@ -88,12 +95,12 @@ const CollabSandbox: React.FC = () => {
 
     // handle page refresh / tab closure
     const handleUnload = () => {
-      leave(matchUser.id, matchId);
+      leave(matchUser.id, matchId, false);
     };
     window.addEventListener("unload", handleUnload);
 
     return () => {
-      leave(matchUser.id, matchId);
+      leave(matchUser.id, matchId, false);
       window.removeEventListener("unload", handleUnload);
     };
 
@@ -120,10 +127,18 @@ const CollabSandbox: React.FC = () => {
           </>
         }
         primaryAction="Confirm"
-        handlePrimaryAction={handleConfirmEndSession}
+        handlePrimaryAction={() => handleConfirmEndSession(false)}
         secondaryAction="Cancel"
         open={isEndSessionModalOpen}
         handleClose={handleRejectEndSession}
+      />
+      <CustomDialog
+        titleText={`You have attempted: ${selectedQuestion.title}!`}
+        bodyText={`Session duration: ${extractMinutesFromTime(time)} min 
+          ${extractSecondsFromTime(time)} sec`}
+        primaryAction="Exit session"
+        handlePrimaryAction={handleExitSession}
+        open={isExitSessionModalOpen}
       />
       <Grid2 container sx={{ flexGrow: 1 }} spacing={4}>
         <Grid2 sx={{ flexGrow: 1 }} size={6}>
