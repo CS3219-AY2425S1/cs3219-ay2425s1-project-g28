@@ -7,11 +7,11 @@ import {
   PAGE_LIMIT_INCORRECT_FORMAT_MESSAGE,
   PAGE_LIMIT_USERID_ORDER_REQUIRED_MESSAGE,
   QN_HIST_CREATED_MESSAGE,
-  QN_HIST_DELETED_MESSAGE,
   QN_HIST_NOT_FOUND_MESSAGE,
   QN_HIST_RETRIEVED_MESSAGE,
   SERVER_ERROR_MESSAGE,
 } from "../utils/constants.ts";
+import { QnHistListParams } from "../utils/types.ts";
 
 export const createQnHistory = async (
   req: Request,
@@ -81,15 +81,6 @@ export const updateQnHistory = async (
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
   }
-};
-
-type QnHistListParams = {
-  page: string;
-  qnHistLimit: string;
-  userId: string;
-  title: string; //qn title search keyword
-  status: string; //submission status
-  order: string; //entries sort order
 };
 
 export const readQnHistoryList = async (
