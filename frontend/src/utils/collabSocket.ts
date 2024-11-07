@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 import { updateCursor, Cursor } from "./collabCursor";
 import { Doc, Text, applyUpdateV2 } from "yjs";
 import { Awareness } from "y-protocols/awareness";
+import { getToken } from "./token";
 
 export enum CollabEvents {
   // Send
@@ -38,7 +39,7 @@ export const collabSocket = io(COLLAB_SOCKET_URL, {
   reconnectionAttempts: 3,
   autoConnect: false,
   auth: {
-    token: `Bearer ${localStorage.getItem("token")}`,
+    token: getToken(),
   },
 });
 
