@@ -35,24 +35,12 @@ import { CollabSessionData, join, leave } from "../../utils/collabSocket";
 import { toast } from "react-toastify";
 
 const CollabSandbox: React.FC = () => {
-  const [editorState, setEditorState] = useState<CollabSessionData | null>(
-    null
-  );
-  const [isConnecting, setIsConnecting] = useState<boolean>(true);
-
   const match = useMatch();
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
 
-  const {
-    // verifyMatchStatus,
-    getMatchId,
-    matchUser,
-    matchCriteria,
-    loading,
-    questionId,
-  } = match;
+  const { getMatchId, matchUser, matchCriteria, questionId } = match;
 
   const collab = useCollab();
   if (!collab) {
@@ -72,11 +60,13 @@ const CollabSandbox: React.FC = () => {
   const { selectedQuestion } = state;
   const [selectedTab, setSelectedTab] = useState<"tests" | "chat">("tests");
   const [selectedTestcase, setSelectedTestcase] = useState(0);
+  const [editorState, setEditorState] = useState<CollabSessionData | null>(
+    null
+  );
+  const [isConnecting, setIsConnecting] = useState<boolean>(true);
+  const matchId = getMatchId();
 
   useEffect(() => {
-    // TODO: Retain session on page refresh
-    // verifyMatchStatus();
-
     if (!questionId) {
       return;
     }
@@ -84,7 +74,6 @@ const CollabSandbox: React.FC = () => {
 
     resetCollab();
 
-    const matchId = getMatchId();
     if (!matchUser || !matchId) {
       return;
     }
@@ -108,7 +97,9 @@ const CollabSandbox: React.FC = () => {
     connectToCollabSession();
 
     // handle page refresh / tab closure
-    const handleUnload = () => leave(matchUser.id, matchId);
+    const handleUnload = () => {
+      leave(matchUser.id, matchId);
+    };
     window.addEventListener("unload", handleUnload);
 
     return () => {
@@ -119,11 +110,7 @@ const CollabSandbox: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (loading) {
-    return <Loader />;
-  }
-
-  if (!matchUser || !matchCriteria || !getMatchId() || !isConnecting) {
+  if (!matchUser || !matchCriteria || !matchId || !isConnecting) {
     return <Navigate to="/home" replace />;
   }
 
@@ -219,7 +206,7 @@ const CollabSandbox: React.FC = () => {
                   ? selectedQuestion.cTemplate
                   : ""
               }
-              roomId={getMatchId()!}
+              roomId={matchId}
             />
           </Box>
           <Box

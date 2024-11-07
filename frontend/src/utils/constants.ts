@@ -97,6 +97,8 @@ export const MATCH_LOGIN_REQUIRED_MESSAGE =
 export const MATCH_OFFER_TIMEOUT_MESSAGE = "Match offer timeout!";
 export const MATCH_CONNECTION_ERROR =
   "Connection error! Please try again later.";
+export const MATCH_ACCEPTANCE_ERROR =
+  "Error accepting match request! Please try again.";
 export const QUESTION_DOES_NOT_EXIST_ERROR =
   "There are no questions with the specified complexity and category. Please try another combination.";
 
@@ -117,11 +119,15 @@ export const FAILED_TO_SUBMIT_CODE_MESSAGE =
 /* Alerts & Dialog Boxes */
 // Questions
 export const ABORT_CREATE_OR_EDIT_QUESTION_CONFIRMATION_MESSAGE =
-  "Are you sure you want to leave this page? All process will be lost.";
+  "Are you sure you want to leave this page? All progress will be lost.";
 
 // Match
 export const ABORT_MATCH_PROCESS_CONFIRMATION_MESSAGE =
-  "Are you sure you want to leave the matching process?";
+  "Are you sure you want to leave the matching process? Your match request will be cancelled.";
+
+// Collab
+export const ABORT_COLLAB_SESSION_CONFIRMATION_MESSAGE =
+  "Are you sure you want to leave the collaboration session? You will not be able to rejoin.";
 
 /* Image paths */
 export const FIND_MATCH_FORM_PATH = "/find_match_form.png";
