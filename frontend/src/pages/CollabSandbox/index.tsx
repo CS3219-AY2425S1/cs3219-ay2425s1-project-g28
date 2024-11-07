@@ -1,16 +1,5 @@
 import AppMargin from "../../components/AppMargin";
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Grid2,
-  Tab,
-  Tabs,
-} from "@mui/material";
+import { Box, Button, Grid2, Tab, Tabs } from "@mui/material";
 import classes from "./index.module.css";
 import { CompilerResult, useCollab } from "../../contexts/CollabContext";
 import { useMatch } from "../../contexts/MatchContext";
@@ -33,6 +22,7 @@ import TestCase from "../../components/TestCase";
 import CodeEditor from "../../components/CodeEditor";
 import { CollabSessionData, join, leave } from "../../utils/collabSocket";
 import { toast } from "react-toastify";
+import CustomDialog from "../../components/CustomDialog";
 
 const CollabSandbox: React.FC = () => {
   const match = useMatch();
@@ -120,52 +110,21 @@ const CollabSandbox: React.FC = () => {
 
   return (
     <AppMargin classname={`${classes.fullheight} ${classes.flex}`}>
-      <Dialog
-        sx={{
-          "& .MuiDialog-paper": {
-            padding: "20px",
-          },
-        }}
-        open={isEndSessionModalOpen}
-        onClose={handleRejectEndSession}
-      >
-        <DialogTitle sx={{ textAlign: "center", fontSize: 20 }}>
-          {"End Session?"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ textAlign: "center", fontSize: 16 }}>
-            Are you sure you want to end session?
+      <CustomDialog
+        titleText="End Session?"
+        bodyText={
+          <>
+            Are you sure you want to end the collaboration session?
             <br />
-            You will lose your current progress.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            justifyContent: "center",
-            paddingBottom: "20px",
-          }}
-        >
-          <Button
-            sx={{
-              width: "250px",
-            }}
-            variant="contained"
-            color="secondary"
-            onClick={handleRejectEndSession}
-          >
-            Back
-          </Button>
-          <Button
-            sx={{
-              width: "250px",
-            }}
-            variant="contained"
-            onClick={handleConfirmEndSession}
-          >
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
+            You will not be able to rejoin.
+          </>
+        }
+        primaryAction="Confirm"
+        handlePrimaryAction={handleConfirmEndSession}
+        secondaryAction="Cancel"
+        open={isEndSessionModalOpen}
+        handleClose={handleRejectEndSession}
+      />
       <Grid2 container sx={{ flexGrow: 1 }} spacing={4}>
         <Grid2 sx={{ flexGrow: 1 }} size={6}>
           <QuestionDetailComponent

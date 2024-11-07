@@ -19,6 +19,7 @@ export enum CollabEvents {
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
   PARTNER_LEFT = "partner_left",
+  PARTNER_DISCONNECTED = "partner_disconnected",
   SOCKET_DISCONNECT = "disconnect",
   SOCKET_CLIENT_DISCONNECT = "io client disconnect",
   SOCKET_SERVER_DISCONNECT = "io server disconnect",
@@ -83,12 +84,14 @@ export const initDocument = (uid: string, roomId: string, template: string) => {
   });
 };
 
-export const leave = (uid: string, roomId: string, isImmediate?: boolean) => {
+export const leave = (uid: string, roomId: string, isIntentional?: boolean) => {
   collabSocket.removeAllListeners();
   collabSocket.io.removeListener(CollabEvents.SOCKET_RECONNECT_SUCCESS);
   collabSocket.io.removeListener(CollabEvents.SOCKET_RECONNECT_FAILED);
-  collabSocket.emit(CollabEvents.LEAVE, uid, roomId, isImmediate);
-  doc.destroy();
+  collabSocket.emit(CollabEvents.LEAVE, uid, roomId, isIntentional);
+  if (doc) {
+    doc.destroy();
+  }
 };
 
 export const sendCursorUpdate = (roomId: string, cursor: Cursor) => {

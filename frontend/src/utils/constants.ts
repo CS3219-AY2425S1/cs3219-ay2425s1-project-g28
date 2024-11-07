@@ -104,9 +104,13 @@ export const QUESTION_DOES_NOT_EXIST_ERROR =
 
 // Collab
 export const COLLAB_ENDED_MESSAGE =
-  "Your partner has left the collaboration session.";
+  "Your partner has ended the collaboration session. The session will be closing soon...";
+export const COLLAB_PARTNER_DISCONNECTED_MESSAGE =
+  "Your partner has disconnected! The session will be closing soon...";
 export const COLLAB_CONNECTION_ERROR =
   "Error connecting you to the collaboration session! Please try again.";
+export const COLLAB_END_ERROR =
+  "Error ending the collaboration session! Please try again.";
 
 // Code execution
 export const FAILED_TESTCASE_MESSAGE =

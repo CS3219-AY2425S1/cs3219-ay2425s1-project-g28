@@ -6,7 +6,9 @@ import {
   FAILED_TESTCASE_MESSAGE,
   SUCCESS_TESTCASE_MESSAGE,
   FAILED_TO_SUBMIT_CODE_MESSAGE,
+  COLLAB_PARTNER_DISCONNECTED_MESSAGE,
   COLLAB_ENDED_MESSAGE,
+  COLLAB_END_ERROR,
 } from "../utils/constants";
 import { toast } from "react-toastify";
 
@@ -63,7 +65,6 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
   const {
     matchUser,
-    partner,
     matchCriteria,
     getMatchId,
     stopMatch,
@@ -143,8 +144,14 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const handleConfirmEndSession = async () => {
     setIsEndSessionModalOpen(false);
 
-    // Get queston history
-    const data = await qnHistoryClient.get(qnHistoryId as string);
+    const roomId = getMatchId();
+    if (!matchUser || !roomId || !qnHistoryId) {
+      toast.error(COLLAB_END_ERROR);
+      return;
+    }
+
+    // Get question history
+    const data = await qnHistoryClient.get(qnHistoryId);
 
     // Only update question history if it has not been submitted before
     if (!data.data.qnHistory.code) {
@@ -161,8 +168,8 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     }
 
     // Leave collaboration room
-    leave(matchUser?.id as string, getMatchId() as string, true);
-    leave(partner?.id as string, getMatchId() as string, true);
+    leave(matchUser.id as string, roomId, true);
+    // TODO: partner leave
 
     // Leave chat room
     communicationSocket.emit(CommunicationEvents.USER_DISCONNECT);
@@ -177,7 +184,14 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
   const checkPartnerStatus = () => {
     collabSocket.on(CollabEvents.PARTNER_LEFT, () => {
-      toast.error(COLLAB_ENDED_MESSAGE);
+      toast.info(COLLAB_ENDED_MESSAGE);
+      setIsEndSessionModalOpen(false);
+      stopMatch();
+      appNavigate("/home");
+    });
+
+    collabSocket.on(CollabEvents.PARTNER_DISCONNECTED, () => {
+      toast.error(COLLAB_PARTNER_DISCONNECTED_MESSAGE);
       setIsEndSessionModalOpen(false);
       stopMatch();
       appNavigate("/home");
