@@ -93,8 +93,11 @@ export const leave = (
   collabSocket.removeAllListeners();
   collabSocket.io.removeListener(CollabEvents.SOCKET_RECONNECT_SUCCESS);
   collabSocket.io.removeListener(CollabEvents.SOCKET_RECONNECT_FAILED);
-  collabSocket.emit(CollabEvents.LEAVE, uid, roomId, isPartnerNotified);
   doc?.destroy();
+
+  if (collabSocket.connected) {
+    collabSocket.emit(CollabEvents.LEAVE, uid, roomId, isPartnerNotified);
+  }
 };
 
 export const sendCursorUpdate = (roomId: string, cursor: Cursor) => {

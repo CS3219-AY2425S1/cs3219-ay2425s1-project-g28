@@ -66,11 +66,6 @@ const CollabSandbox: React.FC = () => {
   useEffect(() => {
     resetCollab();
 
-    if (!questionId) {
-      return;
-    }
-    getQuestionById(questionId, dispatch);
-
     if (!matchUser || !matchId) {
       return;
     }
@@ -106,6 +101,13 @@ const CollabSandbox: React.FC = () => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!questionId) {
+      return;
+    }
+    getQuestionById(questionId, dispatch);
+  }, [questionId]);
 
   if (!matchUser || !matchCriteria || !matchId || !isConnecting) {
     return <Navigate to="/home" replace />;

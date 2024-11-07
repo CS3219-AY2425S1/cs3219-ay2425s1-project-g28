@@ -94,23 +94,18 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
   socket.on(
     CollabEvents.LEAVE,
     (uid: string, roomId: string, isPartnerNotified: boolean) => {
-      console.log("leave: ", uid);
       const connectionKey = `${uid}:${roomId}`;
       if (userConnections.has(connectionKey)) {
-        console.log("clear disconnect timeout: ", uid);
         clearTimeout(userConnections.get(connectionKey)!);
       }
 
-      if (isPartnerNotified || !userConnections.has(connectionKey)) {
+      if (isPartnerNotified) {
         handleUserLeave(uid, roomId, socket);
         return;
       }
 
-      console.log("set disconnect timeout: ", uid);
       const connectionTimeout = setTimeout(() => {
         handleUserLeave(uid, roomId, socket);
-        console.log("notify partner of disconnect: ", uid);
-        console.log("room: ", roomId);
         io.to(roomId).emit(CollabEvents.PARTNER_DISCONNECTED);
       }, CONNECTION_DELAY);
 

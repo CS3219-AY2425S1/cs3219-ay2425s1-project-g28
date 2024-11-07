@@ -226,12 +226,14 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const checkPartnerStatus = () => {
-    collabSocket.on(CollabEvents.END_SESSION, (timeTaken: number) => {
+    collabSocket.once(CollabEvents.END_SESSION, (timeTaken: number) => {
+      collabSocket.off(CollabEvents.PARTNER_DISCONNECTED);
       toast.info(COLLAB_ENDED_MESSAGE);
       handleConfirmEndSession(true, timeTaken);
     });
 
-    collabSocket.on(CollabEvents.PARTNER_DISCONNECTED, () => {
+    collabSocket.once(CollabEvents.PARTNER_DISCONNECTED, () => {
+      collabSocket.off(CollabEvents.END_SESSION);
       toast.error(COLLAB_PARTNER_DISCONNECTED_MESSAGE);
       handleConfirmEndSession(true);
     });
