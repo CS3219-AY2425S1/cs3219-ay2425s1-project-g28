@@ -3,8 +3,10 @@ import app, { allowedOrigins } from "./app.ts";
 import { handleWebsocketCollabEvents } from "./handlers/websocketHandler.ts";
 import { Server, Socket } from "socket.io";
 import { connectRedis } from "./config/redis.ts";
+import { verifyUserToken } from "./middlewares/basicAccessControl.ts";
 
 const server = http.createServer(app);
+
 export const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
@@ -12,6 +14,8 @@ export const io = new Server(server, {
   },
   connectionStateRecovery: {},
 });
+
+io.use(verifyUserToken);
 
 io.on("connection", (socket: Socket) => {
   handleWebsocketCollabEvents(socket);

@@ -10,6 +10,7 @@ import {
   USE_MATCH_ERROR_MESSAGE,
 } from "../../utils/constants";
 import { useAuth } from "../../contexts/AuthContext";
+import { toast } from "react-toastify";
 
 type Message = {
   from: string;
@@ -36,6 +37,7 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
   const match = useMatch();
   const auth = useAuth();
   const messagesRef = useRef<HTMLDivElement>(null);
+  const errorHandledRef = useRef(false);
 
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
@@ -68,10 +70,17 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
     const listener = (message: Message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
     };
+    const errorListener = () => {
+      if (!errorHandledRef.current) {
+        toast.error("Connection error. Please try again.");
+        errorHandledRef.current = true;
+      }
+    };
 
     communicationSocket.on(CommunicationEvents.USER_JOINED, listener);
     communicationSocket.on(CommunicationEvents.TEXT_MESSAGE_RECEIVED, listener);
     communicationSocket.on(CommunicationEvents.DISCONNECTED, listener);
+    communicationSocket.on(CommunicationEvents.CONNECT_ERROR, errorListener);
 
     return () => {
       communicationSocket.off(CommunicationEvents.USER_JOINED, listener);
@@ -80,6 +89,7 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
         listener
       );
       communicationSocket.off(CommunicationEvents.DISCONNECTED, listener);
+      communicationSocket.off(CommunicationEvents.CONNECT_ERROR, errorListener);
     };
   }, []);
 
