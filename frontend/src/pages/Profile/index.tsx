@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import AppMargin from "../../components/AppMargin";
 import ProfileDetails from "../../components/ProfileDetails";
-import { Box, Button, Divider, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from "@mui/material";
+import { Autocomplete, Box, Button, Divider, Grid2, IconButton, InputAdornment, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Typography } from "@mui/material";
 import classes from "./index.module.css";
 import { useEffect, useReducer, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -17,11 +17,19 @@ import qnHistoryReducer, { getQnHistoryList, initialQHState } from "../../reduce
 import { grey } from "@mui/material/colors";
 import { convertDateString } from "../../utils/sessionTime";
 import Loader from "../../components/Loader";
+import { Search } from "@mui/icons-material";
+import useDebounce from "../../utils/debounce";
 
 const rowsPerPage = 10;
+const searchCharacterLimit = 100;
+const statusList = ["Accepted", "Attempted", "Rejected"];
 
 const ProfilePage: React.FC = () => {
   const [page, setPage] = useState<number>(0);
+  const [sortOrder, setSortOrder] = useState<number>(1);
+  const [searchInput, setSearchInput] = useState<string>("");
+  const [searchFilter, setSearchFilter] = useDebounce<string>("", 1000);
+  const [statusFilter, setStatusFilter] = useDebounce<string[]>([], 1000);
   const [state, dispatch] = useReducer(qnHistoryReducer, initialQHState);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
@@ -66,13 +74,29 @@ const ProfilePage: React.FC = () => {
         page + 1, // convert from 0-based indexing
         rowsPerPage,
         userId,
+        searchFilter,
+        statusFilter,
+        sortOrder,
         dispatch
       );
     }
   };
 
+  useEffect(() => {
+    if (page !== 0) {
+      setPage(0);
+    } else {
+      updateQnHistoryList();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchFilter, statusFilter, sortOrder]);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => updateQnHistoryList(), [page]);
+
+  const areQnHistoriesFiltered = () => {
+    return (searchFilter || statusFilter.length > 0);
+  };
 
   if (loading) {
     return <Loader />;
@@ -89,7 +113,7 @@ const ProfilePage: React.FC = () => {
 
   const isCurrentUser = auth.user?.id === userId;
 
-  const tableHeaders = ["Title", "Status", "Date submitted"];
+  const tableHeaders = ["Title", "Status", "Date attempted"];
 
   return (
     <AppMargin classname={classes.fullheight}>
@@ -140,7 +164,79 @@ const ProfilePage: React.FC = () => {
         </Box>
         <Divider variant="fullWidth" orientation="vertical" flexItem />
         <Box sx={(theme) => ({ flex: 3, paddingLeft: theme.spacing(4) })}>
-          <Typography variant="h4" style={{marginBottom: 15}}>Questions attempted</Typography>
+          <Stack
+            direction="row"
+            sx={{ justifyContent: "space-between", alignItems: "center" }}
+          >
+            <Typography variant="h4" style={{marginBottom: 15}}>Questions attempted</Typography>
+            {state.qnHistories.length !== 0 && 
+            <Button
+              variant="outlined"
+              sx={{ height: 40 }}
+              onClick={() => {
+                if (sortOrder === 1) {
+                  setSortOrder(-1);
+                } else if (sortOrder === -1) {
+                  setSortOrder(1);
+                }
+              }}>
+              { sortOrder === 1 ? "Sort records from latest to earliest date attempted" : "Sort records from earliest to latest date attempted" }
+            </Button>}
+          </Stack>
+          <Grid2
+            container
+            rowSpacing={1}
+            columnSpacing={2}
+            sx={(theme) => ({
+              marginTop: theme.spacing(2),
+              "& .MuiTextField-root": { width: "100%" },
+            })}
+          >
+            <Grid2 size={8}>
+              <TextField
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton type="button">
+                          <Search />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                  htmlInput: {
+                    maxLength: searchCharacterLimit,
+                  },
+                  formHelperText: {
+                    sx: { textAlign: "right" },
+                  },
+                }}
+                label="Title"
+                onChange={(input) => {
+                  setSearchInput(input.target.value);
+                  setSearchFilter(input.target.value.toLowerCase().trim());
+                }}
+                helperText={
+                  searchInput.length + ` / ${searchCharacterLimit} characters`
+                }
+                disabled={state.qnHistories.length === 0 && !areQnHistoriesFiltered()}
+              />
+            </Grid2>
+            <Grid2 size={4}>
+              <Autocomplete
+                multiple
+                disableCloseOnSelect
+                options={statusList}
+                onChange={(_, selectedOptions) => {
+                  setStatusFilter(selectedOptions);
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} label="Status" />
+                )}
+                disabled={state.qnHistories.length === 0 && !areQnHistoriesFiltered()}
+              />
+            </Grid2>
+          </Grid2>
           <TableContainer>
             <Table
               sx={(theme) => ({
@@ -216,6 +312,7 @@ const ProfilePage: React.FC = () => {
                   >
                     <Typography
                       component="span"
+                      whiteSpace="pre"
                     >
                       {convertDateString(qnHistory.dateAttempted)}
                     </Typography>

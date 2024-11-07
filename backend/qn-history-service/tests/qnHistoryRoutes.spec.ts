@@ -4,7 +4,7 @@ import app from "../src/app";
 import {
   MONGO_OBJ_ID_MALFORMED_MESSAGE,
   PAGE_LIMIT_INCORRECT_FORMAT_MESSAGE,
-  PAGE_LIMIT_USERID_REQUIRED_MESSAGE,
+  PAGE_LIMIT_USERID_ORDER_REQUIRED_MESSAGE,
   QN_HIST_NOT_FOUND_MESSAGE,
 } from "../src/utils/constants";
 import QnHistory from "../src/models/QnHistory";
@@ -54,7 +54,7 @@ describe("Qn History Routes", () => {
     it("Reads existing question histories", async () => {
       const qnHistLimit = 10;
       const res = await request.get(
-        `${BASE_URL}?page=1&qnHistLimit=${qnHistLimit}&userId=66f77e9f27ab3f794bdae664`
+        `${BASE_URL}?page=1&qnHistLimit=${qnHistLimit}&userId=66f77e9f27ab3f794bdae664&order=1`
       );
       expect(res.status).toBe(200);
       expect(res.body.qnHistories.length).toBeLessThanOrEqual(qnHistLimit);
@@ -62,29 +62,31 @@ describe("Qn History Routes", () => {
 
     it("Does not read without page", async () => {
       const res = await request.get(
-        `${BASE_URL}?qnHistLimit=10&userId=66f77e9f27ab3f794bdae664`
+        `${BASE_URL}?qnHistLimit=10&userId=66f77e9f27ab3f794bdae664&order=1`
       );
       expect(res.status).toBe(400);
-      expect(res.body.message).toBe(PAGE_LIMIT_USERID_REQUIRED_MESSAGE);
+      expect(res.body.message).toBe(PAGE_LIMIT_USERID_ORDER_REQUIRED_MESSAGE);
     });
 
     it("Does not read without qnHistLimit", async () => {
       const res = await request.get(
-        `${BASE_URL}?page=1&userId=66f77e9f27ab3f794bdae664`
+        `${BASE_URL}?page=1&userId=66f77e9f27ab3f794bdae664&order=1`
       );
       expect(res.status).toBe(400);
-      expect(res.body.message).toBe(PAGE_LIMIT_USERID_REQUIRED_MESSAGE);
+      expect(res.body.message).toBe(PAGE_LIMIT_USERID_ORDER_REQUIRED_MESSAGE);
     });
 
     it("Does not read without userId", async () => {
-      const res = await request.get(`${BASE_URL}?page=1&qnHistLimit=10`);
+      const res = await request.get(
+        `${BASE_URL}?page=1&qnHistLimit=10&order=1`
+      );
       expect(res.status).toBe(400);
-      expect(res.body.message).toBe(PAGE_LIMIT_USERID_REQUIRED_MESSAGE);
+      expect(res.body.message).toBe(PAGE_LIMIT_USERID_ORDER_REQUIRED_MESSAGE);
     });
 
     it("Does not read with negative page", async () => {
       const res = await request.get(
-        `${BASE_URL}?page=-1&qnHistLimit=10&userId=66f77e9f27ab3f794bdae664`
+        `${BASE_URL}?page=-1&qnHistLimit=10&userId=66f77e9f27ab3f794bdae664&order=1`
       );
       expect(res.status).toBe(400);
       expect(res.body.message).toBe(PAGE_LIMIT_INCORRECT_FORMAT_MESSAGE);
@@ -92,7 +94,7 @@ describe("Qn History Routes", () => {
 
     it("Does not read with negative qnHistLimit", async () => {
       const res = await request.get(
-        `${BASE_URL}?page=1&qnHistLimit=-10&userId=66f77e9f27ab3f794bdae664`
+        `${BASE_URL}?page=1&qnHistLimit=-10&userId=66f77e9f27ab3f794bdae664&order=1`
       );
       expect(res.status).toBe(400);
       expect(res.body.message).toBe(PAGE_LIMIT_INCORRECT_FORMAT_MESSAGE);
@@ -100,7 +102,7 @@ describe("Qn History Routes", () => {
 
     it("Does not read with invalid userId format", async () => {
       const res = await request.get(
-        `${BASE_URL}?page=1&qnHistLimit=10&userId=6`
+        `${BASE_URL}?page=1&qnHistLimit=10&userId=6&order=1`
       );
       expect(res.status).toBe(400);
       expect(res.body.message).toBe(MONGO_OBJ_ID_MALFORMED_MESSAGE);

@@ -2,6 +2,19 @@ import { Dispatch } from "react";
 import { qnHistoryClient } from "../utils/api";
 import { isString, isStringArray } from "../utils/typeChecker";
 
+/*type CompilerResult = {
+  status?: string;
+  exception?: string;
+  stdout?: string;
+  stderr?: string;
+  executionTime?: number;
+  stdin: string;
+  stout?: string;
+  actualResult?: string;
+  expectedResult: string;
+  isMatch?: boolean;
+};*/
+
 type QnHistoryDetail = {
   id: string;
   userIds: Array<string>;
@@ -12,6 +25,7 @@ type QnHistoryDetail = {
   timeTaken: number;
   code: string;
   language: string;
+  //compilerRes: CompilerResult;
 };
 
 type QnHistoryList = {
@@ -92,7 +106,7 @@ export const initialQHState: QnHistoriesState = {
 };
 
 export const createQnHistory = async (
-  qnHistory: Omit<QnHistoryDetail, "id" | "code">,
+  qnHistory: Omit<QnHistoryDetail, "id">,
   dispatch: Dispatch<QnHistoryActions>
 ): Promise<string> => {
   return qnHistoryClient
@@ -103,7 +117,9 @@ export const createQnHistory = async (
       submissionStatus: qnHistory.submissionStatus,
       dateAttempted: qnHistory.dateAttempted,
       timeTaken: qnHistory.timeTaken,
+      code: qnHistory.code,
       language: qnHistory.language,
+      //compilerRes: qnHistory.compilerRes,
     })
     .then((res) => {
       dispatch({
@@ -125,6 +141,9 @@ export const getQnHistoryList = (
   page: number,
   qnHistLimit: number,
   userId: string,
+  title: string,
+  status: string[],
+  order: number,
   dispatch: Dispatch<QnHistoryActions>
 ) => {
   qnHistoryClient
@@ -133,6 +152,9 @@ export const getQnHistoryList = (
         page: page,
         qnHistLimit: qnHistLimit,
         userId: userId,
+        title: title,
+        status: status,
+        order: order,
       },
     })
     .then((res) => {

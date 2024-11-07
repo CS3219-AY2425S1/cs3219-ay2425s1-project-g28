@@ -167,6 +167,21 @@ paths:
           type: string
           required: true
           description: User id of user to retrieve question histories
+        - in: query
+          name: title
+          type: string
+          required: false
+          description: Search keywords for question history title
+        - in: query
+          name: status
+          type: string
+          required: false
+          description: Filter for question history submission status
+        - in: query
+          name: order
+          type: integer
+          required: true
+          description: Order (based on date attempted) to sort question history records by (1 for ascending and -1 for descending).
       responses:
         200:
           description: Successful Response

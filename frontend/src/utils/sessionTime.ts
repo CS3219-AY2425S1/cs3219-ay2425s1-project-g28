@@ -8,9 +8,17 @@ export const extractSecondsFromTime = (time: number) => time % 60; // after extr
 export const extractMinutesOnly = (time: number) => time / 60;
 
 export const convertDateString = (date: string): string => {
-  return new Date(date).toLocaleDateString("en-GB", {
+  const convertedDate = new Date(date);
+  const dateString = convertedDate.toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
+
+  const timeString = convertedDate.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return dateString + "  " + timeString;
 };
