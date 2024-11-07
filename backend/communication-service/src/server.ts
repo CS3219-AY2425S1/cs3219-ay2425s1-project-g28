@@ -2,7 +2,7 @@ import app, { allowedOrigins } from "./app";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { handleWebsocketCommunicationEvents } from "./handlers/websocketHandler";
-import { verifyToken } from "./utils/userServiceApi";
+import { verifyUserToken } from "./middlewares/basicAccessControl";
 
 const PORT = process.env.SERVICE_PORT || 3005;
 
@@ -13,19 +13,7 @@ export const io = new Server(server, {
   connectionStateRecovery: {},
 });
 
-io.use((socket, next) => {
-  const token =
-    socket.handshake.headers.authorization || socket.handshake.auth.token;
-  verifyToken(token)
-    .then(() => {
-      console.log("Valid credentials");
-      next();
-    })
-    .catch((err) => {
-      console.error(err);
-      next(new Error("Unauthorized"));
-    });
-});
+io.use(verifyUserToken);
 
 io.on("connection", handleWebsocketCommunicationEvents);
 
