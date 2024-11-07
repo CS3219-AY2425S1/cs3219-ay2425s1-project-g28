@@ -92,7 +92,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
     useState<boolean>(false);
   const [qnHistoryId, setQnHistoryId] = useState<string | null>(null);
-  let hasSubmitted: boolean = false;
+  const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
 
   const handleSubmitSessionClick = async () => {
     try {
@@ -102,10 +102,10 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         code: code.replace(/\t/g, " ".repeat(4)),
         language: matchCriteria?.language.toLowerCase(),
       });
-      hasSubmitted = true;
+      setHasSubmitted(true);
       console.log([...res.data.data]);
       setCompilerResult([...res.data.data]);
-
+      
       let isMatch = true;
       for (let i = 0; i < res.data.data.length; i++) {
         if (!res.data.data[i].isMatch) {

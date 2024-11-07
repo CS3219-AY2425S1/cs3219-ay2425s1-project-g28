@@ -2,8 +2,6 @@ export const QN_HIST_CREATED_MESSAGE = "Question history created successfully.";
 
 export const QN_HIST_NOT_FOUND_MESSAGE = "Question history not found.";
 
-export const QN_HIST_DELETED_MESSAGE = "Question history deleted successfully.";
-
 export const SERVER_ERROR_MESSAGE = "Server error.";
 
 export const QN_HIST_RETRIEVED_MESSAGE =

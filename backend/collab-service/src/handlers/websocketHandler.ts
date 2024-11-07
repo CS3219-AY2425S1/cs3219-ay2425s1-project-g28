@@ -71,13 +71,16 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
       const isPartnerReady = partnerReadiness.get(roomId);
 
       if (isPartnerReady && doc.getText().length === 0) {
+        const token =
+          socket.handshake.headers.authorization || socket.handshake.auth.token;
         createQuestionHistory(
           [uid1, uid2],
           qnId,
           qnTitle,
           "Attempted",
           template,
-          language
+          language,
+          token
         )
           .then((res) => {
             doc.transact(() => {

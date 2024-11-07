@@ -243,40 +243,4 @@ describe("Qn History Routes", () => {
       expect(res.body.message).toBe(QN_HIST_NOT_FOUND_MESSAGE);
     });
   });
-
-  describe("DELETE /:id", () => {
-    it("Deletes existing qn history", async () => {
-      const userIds = ["66f77e9f27ab3f794bdae664", "66f77e9f27ab3f794bdae665"];
-      const questionId = "66f77e9f27ab3f794bdae666";
-      const title = faker.lorem.lines(1);
-      const submissionStatus = "Attempted";
-      const dateAttempted = new Date();
-      const timeTaken = 0;
-      const language = "Python";
-      const newQnHistory = new QnHistory({
-        userIds,
-        questionId,
-        title,
-        submissionStatus,
-        dateAttempted,
-        timeTaken,
-        language,
-      });
-      await newQnHistory.save();
-      const res = await request.delete(`${BASE_URL}/${newQnHistory.id}`);
-      expect(res.status).toBe(200);
-    });
-
-    it("Does not delete non-existing qn history with invalid object id", async () => {
-      const res = await request.delete(`${BASE_URL}/blah`);
-      expect(res.status).toBe(400);
-      expect(res.body.message).toBe(MONGO_OBJ_ID_MALFORMED_MESSAGE);
-    });
-
-    it("Does not delete non-existing qn history with valid object id", async () => {
-      const res = await request.delete(`${BASE_URL}/66f77e9f27ab3f794bdae664`);
-      expect(res.status).toBe(404);
-      expect(res.body.message).toBe(QN_HIST_NOT_FOUND_MESSAGE);
-    });
-  });
 });

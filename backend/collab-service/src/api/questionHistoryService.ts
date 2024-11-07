@@ -17,17 +17,26 @@ export const createQuestionHistory = (
   title: string,
   submissionStatus: string,
   code: string,
-  language: string
+  language: string,
+  authToken: string
 ) => {
   const dateAttempted = new Date();
-  return qnHistoryService.post("/", {
-    userIds,
-    questionId,
-    title,
-    submissionStatus,
-    dateAttempted,
-    timeTaken: 0,
-    code,
-    language,
-  });
+  return qnHistoryService.post(
+    "/",
+    {
+      userIds,
+      questionId,
+      title,
+      submissionStatus,
+      dateAttempted,
+      timeTaken: 0,
+      code,
+      language,
+    },
+    {
+      headers: {
+        Authorization: authToken,
+      },
+    }
+  );
 };

@@ -83,31 +83,6 @@ export const updateQnHistory = async (
   }
 };
 
-export const deleteQnHistory = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { id } = req.params;
-
-    if (!id.match(MONGO_OBJ_ID_FORMAT)) {
-      res.status(400).json({ message: MONGO_OBJ_ID_MALFORMED_MESSAGE });
-      return;
-    }
-
-    const currQnHistory = await QnHistory.findById(id);
-    if (!currQnHistory) {
-      res.status(404).json({ message: QN_HIST_NOT_FOUND_MESSAGE });
-      return;
-    }
-
-    await QnHistory.findByIdAndDelete(id);
-    res.status(200).json({ message: QN_HIST_DELETED_MESSAGE });
-  } catch (error) {
-    res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
-  }
-};
-
 type QnHistListParams = {
   page: string;
   qnHistLimit: string;

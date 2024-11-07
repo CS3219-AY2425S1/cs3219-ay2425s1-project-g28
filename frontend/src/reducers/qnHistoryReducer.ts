@@ -20,11 +20,9 @@ type QnHistoryList = {
 };
 
 enum QnHistoryActionTypes {
-  CREATE_QNHIST = "create_qnhist",
   VIEW_QNHIST_LIST = "view_qnhist_list",
   VIEW_QNHIST = "view_qnhist",
   UPDATE_QNHIST = "update_qnhist",
-  ERROR_CREATING_QNHIST = "error_creating_qnhist",
   ERROR_FETCHING_QNHIST_LIST = "error_fetching_qnhist_list",
   ERROR_FETCHING_SELECTED_QNHIST = "error_fetching_selected_qnhist",
   ERROR_UPDATING_QNHIST = "error_updating_qnhist",
@@ -91,37 +89,6 @@ export const initialQHState: QnHistoriesState = {
   selectedQnHistoryError: null,
 };
 
-export const createQnHistory = async (
-  qnHistory: Omit<QnHistoryDetail, "id">,
-  dispatch: Dispatch<QnHistoryActions>
-): Promise<string> => {
-  return qnHistoryClient
-    .post("/", {
-      userIds: qnHistory.userIds,
-      questionId: qnHistory.questionId,
-      title: qnHistory.title,
-      submissionStatus: qnHistory.submissionStatus,
-      dateAttempted: qnHistory.dateAttempted,
-      timeTaken: qnHistory.timeTaken,
-      code: qnHistory.code,
-      language: qnHistory.language,
-    })
-    .then((res) => {
-      dispatch({
-        type: QnHistoryActionTypes.CREATE_QNHIST,
-        payload: res.data,
-      });
-      return res.data.qnHistory.id;
-    })
-    .catch((err) => {
-      dispatch({
-        type: QnHistoryActionTypes.ERROR_CREATING_QNHIST,
-        payload: err.response?.data.message || err.message,
-      });
-      return "";
-    });
-};
-
 export const getQnHistoryList = (
   page: number,
   qnHistLimit: number,
@@ -143,7 +110,6 @@ export const getQnHistoryList = (
       },
     })
     .then((res) => {
-      console.log(res.data);
       dispatch({
         type: QnHistoryActionTypes.VIEW_QNHIST_LIST,
         payload: res.data,
@@ -185,13 +151,22 @@ export const updateQnHistoryById = async (
   >,
   dispatch: Dispatch<QnHistoryActions>
 ): Promise<boolean> => {
+  const accessToken = localStorage.getItem("token");
   return qnHistoryClient
-    .put(`/${qnHistoryId}`, {
-      submissionStatus: qnHistory.submissionStatus,
-      dateAttempted: qnHistory.dateAttempted,
-      timeTaken: qnHistory.timeTaken,
-      code: qnHistory.code,
-    })
+    .put(
+      `/${qnHistoryId}`,
+      {
+        submissionStatus: qnHistory.submissionStatus,
+        dateAttempted: qnHistory.dateAttempted,
+        timeTaken: qnHistory.timeTaken,
+        code: qnHistory.code,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    )
     .then((res) => {
       dispatch({
         type: QnHistoryActionTypes.UPDATE_QNHIST,
@@ -206,15 +181,6 @@ export const updateQnHistoryById = async (
       });
       return false;
     });
-};
-
-export const deleteQuestionById = async (qnHistoryId: string) => {
-  try {
-    await qnHistoryClient.delete(`/${qnHistoryId}`);
-    return true;
-  } catch {
-    return false;
-  }
 };
 
 export const setSelectedQnHistoryError = (
@@ -234,13 +200,6 @@ const qnHistoryReducer = (
   const { type } = action;
 
   switch (type) {
-    case QnHistoryActionTypes.CREATE_QNHIST: {
-      const { payload } = action;
-      if (!isQnHistory(payload)) {
-        return state;
-      }
-      return { ...state, qnHistories: [payload, ...state.qnHistories] };
-    }
     case QnHistoryActionTypes.VIEW_QNHIST_LIST: {
       const { payload } = action;
       if (!isQnHistoryList(payload)) {
@@ -270,13 +229,6 @@ const qnHistoryReducer = (
           qnHistory.id === payload.id ? payload : qnHistory
         ),
       };
-    }
-    case QnHistoryActionTypes.ERROR_CREATING_QNHIST: {
-      const { payload } = action;
-      if (!isString(payload)) {
-        return state;
-      }
-      return { ...state, selectedQnHistoryError: payload };
     }
     case QnHistoryActionTypes.ERROR_FETCHING_QNHIST_LIST: {
       const { payload } = action;
