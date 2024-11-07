@@ -43,15 +43,6 @@ export const executeCode = async (req: Request, res: Response) => {
     const { inputs: stdinList, outputs: expectedResultList } =
       qnsResponse.data.question;
 
-    // Extract test cases from input and output files
-    // const testCases = await testCasesApi(
-    //   testcaseInputFileUrl,
-    //   testcaseOutputFileUrl
-    // );
-
-    // const stdinList: string[] = testCases.input;
-    // const expectedResultList: string[] = testCases.output;
-
     if (stdinList.length !== expectedResultList.length) {
       res.status(400).json({
         message: ERROR_NOT_SAME_LENGTH_MESSAGE,
