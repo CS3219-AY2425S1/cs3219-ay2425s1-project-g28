@@ -11,7 +11,7 @@ import {
 } from "./matchHandler";
 import { io } from "../server";
 import { v4 as uuidv4 } from "uuid";
-import { questionService } from "../utils/api";
+import { getRandomQuestion } from "../api/questionService";
 
 enum MatchEvents {
   // Receive
@@ -130,18 +130,13 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
         }
 
         const { complexity, category } = match;
-        questionService
-          .get("/random", { params: { complexity, category } })
-          .then((res) => {
-            io.to(matchId).emit(
-              MatchEvents.MATCH_SUCCESSFUL,
-              res.data.question.id,
-              res.data.question.title
-            );
-          })
-          .catch((err) => {
-            console.log(err);
-          });
+        getRandomQuestion(complexity, category).then((res) => {
+          io.to(matchId).emit(
+            MatchEvents.MATCH_SUCCESSFUL,
+            res.data.question.id,
+            res.data.question.title
+          );
+        });
       }
     }
   );

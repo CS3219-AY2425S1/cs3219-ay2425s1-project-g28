@@ -2,7 +2,7 @@ import { Socket } from "socket.io";
 import { io } from "../server";
 import redisClient from "../config/redis";
 import { Doc, applyUpdateV2, encodeStateAsUpdateV2 } from "yjs";
-import { qnHistoryService } from "../utils/api";
+import { createQuestionHistory } from "../api/questionHistoryService";
 
 enum CollabEvents {
   // Receive
@@ -71,17 +71,14 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
       const isPartnerReady = partnerReadiness.get(roomId);
 
       if (isPartnerReady && doc.getText().length === 0) {
-        qnHistoryService
-          .post("/", {
-            userIds: [uid1, uid2],
-            questionId: qnId,
-            title: qnTitle,
-            submissionStatus: "Attempted",
-            dateAttempted: new Date(),
-            timeTaken: 0,
-            code: template,
-            language: language,
-          })
+        createQuestionHistory(
+          [uid1, uid2],
+          qnId,
+          qnTitle,
+          "Attempted",
+          template,
+          language
+        )
           .then((res) => {
             doc.transact(() => {
               doc.getText().insert(0, template);

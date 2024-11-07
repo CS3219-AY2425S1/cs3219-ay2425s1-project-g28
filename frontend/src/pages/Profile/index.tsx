@@ -18,7 +18,7 @@ import { grey } from "@mui/material/colors";
 import { convertDateString } from "../../utils/sessionTime";
 import Loader from "../../components/Loader";
 import { Search } from "@mui/icons-material";
-import useDebounce from "../../utils/debounce";
+import useDebounce from "../../hooks/useDebounce";
 
 const rowsPerPage = 10;
 const searchCharacterLimit = 100;
