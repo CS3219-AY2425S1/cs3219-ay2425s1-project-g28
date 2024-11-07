@@ -2,6 +2,7 @@ import { Socket } from "socket.io";
 import { io } from "../server";
 import redisClient from "../config/redis";
 import { Doc, applyUpdateV2, encodeStateAsUpdateV2 } from "yjs";
+import { qnHistoryService } from "../utils/api";
 
 enum CollabEvents {
   // Receive
@@ -55,19 +56,50 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
     }
   });
 
-  socket.on(CollabEvents.INIT_DOCUMENT, (roomId: string, template: string) => {
-    const doc = getDocument(roomId);
-    const isPartnerReady = partnerReadiness.get(roomId);
+  socket.on(
+    CollabEvents.INIT_DOCUMENT,
+    (
+      roomId: string,
+      template: string,
+      uid1: string,
+      uid2: string,
+      language: string,
+      qnId: string,
+      qnTitle: string
+    ) => {
+      const doc = getDocument(roomId);
+      const isPartnerReady = partnerReadiness.get(roomId);
 
-    if (isPartnerReady && doc.getText().length === 0) {
-      doc.transact(() => {
-        doc.getText().insert(0, template);
-      });
-      io.to(roomId).emit(CollabEvents.DOCUMENT_READY);
-    } else {
-      partnerReadiness.set(roomId, true);
+      if (isPartnerReady && doc.getText().length === 0) {
+        qnHistoryService
+          .post("/", {
+            userIds: [uid1, uid2],
+            questionId: qnId,
+            title: qnTitle,
+            submissionStatus: "Attempted",
+            dateAttempted: new Date(),
+            timeTaken: 0,
+            code: template,
+            language: language,
+          })
+          .then((res) => {
+            console.log("created in collab");
+            doc.transact(() => {
+              doc.getText().insert(0, template);
+            });
+            io.to(roomId).emit(
+              CollabEvents.DOCUMENT_READY,
+              res.data.qnHistory.id
+            );
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      } else {
+        partnerReadiness.set(roomId, true);
+      }
     }
-  });
+  );
 
   socket.on(
     CollabEvents.UPDATE_REQUEST,

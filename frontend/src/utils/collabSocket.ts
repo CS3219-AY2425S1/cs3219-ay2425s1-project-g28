@@ -72,8 +72,26 @@ export const join = (
   });
 };
 
-export const initDocument = (uid: string, roomId: string, template: string) => {
-  collabSocket.emit(CollabEvents.INIT_DOCUMENT, roomId, template);
+export const initDocument = (
+  uid: string,
+  roomId: string,
+  template: string,
+  uid1: string,
+  uid2: string,
+  language: string,
+  qnId: string,
+  qnTitle: string
+) => {
+  collabSocket.emit(
+    CollabEvents.INIT_DOCUMENT,
+    roomId,
+    template,
+    uid1,
+    uid2,
+    language,
+    qnId,
+    qnTitle
+  );
 
   return new Promise<void>((resolve) => {
     collabSocket.once(CollabEvents.UPDATE, (update) => {

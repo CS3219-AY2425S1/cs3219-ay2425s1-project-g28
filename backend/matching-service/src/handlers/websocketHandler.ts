@@ -11,7 +11,7 @@ import {
 } from "./matchHandler";
 import { io } from "../server";
 import { v4 as uuidv4 } from "uuid";
-import { qnHistoryService, questionService } from "../utils/api";
+import { questionService } from "../utils/api";
 
 enum MatchEvents {
   // Receive
@@ -129,28 +129,18 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
           return;
         }
 
-        const { complexity, category, language } = match;
+        const { complexity, category } = match;
         questionService
           .get("/random", { params: { complexity, category } })
           .then((res) => {
-            const qnId = res.data.question.id;
-            qnHistoryService
-              .post("/", {
-                userIds: [userId1, userId2],
-                questionId: qnId,
-                title: res.data.question.title,
-                submissionStatus: "Attempted",
-                dateAttempted: new Date(),
-                timeTaken: 0,
-                language: language,
-              })
-              .then((res) => {
-                io.to(matchId).emit(
-                  MatchEvents.MATCH_SUCCESSFUL,
-                  qnId,
-                  res.data.qnHistory.id
-                );
-              });
+            io.to(matchId).emit(
+              MatchEvents.MATCH_SUCCESSFUL,
+              res.data.question.id,
+              res.data.question.title
+            );
+          })
+          .catch((err) => {
+            console.log(err);
           });
       }
     }

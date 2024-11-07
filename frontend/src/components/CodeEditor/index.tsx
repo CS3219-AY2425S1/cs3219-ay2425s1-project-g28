@@ -11,7 +11,8 @@ import { yCollab } from "y-codemirror.next";
 import { Text } from "yjs";
 import { Awareness } from "y-protocols/awareness";
 import { useCollab } from "../../contexts/CollabContext";
-import { USE_COLLAB_ERROR_MESSAGE } from "../../utils/constants";
+import { USE_COLLAB_ERROR_MESSAGE, USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
+import { useMatch } from "../../contexts/MatchContext";
 
 interface CodeEditorProps {
   editorState?: { text: Text; awareness: Awareness };
@@ -40,12 +41,19 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     isReadOnly = false,
   } = props;
 
+  const match = useMatch();
+  if (!match) {
+    throw new Error(USE_MATCH_ERROR_MESSAGE);
+  }
+
+  const { matchCriteria, matchUser, partner, questionId, questionTitle } = match;
+
   const collab = useCollab();
   if (!collab) {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
-  const { setCode } = collab;
+  const { setCode, checkDocReady } = collab;
 
   const [isEditorReady, setIsEditorReady] = useState<boolean>(false);
   const [isDocumentLoaded, setIsDocumentLoaded] = useState<boolean>(false);
@@ -66,8 +74,11 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     }
 
     const loadTemplate = async () => {
-      await initDocument(uid, roomId, template);
-      setIsDocumentLoaded(true);
+      if (matchUser && partner && matchCriteria && questionId && questionTitle) {
+        await initDocument(uid, roomId, template, matchUser.id, partner.id, matchCriteria.language, questionId, questionTitle);
+        checkDocReady();
+        setIsDocumentLoaded(true);
+      }
     };
     loadTemplate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
