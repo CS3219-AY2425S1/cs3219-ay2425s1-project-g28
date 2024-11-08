@@ -1,6 +1,6 @@
 import app from "./app.ts";
 import connectDB from "./config/db.ts";
-import { seedQuestions } from "./scripts/seed.ts";
+// import { seedQuestions } from "./scripts/seed.ts";
 
 const PORT = process.env.SERVICE_PORT || 3000;
 
