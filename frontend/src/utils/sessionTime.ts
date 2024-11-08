@@ -5,8 +5,6 @@ export const extractMinutesFromTime = (time: number) =>
 
 export const extractSecondsFromTime = (time: number) => time % 60; // after extracting hours and minutes
 
-export const extractMinutesOnly = (time: number) => time / 60;
-
 export const convertDateString = (date: string): string => {
   const convertedDate = new Date(date);
   const dateString = convertedDate.toLocaleDateString("en-GB", {

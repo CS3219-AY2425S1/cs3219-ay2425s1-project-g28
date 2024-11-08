@@ -75,8 +75,8 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
 
     const loadTemplate = async () => {
       if (matchUser && partner && matchCriteria && questionId && questionTitle) {
-        await initDocument(uid, roomId, template, matchUser.id, partner.id, matchCriteria.language, questionId, questionTitle);
         checkDocReady();
+        await initDocument(uid, roomId, template, matchUser.id, partner.id, matchCriteria.language, questionId, questionTitle);
         setIsDocumentLoaded(true);
       }
     };

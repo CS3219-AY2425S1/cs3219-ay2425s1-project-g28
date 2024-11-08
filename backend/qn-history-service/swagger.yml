@@ -5,6 +5,12 @@ info:
   version: 1.0.0
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     QnHistory:
       properties:
@@ -28,7 +34,7 @@ components:
           description: Date that question was attempted
         timeTaken:
           type: number
-          description: Time taken for question attempt in minutes
+          description: Time taken for question attempt in seconds
         code:
           type: string
           description: Code submitted
@@ -63,7 +69,7 @@ definitions:
         description: Date that question was attempted
       timeTaken:
         type: number
-        description: Time taken for question attempt in minutes
+        description: Time taken for question attempt in seconds
       code:
         type: string
         description: Code submitted
@@ -119,6 +125,8 @@ paths:
         - qnhistories
       summary: Creates a question history
       description: Creates a question history
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -218,6 +226,8 @@ paths:
         - qnhistories
       summary: Updates a question history
       description: Updates a question history
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id

@@ -1,6 +1,7 @@
 import { Dispatch } from "react";
 import { qnHistoryClient } from "../utils/api";
 import { isString, isStringArray } from "../utils/typeChecker";
+import { getToken } from "../utils/token";
 
 type QnHistoryDetail = {
   id: string;
@@ -151,7 +152,6 @@ export const updateQnHistoryById = async (
   >,
   dispatch: Dispatch<QnHistoryActions>
 ): Promise<boolean> => {
-  const accessToken = localStorage.getItem("token");
   return qnHistoryClient
     .put(
       `/${qnHistoryId}`,
@@ -163,7 +163,7 @@ export const updateQnHistoryById = async (
       },
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: getToken(),
         },
       }
     )

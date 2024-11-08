@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from "express";
 import { faker } from "@faker-js/faker";
 import supertest from "supertest";
 import app from "../src/app";
@@ -15,6 +16,12 @@ const request = supertest(app);
 const BASE_URL = "/api/qnhistories";
 
 faker.seed(0);
+
+jest.mock("../src/middlewares/basicAccessControl", () => ({
+  verifyToken: jest.fn((res: Request, req: Response, next: NextFunction) =>
+    next()
+  ),
+}));
 
 describe("Qn History Routes", () => {
   describe("POST / ", () => {
