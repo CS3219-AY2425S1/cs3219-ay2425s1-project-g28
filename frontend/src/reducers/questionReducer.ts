@@ -19,17 +19,12 @@ type QuestionDetail = {
   description: string;
   complexity: string;
   categories: Array<string>;
-  inputs: Array<string>;
-  outputs: Array<string>;
   pythonTemplate: string;
   javaTemplate: string;
   cTemplate: string;
+  inputs: string[];
+  outputs: string[];
 };
-
-// type QuestionDetailWithUrl = QuestionDetail & {
-//   testcaseInputFileUrl: string;
-//   testcaseOutputFileUrl: string;
-// };
 
 type QuestionListDetail = {
   id: string;
@@ -141,7 +136,7 @@ export const uploadTestcaseFiles = async (
 };
 
 export const createQuestion = async (
-  question: Omit<QuestionDetail, "id">,
+  question: Omit<QuestionDetail, "id" | "inputs" | "outputs">,
   testcaseFiles: TestcaseFiles,
   dispatch: Dispatch<QuestionActions>
 ): Promise<boolean> => {
@@ -270,7 +265,7 @@ export const getQuestionById = (
 
 export const updateQuestionById = async (
   questionId: string,
-  question: Omit<QuestionDetail, "id">,
+  question: Omit<QuestionDetail, "id" | "inputs" | "outputs">,
   testcaseFiles: TestcaseFiles,
   dispatch: Dispatch<QuestionActions>
 ): Promise<boolean> => {
