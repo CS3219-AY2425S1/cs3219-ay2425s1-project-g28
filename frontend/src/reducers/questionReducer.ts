@@ -1,6 +1,7 @@
 import { Dispatch } from "react";
 import { questionClient } from "../utils/api";
 import { isString, isStringArray } from "../utils/typeChecker";
+import { getToken } from "../utils/token";
 
 type TestcaseFiles = {
   testcaseInputFile: File | null;
@@ -126,11 +127,11 @@ export const uploadTestcaseFiles = async (
   formData.append("requestType", requestType);
 
   try {
-    const accessToken = localStorage.getItem("token");
+    const accessToken = getToken();
     const res = await questionClient.post("/tcfiles", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: accessToken,
       },
     });
     return res.data;
@@ -159,7 +160,7 @@ export const createQuestion = async (
 
   const { testcaseInputFileUrl, testcaseOutputFileUrl } = uploadResult.urls;
 
-  const accessToken = localStorage.getItem("token");
+  const accessToken = getToken();
   return questionClient
     .post(
       "/",
@@ -176,7 +177,7 @@ export const createQuestion = async (
       },
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: accessToken,
         },
       }
     )
@@ -297,7 +298,7 @@ export const updateQuestionById = async (
     };
   }
 
-  const accessToken = localStorage.getItem("token");
+  const accessToken = getToken();
   return questionClient
     .put(
       `/${questionId}`,
@@ -315,7 +316,7 @@ export const updateQuestionById = async (
       },
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: accessToken,
         },
       }
     )
@@ -337,10 +338,10 @@ export const updateQuestionById = async (
 
 export const deleteQuestionById = async (questionId: string) => {
   try {
-    const accessToken = localStorage.getItem("token");
+    const accessToken = getToken();
     await questionClient.delete(`/${questionId}`, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: accessToken,
       },
     });
     return true;
@@ -363,11 +364,11 @@ export const createImageUrls = async (
   formData: FormData
 ): Promise<{ imageUrls: string[]; message: string } | null> => {
   try {
-    const accessToken = localStorage.getItem("token");
+    const accessToken = getToken();
     const response = await questionClient.post("/images", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: accessToken,
       },
     });
     return response.data;

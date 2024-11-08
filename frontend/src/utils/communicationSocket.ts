@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
+import { getToken } from "./token";
 
 export enum CommunicationEvents {
   // send
@@ -22,6 +23,6 @@ export const communicationSocket = io(COMMUNICATION_SOCKET_URL, {
   autoConnect: false,
   withCredentials: true,
   auth: {
-    token: `Bearer ${localStorage.getItem("token")}`,
+    token: getToken(),
   },
 });
