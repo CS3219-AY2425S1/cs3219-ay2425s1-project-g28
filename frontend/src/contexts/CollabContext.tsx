@@ -11,7 +11,7 @@ import {
 import { toast } from "react-toastify";
 
 import { useMatch } from "./MatchContext";
-import { qnHistoryClient, codeExecutionClient } from "../utils/api";
+import { codeExecutionClient } from "../utils/api";
 import { useReducer } from "react";
 import { updateQnHistoryById } from "../reducers/qnHistoryReducer";
 import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";
@@ -47,6 +47,7 @@ type CollabContextType = {
   isEndSessionModalOpen: boolean;
   time: number;
   resetCollab: () => void;
+  checkDocReady: () => void;
 };
 
 const CollabContext = createContext<CollabContextType | null>(null);
@@ -68,7 +69,6 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     getMatchId,
     stopMatch,
     questionId,
-    qnHistoryId,
   } = match;
 
   const [time, setTime] = useState<number>(0);
@@ -91,6 +91,8 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const [compilerResult, setCompilerResult] = useState<CompilerResult[]>([]);
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
     useState<boolean>(false);
+  const [qnHistoryId, setQnHistoryId] = useState<string | null>(null);
+  const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
 
   const handleSubmitSessionClick = async () => {
     try {
@@ -100,9 +102,10 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         code: code.replace(/\t/g, " ".repeat(4)),
         language: matchCriteria?.language.toLowerCase(),
       });
+      setHasSubmitted(true);
       console.log([...res.data.data]);
       setCompilerResult([...res.data.data]);
-
+      
       let isMatch = true;
       for (let i = 0; i < res.data.data.length; i++) {
         if (!res.data.data[i].isMatch) {
@@ -143,11 +146,8 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const handleConfirmEndSession = async () => {
     setIsEndSessionModalOpen(false);
 
-    // Get queston history
-    const data = await qnHistoryClient.get(qnHistoryId as string);
-
     // Only update question history if it has not been submitted before
-    if (!data.data.qnHistory.code) {
+    if (!hasSubmitted) {
       updateQnHistoryById(
         qnHistoryId as string,
         {
@@ -173,6 +173,12 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
     // Reset collab state
     resetCollab();
+  };
+
+  const checkDocReady = () => {
+    collabSocket.on(CollabEvents.DOCUMENT_READY, (qnHistoryId: string) => {
+      setQnHistoryId(qnHistoryId);
+    });
   };
 
   const checkPartnerStatus = () => {
@@ -203,6 +209,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         isEndSessionModalOpen,
         time,
         resetCollab,
+        checkDocReady,
       }}
     >
       {children}
