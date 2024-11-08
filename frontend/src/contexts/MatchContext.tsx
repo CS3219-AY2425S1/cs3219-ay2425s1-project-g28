@@ -87,7 +87,7 @@ type MatchContextType = {
   matchPending: boolean;
   loading: boolean;
   questionId: string | null;
-  qnHistoryId: string | null;
+  questionTitle: string | null;
 };
 
 const requestTimeoutDuration = 5000;
@@ -113,7 +113,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const [matchPending, setMatchPending] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [questionId, setQuestionId] = useState<string | null>(null);
-  const [qnHistoryId, setQnHistoryId] = useState<string | null>(null);
+  const [questionTitle, setQuestionTitle] = useState<string | null>(null);
 
   const navigator = useContext(UNSAFE_NavigationContext).navigator as History;
 
@@ -276,10 +276,10 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const initMatchedListeners = () => {
     matchSocket.on(
       MatchEvents.MATCH_SUCCESSFUL,
-      (qnId: string, qnHistId: string) => {
+      (qnId: string, title: string) => {
         setMatchPending(false);
         setQuestionId(qnId);
-        setQnHistoryId(qnHistId);
+        setQuestionTitle(title);
         appNavigate(MatchPaths.COLLAB);
       }
     );
@@ -486,7 +486,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         matchPending,
         loading,
         questionId,
-        qnHistoryId,
+        questionTitle,
       }}
     >
       {children}

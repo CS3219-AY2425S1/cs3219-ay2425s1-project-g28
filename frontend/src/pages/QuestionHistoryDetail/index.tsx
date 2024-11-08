@@ -52,7 +52,7 @@ const QuestionHistoryDetail: React.FC = () => {
 
   const { user } = auth;
 
-  const tableHeaders = ["Status", "Date submitted", "Time taken", "Partner"];
+  const tableHeaders = ["Status", "Date attempted", "Time taken", "Partner"];
 
   useEffect(() => {
     if (!qnHistoryId) {
@@ -113,7 +113,7 @@ const QuestionHistoryDetail: React.FC = () => {
         <ArrowBack />
       </IconButton>
       <Typography variant="h2" style={{ marginTop: 20, marginBottom: 20 }}>
-        Latest submission details
+        Latest attempt details
       </Typography>
       {user && qnhistState.selectedQnHistory && (
         <TableContainer>
@@ -162,7 +162,7 @@ const QuestionHistoryDetail: React.FC = () => {
                     borderRight: "1px solid #E0E0E0",
                   }}
                 >
-                  <Typography component="span">
+                  <Typography component="span" whiteSpace="pre">
                     {convertDateString(
                       qnhistState.selectedQnHistory.dateAttempted
                     )}

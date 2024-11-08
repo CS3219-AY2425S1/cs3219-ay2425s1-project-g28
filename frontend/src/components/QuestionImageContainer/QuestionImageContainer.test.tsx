@@ -10,7 +10,7 @@ jest.mock("../../utils/api", () => ({
 
 describe("Question Image Container", () => {
   const mockLocalStorage = (() => {
-    const store: { [key: string]: string } = { token: "test" };
+    const store: { [key: string]: string } = { accessToken: "test" };
 
     return {
       getItem(key: string) {
@@ -122,7 +122,7 @@ describe("Question Image Container", () => {
         expect.any(FormData),
         expect.objectContaining({
           headers: {
-            Authorization: `Bearer ${mockLocalStorage.getItem("token")}`,
+            Authorization: `Bearer ${mockLocalStorage.getItem("accessToken")}`,
             "Content-Type": "multipart/form-data",
           },
         })

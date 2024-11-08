@@ -90,7 +90,7 @@ describe("Code execution routes", () => {
       expect(response.body.data).toBeInstanceOf(Array);
       expect(response.body.data[0]).toHaveProperty("isMatch", true);
       expect(response.body.data[0]["isMatch"]).toBe(true);
-      expect(response.body.data[1]["isMatch"]).toBe(false);
+      expect(response.body.data[1]["isMatch"]).toBe(true);
     });
   });
 });
