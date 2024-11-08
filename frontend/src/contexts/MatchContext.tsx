@@ -17,9 +17,6 @@ import useAppNavigate from "../hooks/useAppNavigate";
 import { UNSAFE_NavigationContext } from "react-router-dom";
 import { Action, type History, type Transition } from "history";
 
-let matchUserId: string;
-let partnerUserId: string;
-
 type MatchUser = {
   id: string;
   username: string;
@@ -126,10 +123,8 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         username: user.username,
         profile: user.profilePictureUrl,
       });
-      matchUserId = user.id;
     } else {
       setMatchUser(null);
-      matchUserId = "";
     }
   }, [user]);
 
@@ -183,7 +178,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     }
     setMatchId(null);
     setPartner(null);
-    partnerUserId = "";
     setMatchPending(false);
     setLoading(false);
   };
@@ -307,10 +301,8 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     setMatchId(matchId);
     if (matchUser?.id === user1.id) {
       setPartner(user2);
-      partnerUserId = user2.id;
     } else {
       setPartner(user1);
-      partnerUserId = user1.id;
     }
     setMatchPending(true);
     appNavigate(MatchPaths.MATCHED);
@@ -391,9 +383,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const acceptMatch = () => {
     matchSocket.emit(
       MatchEvents.MATCH_ACCEPT_REQUEST,
-      matchId,
-      matchUserId,
-      partnerUserId
+      matchId
     );
   };
 
@@ -429,7 +419,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         if (requested) {
           appNavigate(MatchPaths.MATCHING);
           setPartner(null);
-          partnerUserId = "";
         }
       }
     );
@@ -479,11 +468,9 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         if (match) {
           setMatchId(match.matchId);
           setPartner(match.partner);
-          partnerUserId = match.partner.id;
         } else {
           setMatchId(null);
           setPartner(null);
-          partnerUserId = "";
         }
         setLoading(false);
       }

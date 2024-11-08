@@ -119,27 +119,24 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
     userConnections.delete(uid);
   });
 
-  socket.on(
-    MatchEvents.MATCH_ACCEPT_REQUEST,
-    (matchId: string, userId1: string, userId2: string) => {
-      const partnerAccepted = handleMatchAccept(matchId);
-      if (partnerAccepted) {
-        const match = getMatchById(matchId);
-        if (!match) {
-          return;
-        }
-
-        const { complexity, category } = match;
-        getRandomQuestion(complexity, category).then((res) => {
-          io.to(matchId).emit(
-            MatchEvents.MATCH_SUCCESSFUL,
-            res.data.question.id,
-            res.data.question.title
-          );
-        });
+  socket.on(MatchEvents.MATCH_ACCEPT_REQUEST, (matchId: string) => {
+    const partnerAccepted = handleMatchAccept(matchId);
+    if (partnerAccepted) {
+      const match = getMatchById(matchId);
+      if (!match) {
+        return;
       }
+
+      const { complexity, category } = match;
+      getRandomQuestion(complexity, category).then((res) => {
+        io.to(matchId).emit(
+          MatchEvents.MATCH_SUCCESSFUL,
+          res.data.question.id,
+          res.data.question.title
+        );
+      });
     }
-  );
+  });
 
   socket.on(
     MatchEvents.MATCH_DECLINE_REQUEST,
