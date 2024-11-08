@@ -17,6 +17,7 @@ enum CollabEvents {
 
   // Send
   ROOM_READY = "room_ready",
+  DOCUMENT_READY = "document_ready",
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
   END_SESSION = "end_session",
@@ -31,7 +32,7 @@ const collabSessions = new Map<string, Doc>();
 const partnerReadiness = new Map<string, boolean>();
 
 export const handleWebsocketCollabEvents = (socket: Socket) => {
-  socket.on(CollabEvents.JOIN, async (uid: string, roomId: string) => {
+  socket.on(CollabEvents.JOIN, (uid: string, roomId: string) => {
     const connectionKey = `${uid}:${roomId}`;
     if (userConnections.has(connectionKey)) {
       clearTimeout(userConnections.get(connectionKey)!);

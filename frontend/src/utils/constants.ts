@@ -111,6 +111,8 @@ export const COLLAB_CONNECTION_ERROR =
   "Error connecting you to the collaboration session! Please try again.";
 export const COLLAB_END_ERROR =
   "Error ending the collaboration session! Please try again.";
+export const COLLAB_SUBMIT_ERROR =
+  "Error submitting your attempt! Please try again.";
 
 // Code execution
 export const FAILED_TESTCASE_MESSAGE =
