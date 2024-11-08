@@ -3,8 +3,11 @@ import app, { allowedOrigins } from "./app.ts";
 import { handleWebsocketMatchEvents } from "./handlers/websocketHandler.ts";
 import { Server } from "socket.io";
 import { connectToRabbitMq } from "./config/rabbitmq.ts";
+import { verifyToken } from "./api/userService.ts";
+import { verifyUserToken } from "./middlewares/basicAccessControl.ts";
 
 const server = http.createServer(app);
+
 export const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
@@ -12,6 +15,8 @@ export const io = new Server(server, {
   },
   connectionStateRecovery: {},
 });
+
+io.use(verifyUserToken);
 
 io.on("connection", (socket) => {
   handleWebsocketMatchEvents(socket);

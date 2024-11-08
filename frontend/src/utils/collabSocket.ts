@@ -34,9 +34,13 @@ export type CollabSessionData = {
 
 const COLLAB_SOCKET_URL =
   import.meta.env.VITE_COLLAB_SERVICE_URL ?? "http://localhost:3003";
+
 export const collabSocket = io(COLLAB_SOCKET_URL, {
   reconnectionAttempts: 3,
   autoConnect: false,
+  auth: {
+    token: `Bearer ${localStorage.getItem("token")}`,
+  },
 });
 
 let doc: Doc;

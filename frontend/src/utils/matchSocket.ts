@@ -8,4 +8,7 @@ console.log(import.meta.env.VITE_MATCH_SERVICE_URL);
 export const matchSocket = io(MATCH_SOCKET_URL, {
   reconnectionAttempts: 3,
   autoConnect: false,
+  auth: {
+    token: `Bearer ${localStorage.getItem("token")}`,
+  },
 });

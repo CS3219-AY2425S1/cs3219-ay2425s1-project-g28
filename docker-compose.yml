@@ -95,6 +95,8 @@ services:
     env_file: ./backend/communication-service/.env
     ports:
       - 3005:3005
+    depends_on:
+      - user-service
     networks:
       - peerprep-network
     volumes:
