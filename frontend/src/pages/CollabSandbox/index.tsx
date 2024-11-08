@@ -22,11 +22,6 @@ import TestCase from "../../components/TestCase";
 import CodeEditor from "../../components/CodeEditor";
 import { CollabSessionData, join, leave } from "../../utils/collabSocket";
 import { toast } from "react-toastify";
-import CustomDialog from "../../components/CustomDialog";
-import {
-  extractMinutesFromTime,
-  extractSecondsFromTime,
-} from "../../utils/sessionTime";
 
 const CollabSandbox: React.FC = () => {
   const match = useMatch();
@@ -41,17 +36,7 @@ const CollabSandbox: React.FC = () => {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
-  const {
-    compilerResult,
-    handleRejectEndSession,
-    handleConfirmEndSession,
-    checkPartnerStatus,
-    isEndSessionModalOpen,
-    resetCollab,
-    handleExitSession,
-    isExitSessionModalOpen,
-    time,
-  } = collab;
+  const { compilerResult, resetCollab } = collab;
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const { selectedQuestion } = state;
@@ -75,7 +60,6 @@ const CollabSandbox: React.FC = () => {
         const editorState = await join(matchUser.id, matchId);
         if (editorState.ready) {
           setEditorState(editorState);
-          checkPartnerStatus();
         } else {
           toast.error(COLLAB_CONNECTION_ERROR);
           setIsConnecting(false);
@@ -119,29 +103,6 @@ const CollabSandbox: React.FC = () => {
 
   return (
     <AppMargin classname={`${classes.fullheight} ${classes.flex}`}>
-      <CustomDialog
-        titleText="End Session?"
-        bodyText={
-          <>
-            Are you sure you want to end the collaboration session?
-            <br />
-            You will not be able to rejoin.
-          </>
-        }
-        primaryAction="Confirm"
-        handlePrimaryAction={() => handleConfirmEndSession(false)}
-        secondaryAction="Cancel"
-        open={isEndSessionModalOpen}
-        handleClose={handleRejectEndSession}
-      />
-      <CustomDialog
-        titleText={`You have attempted: ${selectedQuestion.title}!`}
-        bodyText={`Session duration: ${extractMinutesFromTime(time)} min 
-          ${extractSecondsFromTime(time)} sec`}
-        primaryAction="Exit session"
-        handlePrimaryAction={handleExitSession}
-        open={isExitSessionModalOpen}
-      />
       <Grid2 container sx={{ flexGrow: 1 }} spacing={4}>
         <Grid2 sx={{ flexGrow: 1 }} size={6}>
           <QuestionDetailComponent

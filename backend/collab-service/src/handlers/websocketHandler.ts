@@ -115,8 +115,8 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
 
   socket.on(
     CollabEvents.END_SESSION_REQUEST,
-    (roomId: string, timeTaken: number) => {
-      socket.to(roomId).emit(CollabEvents.END_SESSION, timeTaken);
+    (roomId: string, sessionDuration: number) => {
+      socket.to(roomId).emit(CollabEvents.END_SESSION, sessionDuration);
     }
   );
 

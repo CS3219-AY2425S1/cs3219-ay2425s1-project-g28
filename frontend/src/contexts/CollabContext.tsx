@@ -1,19 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { createContext, useContext, useState } from "react";
 import {
   USE_MATCH_ERROR_MESSAGE,
   FAILED_TESTCASE_MESSAGE,
   SUCCESS_TESTCASE_MESSAGE,
   FAILED_TO_SUBMIT_CODE_MESSAGE,
-  COLLAB_PARTNER_DISCONNECTED_MESSAGE,
-  COLLAB_ENDED_MESSAGE,
   COLLAB_END_ERROR,
 } from "../utils/constants";
 import { toast } from "react-toastify";
@@ -44,19 +36,20 @@ export type CompilerResult = {
 };
 
 type CollabContextType = {
-  handleSubmitSessionClick: () => void;
+  handleSubmitSessionClick: (time: number) => void;
   handleEndSessionClick: () => void;
   handleRejectEndSession: () => void;
   handleConfirmEndSession: (
+    time: number,
+    setTime: React.Dispatch<React.SetStateAction<number>>,
+    setStopTime: React.Dispatch<React.SetStateAction<boolean>>,
     isInitiatedByPartner: boolean,
-    time?: number
+    sessionDuration?: number
   ) => void;
-  checkPartnerStatus: () => void;
   setCode: React.Dispatch<React.SetStateAction<string>>;
   compilerResult: CompilerResult[];
   setCompilerResult: React.Dispatch<React.SetStateAction<CompilerResult[]>>;
   isEndSessionModalOpen: boolean;
-  time: number;
   resetCollab: () => void;
   handleExitSession: () => void;
   isExitSessionModalOpen: boolean;
@@ -94,31 +87,8 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     useState<boolean>(false);
   const [isExitSessionModalOpen, setIsExitSessionModalOpen] =
     useState<boolean>(false);
-  const [time, setTime] = useState<number>(0);
-  const [stopTime, setStopTime] = useState<boolean>(true);
 
-  const timeRef = useRef<number>(time);
-  const codeRef = useRef<string>(code);
-
-  useEffect(() => {
-    timeRef.current = time;
-    codeRef.current = code;
-  }, [time, code]);
-
-  useEffect(() => {
-    if (stopTime) {
-      return;
-    }
-
-    const intervalId = setInterval(
-      () => setTime((prevTime) => prevTime + 1),
-      1000
-    );
-
-    return () => clearInterval(intervalId);
-  }, [time, stopTime]);
-
-  const handleSubmitSessionClick = async () => {
+  const handleSubmitSessionClick = async (time: number) => {
     try {
       const res = await codeExecutionClient.post("/", {
         questionId,
@@ -167,8 +137,11 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const handleConfirmEndSession = async (
+    time: number,
+    setTime: React.Dispatch<React.SetStateAction<number>>,
+    setStopTime: React.Dispatch<React.SetStateAction<boolean>>,
     isInitiatedByPartner: boolean,
-    timeTaken?: number
+    sessionDuration?: number
   ) => {
     setIsEndSessionModalOpen(false);
 
@@ -181,8 +154,8 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     setStopTime(true);
     setIsExitSessionModalOpen(true);
 
-    if (isInitiatedByPartner && timeTaken) {
-      setTime(timeTaken);
+    if (isInitiatedByPartner && sessionDuration) {
+      setTime(sessionDuration);
     } else {
       // Get question history
       const data = await qnHistoryClient.get(qnHistoryId);
@@ -194,8 +167,8 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
           {
             submissionStatus: "Attempted",
             dateAttempted: new Date().toISOString(),
-            timeTaken: timeRef.current,
-            code: codeRef.current.replace(/\t/g, " ".repeat(4)),
+            timeTaken: time,
+            code: code.replace(/\t/g, " ".repeat(4)),
           },
           qnHistoryDispatch
         );
@@ -225,24 +198,8 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     resetCollab();
   };
 
-  const checkPartnerStatus = () => {
-    collabSocket.once(CollabEvents.END_SESSION, (timeTaken: number) => {
-      collabSocket.off(CollabEvents.PARTNER_DISCONNECTED);
-      toast.info(COLLAB_ENDED_MESSAGE);
-      handleConfirmEndSession(true, timeTaken);
-    });
-
-    collabSocket.once(CollabEvents.PARTNER_DISCONNECTED, () => {
-      collabSocket.off(CollabEvents.END_SESSION);
-      toast.error(COLLAB_PARTNER_DISCONNECTED_MESSAGE);
-      handleConfirmEndSession(true);
-    });
-  };
-
   const resetCollab = () => {
     setCompilerResult([]);
-    setTime(0);
-    setStopTime(false);
   };
 
   return (
@@ -252,12 +209,10 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         handleEndSessionClick,
         handleRejectEndSession,
         handleConfirmEndSession,
-        checkPartnerStatus,
         setCode,
         compilerResult,
         setCompilerResult,
         isEndSessionModalOpen,
-        time,
         resetCollab,
         handleExitSession,
         isExitSessionModalOpen,
