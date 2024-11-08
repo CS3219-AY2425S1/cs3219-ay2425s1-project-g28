@@ -1,11 +1,11 @@
 export const setToken = (token: string) => {
-  const bearerToken = `Bearer ${token}`;
-  localStorage.setItem("accessToken", bearerToken);
+  localStorage.setItem("accessToken", token);
 };
 
 export const getToken = () => {
   const token = localStorage.getItem("accessToken");
-  return token;
+  const bearerToken = `Bearer ${token}`;
+  return bearerToken;
 };
 
 export const removeToken = () => {
