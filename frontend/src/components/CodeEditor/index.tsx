@@ -57,7 +57,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
-  const { setCode, checkDocReady } = collab;
+  const { checkDocReady } = collab;
 
   const [isEditorReady, setIsEditorReady] = useState<boolean>(false);
   const [isDocumentLoaded, setIsDocumentLoaded] = useState<boolean>(false);
@@ -66,10 +66,6 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     if (!isEditorReady && editor?.editor && editor?.state && editor?.view) {
       setIsEditorReady(true);
     }
-  };
-
-  const handleChange = (value: string) => {
-    setCode(value);
   };
 
   useEffect(() => {
@@ -111,7 +107,6 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       width="100%"
       basicSetup={false}
       id="codeEditor"
-      onChange={handleChange}
       extensions={[
         indentUnit.of("\t"),
         basicSetup(),

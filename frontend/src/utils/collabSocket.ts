@@ -140,3 +140,9 @@ export const receiveCursorUpdate = (view: EditorView) => {
     });
   });
 };
+
+export const getDocContent = () => {
+  return doc && !doc.isDestroyed
+    ? doc.getText().toString().replace(/\t/g, " ".repeat(4)) // Replace tabs with 4 spaces to prevent formatting issues
+    : "";
+};

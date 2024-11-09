@@ -25,7 +25,12 @@ import { codeExecutionClient, qnHistoryClient } from "../utils/api";
 import { useReducer } from "react";
 import { updateQnHistoryById } from "../reducers/qnHistoryReducer";
 import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";
-import { CollabEvents, collabSocket, leave } from "../utils/collabSocket";
+import {
+  CollabEvents,
+  collabSocket,
+  getDocContent,
+  leave,
+} from "../utils/collabSocket";
 import {
   CommunicationEvents,
   communicationSocket,
@@ -53,11 +58,9 @@ type CollabContextType = {
   handleConfirmEndSession: (
     time: number,
     setTime: React.Dispatch<React.SetStateAction<number>>,
-    setStopTime: React.Dispatch<React.SetStateAction<boolean>>,
     isInitiatedByPartner: boolean,
     sessionDuration?: number
   ) => void;
-  setCode: React.Dispatch<React.SetStateAction<string>>;
   compilerResult: CompilerResult[];
   setCompilerResult: React.Dispatch<React.SetStateAction<CompilerResult[]>>;
   isEndSessionModalOpen: boolean;
@@ -70,6 +73,8 @@ type CollabContextType = {
   handleExitSession: () => void;
   isExitSessionModalOpen: boolean;
   qnHistoryId: string | null;
+  stopTime: boolean;
+  setStopTime: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const CollabContext = createContext<CollabContextType | null>(null);
@@ -91,31 +96,27 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     qnHistoryReducer,
     initialQHState
   );
-  const [code, setCode] = useState<string>("");
+
   const [compilerResult, setCompilerResult] = useState<CompilerResult[]>([]);
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
     useState<boolean>(false);
   const [isExitSessionModalOpen, setIsExitSessionModalOpen] =
     useState<boolean>(false);
   const [qnHistoryId, setQnHistoryId] = useState<string | null>(null);
+  const [stopTime, setStopTime] = useState<boolean>(true);
 
-  const codeRef = useRef<string>(code);
   const qnHistoryIdRef = useRef<string | null>(qnHistoryId);
-
-  useEffect(() => {
-    codeRef.current = code;
-  }, [code]);
 
   useEffect(() => {
     qnHistoryIdRef.current = qnHistoryId;
   }, [qnHistoryId]);
 
   const handleSubmitSessionClick = async (time: number) => {
+    const code = getDocContent();
     try {
       const res = await codeExecutionClient.post("/", {
         questionId,
-        // Replace tabs with 4 spaces to prevent formatting issues
-        code: code.replace(/\t/g, " ".repeat(4)),
+        code: code,
         language: matchCriteria?.language.toLowerCase(),
       });
       setCompilerResult([...res.data.data]);
@@ -145,7 +146,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
           submissionStatus: isMatch ? "Accepted" : "Rejected",
           dateAttempted: new Date().toISOString(),
           timeTaken: time,
-          code: codeRef.current,
+          code: code,
         },
         qnHistoryDispatch
       );
@@ -165,7 +166,6 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const handleConfirmEndSession = async (
     time: number,
     setTime: React.Dispatch<React.SetStateAction<number>>,
-    setStopTime: React.Dispatch<React.SetStateAction<boolean>>,
     isInitiatedByPartner: boolean,
     sessionDuration?: number
   ) => {
@@ -189,13 +189,15 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
       // Only update question history if it has not been submitted before
       if (data.data.qnHistory.timeTaken === 0) {
+        const code = getDocContent();
+
         updateQnHistoryById(
           qnHistoryIdRef.current,
           {
             submissionStatus: "Attempted",
             dateAttempted: new Date().toISOString(),
             timeTaken: time,
-            code: codeRef.current.replace(/\t/g, " ".repeat(4)),
+            code: code,
           },
           qnHistoryDispatch
         );
@@ -238,6 +240,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       collabSocket.on(CollabEvents.DOCUMENT_NOT_FOUND, () => {
         toast.error(COLLAB_DOCUMENT_ERROR);
         setIsDocumentLoaded(false);
+        setStopTime(true);
 
         const text = doc.getText();
         doc.transact(() => {
@@ -248,6 +251,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
           applyUpdateV2(doc, new Uint8Array(update), matchUser?.id);
           toast.success(COLLAB_DOCUMENT_RESTORED);
           setIsDocumentLoaded(true);
+          setStopTime(false);
         });
 
         collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
@@ -263,6 +267,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         ) {
           toast.error(COLLAB_DOCUMENT_ERROR);
           setIsDocumentLoaded(false);
+          setStopTime(true);
         }
       });
     }
@@ -278,6 +283,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
           applyUpdateV2(doc, new Uint8Array(update), matchUser?.id);
           toast.success(COLLAB_DOCUMENT_RESTORED);
           setIsDocumentLoaded(true);
+          setStopTime(false);
         });
 
         collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
@@ -312,7 +318,6 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         handleEndSessionClick,
         handleRejectEndSession,
         handleConfirmEndSession,
-        setCode,
         compilerResult,
         setCompilerResult,
         isEndSessionModalOpen,
@@ -321,6 +326,8 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         handleExitSession,
         isExitSessionModalOpen,
         qnHistoryId,
+        stopTime,
+        setStopTime,
       }}
     >
       {children}

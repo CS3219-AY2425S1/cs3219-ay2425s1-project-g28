@@ -43,10 +43,11 @@ const CollabSessionControls: React.FC = () => {
     handleExitSession,
     isExitSessionModalOpen,
     qnHistoryId,
+    stopTime,
+    setStopTime,
   } = collab;
 
   const [time, setTime] = useState<number>(0);
-  const [stopTime, setStopTime] = useState<boolean>(true);
   const timeRef = useRef<number>(time);
 
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -56,19 +57,13 @@ const CollabSessionControls: React.FC = () => {
     collabSocket.once(CollabEvents.END_SESSION, (sessionDuration: number) => {
       collabSocket.off(CollabEvents.PARTNER_DISCONNECTED);
       toast.info(COLLAB_ENDED_MESSAGE);
-      handleConfirmEndSession(
-        timeRef.current,
-        setTime,
-        setStopTime,
-        true,
-        sessionDuration
-      );
+      handleConfirmEndSession(timeRef.current, setTime, true, sessionDuration);
     });
 
     collabSocket.once(CollabEvents.PARTNER_DISCONNECTED, () => {
       collabSocket.off(CollabEvents.END_SESSION);
       toast.error(COLLAB_PARTNER_DISCONNECTED_MESSAGE);
-      handleConfirmEndSession(timeRef.current, setTime, setStopTime, true);
+      handleConfirmEndSession(timeRef.current, setTime, true);
     });
 
     return () => {
@@ -115,7 +110,7 @@ const CollabSessionControls: React.FC = () => {
         }}
         variant="outlined"
         color="success"
-        onClick={() => handleSubmitSessionClick(timeRef.current)}
+        onClick={() => handleSubmitSessionClick(time)}
         disabled={stopTime}
       >
         Submit
@@ -145,7 +140,7 @@ const CollabSessionControls: React.FC = () => {
         }
         primaryAction="Confirm"
         handlePrimaryAction={() =>
-          handleConfirmEndSession(timeRef.current, setTime, setStopTime, false)
+          handleConfirmEndSession(time, setTime, false)
         }
         secondaryAction="Cancel"
         open={isEndSessionModalOpen}
