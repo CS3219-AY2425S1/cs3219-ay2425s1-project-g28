@@ -3,8 +3,10 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { matchSocket } from "../utils/matchSocket";
 import {
+  ABORT_COLLAB_SESSION_CONFIRMATION_MESSAGE,
   ABORT_MATCH_PROCESS_CONFIRMATION_MESSAGE,
   FAILED_MATCH_REQUEST_MESSAGE,
+  MATCH_ACCEPTANCE_ERROR,
   MATCH_CONNECTION_ERROR,
   MATCH_LOGIN_REQUIRED_MESSAGE,
   MATCH_REQUEST_EXISTS_MESSAGE,
@@ -78,7 +80,6 @@ type MatchContextType = {
   retryMatch: () => void;
   matchingTimeout: () => void;
   matchOfferTimeout: () => void;
-  verifyMatchStatus: () => void;
   getMatchId: () => string | null;
   matchUser: MatchUser | null;
   matchCriteria: MatchCriteria | null;
@@ -129,12 +130,11 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   }, [user]);
 
   useEffect(() => {
-    if (
-      !matchUser?.id ||
-      (location.pathname !== MatchPaths.MATCHING &&
-        location.pathname !== MatchPaths.MATCHED &&
-        location.pathname !== MatchPaths.COLLAB)
-    ) {
+    const isMatchPage =
+      location.pathname === MatchPaths.MATCHING ||
+      location.pathname === MatchPaths.MATCHED;
+    const isCollabPage = location.pathname == MatchPaths.COLLAB;
+    if (!matchUser?.id || !(isMatchPage || isCollabPage)) {
       resetMatchStates();
       return;
     }
@@ -142,21 +142,25 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     openSocketConnection();
     matchSocket.emit(MatchEvents.USER_CONNECTED, matchUser?.id);
 
+    const message = isMatchPage
+      ? ABORT_MATCH_PROCESS_CONFIRMATION_MESSAGE
+      : ABORT_COLLAB_SESSION_CONFIRMATION_MESSAGE;
+
+    // handle page leave (navigate away)
     const unblock = navigator.block((transition: Transition) => {
-      if (
-        transition.action === Action.Replace ||
-        confirm(ABORT_MATCH_PROCESS_CONFIRMATION_MESSAGE)
-      ) {
+      if (transition.action === Action.Replace || confirm(message)) {
         unblock();
         appNavigate(transition.location.pathname);
       }
     });
 
+    // handle tab closure / url change
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = ABORT_MATCH_PROCESS_CONFIRMATION_MESSAGE; // for legacy support, does not actually display message
+      e.returnValue = message; // for legacy support, does not actually display message
     };
 
+    // handle page refresh / tab closure
     const handleUnload = () => {
       closeSocketConnection();
     };
@@ -166,6 +170,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
     return () => {
       closeSocketConnection();
+      unblock();
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("unload", handleUnload);
     };
@@ -381,10 +386,12 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const acceptMatch = () => {
-    matchSocket.emit(
-      MatchEvents.MATCH_ACCEPT_REQUEST,
-      matchId
-    );
+    if (!matchUser || !partner) {
+      toast.error(MATCH_ACCEPTANCE_ERROR);
+      return;
+    }
+
+    matchSocket.emit(MatchEvents.MATCH_ACCEPT_REQUEST, matchId);
   };
 
   const rematch = () => {
@@ -453,30 +460,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     appNavigate(MatchPaths.HOME);
   };
 
-  const verifyMatchStatus = () => {
-    const requestTimeout = setTimeout(() => {
-      setLoading(false);
-      toast.error(MATCH_CONNECTION_ERROR);
-    }, requestTimeoutDuration);
-
-    setLoading(true);
-    matchSocket.emit(
-      MatchEvents.MATCH_STATUS_REQUEST,
-      matchUser?.id,
-      (match: { matchId: string; partner: MatchUser } | null) => {
-        clearTimeout(requestTimeout);
-        if (match) {
-          setMatchId(match.matchId);
-          setPartner(match.partner);
-        } else {
-          setMatchId(null);
-          setPartner(null);
-        }
-        setLoading(false);
-      }
-    );
-  };
-
   const getMatchId = () => {
     return matchId;
   };
@@ -491,7 +474,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         retryMatch,
         matchingTimeout,
         matchOfferTimeout,
-        verifyMatchStatus,
         getMatchId,
         matchUser,
         matchCriteria,
