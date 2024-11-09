@@ -113,6 +113,10 @@ export const COLLAB_END_ERROR =
   "Error ending the collaboration session! Please try again.";
 export const COLLAB_SUBMIT_ERROR =
   "Error submitting your attempt! Please try again.";
+export const COLLAB_DOCUMENT_ERROR =
+  "Error syncing the code! Please wait as we try to reconnect. Recent changes may be lost.";
+export const COLLAB_DOCUMENT_RESTORED =
+  "Connection restored! You may resume editing the code.";
 
 // Code execution
 export const FAILED_TESTCASE_MESSAGE =

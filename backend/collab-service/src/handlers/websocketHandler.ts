@@ -18,6 +18,7 @@ enum CollabEvents {
   // Send
   ROOM_READY = "room_ready",
   DOCUMENT_READY = "document_ready",
+  DOCUMENT_NOT_FOUND = "document_not_found",
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
   END_SESSION = "end_session",
@@ -109,7 +110,8 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
       if (doc) {
         applyUpdateV2(doc, new Uint8Array(update));
       } else {
-        // TODO: error handling
+        io.to(roomId).emit(CollabEvents.DOCUMENT_NOT_FOUND);
+        io.sockets.adapter.rooms.delete(roomId);
       }
     }
   );
@@ -153,24 +155,18 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
     }
   );
 
-  socket.on(CollabEvents.RECONNECT_REQUEST, async (roomId: string) => {
-    // TODO: Handle recconnection
-    socket.join(roomId);
+  socket.on(CollabEvents.RECONNECT_REQUEST, (roomId: string) => {
+    const room = io.sockets.adapter.rooms.get(roomId);
+    if (!room || room.size < 2) {
+      socket.join(roomId);
+      socket.data.roomId = roomId;
+    }
 
-    const doc = getDocument(roomId);
-    const storeData = await redisClient.get(`collaboration:${roomId}`);
-
-    if (storeData) {
-      const tempDoc = new Doc();
-      const update = Buffer.from(storeData, "base64");
-      applyUpdateV2(tempDoc, new Uint8Array(update));
-      const tempText = tempDoc.getText().toString();
-
-      const text = doc.getText();
-      doc.transact(() => {
-        text.delete(0, text.length);
-        text.insert(0, tempText);
-      });
+    if (
+      io.sockets.adapter.rooms.get(roomId)?.size === 2 &&
+      !collabSessions.has(roomId)
+    ) {
+      restoreDocument(roomId);
     }
   });
 };
@@ -201,12 +197,30 @@ const getDocument = (roomId: string) => {
   return doc;
 };
 
-const saveDocument = async (roomId: string, doc: Doc) => {
+const saveDocument = (roomId: string, doc: Doc) => {
   const docState = encodeStateAsUpdateV2(doc);
   const docAsString = Buffer.from(docState).toString("base64");
-  await redisClient.set(`collaboration:${roomId}`, docAsString, {
+  redisClient.set(`collaboration:${roomId}`, docAsString, {
     EX: EXPIRY_TIME,
   });
+};
+
+const restoreDocument = async (roomId: string) => {
+  const doc = getDocument(roomId);
+  const storeData = await redisClient.get(`collaboration:${roomId}`);
+
+  if (storeData) {
+    const tempDoc = new Doc();
+    const update = Buffer.from(storeData, "base64");
+    applyUpdateV2(tempDoc, new Uint8Array(update));
+    const tempText = tempDoc.getText().toString();
+
+    const text = doc.getText();
+    doc.transact(() => {
+      text.delete(0, text.length);
+      text.insert(0, tempText);
+    });
+  }
 };
 
 const handleUserLeave = (uid: string, roomId: string, socket: Socket) => {

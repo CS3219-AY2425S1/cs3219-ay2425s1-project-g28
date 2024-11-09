@@ -18,10 +18,12 @@ export enum CollabEvents {
   // Receive
   ROOM_READY = "room_ready",
   DOCUMENT_READY = "document_ready",
+  DOCUMENT_NOT_FOUND = "document_not_found",
   UPDATE = "updateV2",
   UPDATE_CURSOR = "update_cursor",
   END_SESSION = "end_session",
   PARTNER_DISCONNECTED = "partner_disconnected",
+
   SOCKET_DISCONNECT = "disconnect",
   SOCKET_CLIENT_DISCONNECT = "io client disconnect",
   SOCKET_SERVER_DISCONNECT = "io server disconnect",
@@ -31,6 +33,7 @@ export enum CollabEvents {
 
 export type CollabSessionData = {
   ready: boolean;
+  doc: Doc;
   text: Text;
   awareness: Awareness;
 };
@@ -61,7 +64,7 @@ export const join = (
   awareness = new Awareness(doc);
 
   doc.on(CollabEvents.UPDATE, (update, origin) => {
-    if (origin != uid) {
+    if (origin !== uid) {
       collabSocket.emit(CollabEvents.UPDATE_REQUEST, roomId, update);
     }
   });
@@ -74,7 +77,7 @@ export const join = (
 
   return new Promise((resolve) => {
     collabSocket.once(CollabEvents.ROOM_READY, (ready: boolean) => {
-      resolve({ ready: ready, text: text, awareness: awareness });
+      resolve({ ready: ready, doc: doc, text: text, awareness: awareness });
     });
   });
 };

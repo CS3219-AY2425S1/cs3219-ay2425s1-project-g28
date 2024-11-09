@@ -14,6 +14,8 @@ import {
   FAILED_TO_SUBMIT_CODE_MESSAGE,
   COLLAB_END_ERROR,
   COLLAB_SUBMIT_ERROR,
+  COLLAB_DOCUMENT_ERROR,
+  COLLAB_DOCUMENT_RESTORED,
 } from "../utils/constants";
 import { toast } from "react-toastify";
 
@@ -28,6 +30,7 @@ import {
   communicationSocket,
 } from "../utils/communicationSocket";
 import useAppNavigate from "../hooks/useAppNavigate";
+import { applyUpdateV2, Doc } from "yjs";
 
 export type CompilerResult = {
   status: string;
@@ -58,7 +61,11 @@ type CollabContextType = {
   setCompilerResult: React.Dispatch<React.SetStateAction<CompilerResult[]>>;
   isEndSessionModalOpen: boolean;
   resetCollab: () => void;
-  checkDocReady: () => void;
+  checkDocReady: (
+    roomId: string,
+    doc: Doc,
+    setIsDocumentLoaded: React.Dispatch<React.SetStateAction<boolean>>
+  ) => void;
   handleExitSession: () => void;
   isExitSessionModalOpen: boolean;
   qnHistoryId: string | null;
@@ -216,9 +223,31 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     resetCollab();
   };
 
-  const checkDocReady = () => {
+  const checkDocReady = (
+    roomId: string,
+    doc: Doc,
+    setIsDocumentLoaded: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
     collabSocket.on(CollabEvents.DOCUMENT_READY, (qnHistoryId: string) => {
       setQnHistoryId(qnHistoryId);
+    });
+
+    collabSocket.on(CollabEvents.DOCUMENT_NOT_FOUND, () => {
+      toast.error(COLLAB_DOCUMENT_ERROR);
+      setIsDocumentLoaded(false);
+
+      const text = doc.getText();
+      doc.transact(() => {
+        text.delete(0, text.length);
+      }, matchUser?.id);
+
+      collabSocket.once(CollabEvents.UPDATE, (update) => {
+        applyUpdateV2(doc, new Uint8Array(update), matchUser?.id);
+        toast.success(COLLAB_DOCUMENT_RESTORED);
+        setIsDocumentLoaded(true);
+      });
+
+      collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
     });
   };
 

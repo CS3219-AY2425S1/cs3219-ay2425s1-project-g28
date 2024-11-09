@@ -8,14 +8,17 @@ import { useEffect, useState } from "react";
 import { initDocument } from "../../utils/collabSocket";
 import { cursorExtension } from "../../utils/collabCursor";
 import { yCollab } from "y-codemirror.next";
-import { Text } from "yjs";
+import { Doc, Text } from "yjs";
 import { Awareness } from "y-protocols/awareness";
 import { useCollab } from "../../contexts/CollabContext";
-import { USE_COLLAB_ERROR_MESSAGE, USE_MATCH_ERROR_MESSAGE } from "../../utils/constants";
+import {
+  USE_COLLAB_ERROR_MESSAGE,
+  USE_MATCH_ERROR_MESSAGE,
+} from "../../utils/constants";
 import { useMatch } from "../../contexts/MatchContext";
 
 interface CodeEditorProps {
-  editorState?: { text: Text; awareness: Awareness };
+  editorState?: { doc: Doc; text: Text; awareness: Awareness };
   uid?: string;
   username?: string;
   language: string;
@@ -46,7 +49,8 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
 
-  const { matchCriteria, matchUser, partner, questionId, questionTitle } = match;
+  const { matchCriteria, matchUser, partner, questionId, questionTitle } =
+    match;
 
   const collab = useCollab();
   if (!collab) {
@@ -69,14 +73,29 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
   };
 
   useEffect(() => {
-    if (isReadOnly || !isEditorReady) {
+    if (isReadOnly || !isEditorReady || !editorState) {
       return;
     }
 
     const loadTemplate = async () => {
-      if (matchUser && partner && matchCriteria && questionId && questionTitle) {
-        checkDocReady();
-        await initDocument(uid, roomId, template, matchUser.id, partner.id, matchCriteria.language, questionId, questionTitle);
+      if (
+        matchUser &&
+        partner &&
+        matchCriteria &&
+        questionId &&
+        questionTitle
+      ) {
+        checkDocReady(roomId, editorState.doc, setIsDocumentLoaded);
+        await initDocument(
+          uid,
+          roomId,
+          template,
+          matchUser.id,
+          partner.id,
+          matchCriteria.language,
+          questionId,
+          questionTitle
+        );
         setIsDocumentLoaded(true);
       }
     };
@@ -109,9 +128,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       ]}
       value={isReadOnly ? template : undefined}
       placeholder={
-        !isReadOnly && !isDocumentLoaded
-          ? "Loading code template..."
-          : undefined
+        !isReadOnly && !isDocumentLoaded ? "Loading the code..." : undefined
       }
     />
   );
