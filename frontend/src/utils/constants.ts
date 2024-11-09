@@ -108,9 +108,11 @@ export const COLLAB_ENDED_MESSAGE =
 export const COLLAB_PARTNER_DISCONNECTED_MESSAGE =
   "Unfortunately, the collaboration session has ended as your partner has disconnected.";
 export const COLLAB_CONNECTION_ERROR =
-  "Error connecting you to the collaboration session! Please try again.";
+  "Error connecting you to the collaboration session! Please find another match.";
+export const COLLAB_RECONNECTION_ERROR =
+  "Error reconnecting you to the collaboration session! Closing the session...";
 export const COLLAB_END_ERROR =
-  "Error ending the collaboration session! Please try again.";
+  "Something went wrong! Forcefully ending the session...";
 export const COLLAB_SUBMIT_ERROR =
   "Error submitting your attempt! Please try again.";
 export const COLLAB_DOCUMENT_ERROR =

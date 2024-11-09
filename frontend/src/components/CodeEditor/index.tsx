@@ -101,7 +101,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     };
     loadTemplate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReadOnly, isEditorReady]);
+  }, [isReadOnly, isEditorReady, editorState]);
 
   return (
     <CodeMirror

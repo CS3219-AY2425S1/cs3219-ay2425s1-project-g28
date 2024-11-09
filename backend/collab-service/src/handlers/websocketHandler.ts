@@ -37,7 +37,6 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
     const connectionKey = `${uid}:${roomId}`;
     if (userConnections.has(connectionKey)) {
       clearTimeout(userConnections.get(connectionKey)!);
-      return;
     }
     userConnections.set(connectionKey, null);
 
@@ -50,11 +49,10 @@ export const handleWebsocketCollabEvents = (socket: Socket) => {
     socket.join(roomId);
     socket.data.roomId = roomId;
 
-    if (
-      io.sockets.adapter.rooms.get(roomId)?.size === 2 &&
-      !collabSessions.has(roomId)
-    ) {
-      createCollabSession(roomId);
+    if (io.sockets.adapter.rooms.get(roomId)?.size === 2) {
+      if (!collabSessions.has(roomId)) {
+        createCollabSession(roomId);
+      }
       io.to(roomId).emit(CollabEvents.ROOM_READY, true);
     }
   });

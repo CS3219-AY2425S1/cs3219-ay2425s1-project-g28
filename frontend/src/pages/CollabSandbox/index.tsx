@@ -52,6 +52,8 @@ const CollabSandbox: React.FC = () => {
     resetCollab();
 
     if (!matchUser || !matchId) {
+      toast.error(COLLAB_CONNECTION_ERROR);
+      setIsConnecting(false);
       return;
     }
 

@@ -16,6 +16,7 @@ import {
   COLLAB_SUBMIT_ERROR,
   COLLAB_DOCUMENT_ERROR,
   COLLAB_DOCUMENT_RESTORED,
+  COLLAB_RECONNECTION_ERROR,
 } from "../utils/constants";
 import { toast } from "react-toastify";
 
@@ -173,6 +174,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     const roomId = getMatchId();
     if (!matchUser || !roomId || !qnHistoryIdRef.current) {
       toast.error(COLLAB_END_ERROR);
+      appNavigate("/home");
       return;
     }
 
@@ -213,8 +215,6 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const handleExitSession = () => {
-    setIsExitSessionModalOpen(false);
-
     // Delete match data
     stopMatch();
     appNavigate("/home");
@@ -228,31 +228,80 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     doc: Doc,
     setIsDocumentLoaded: React.Dispatch<React.SetStateAction<boolean>>
   ) => {
-    collabSocket.on(CollabEvents.DOCUMENT_READY, (qnHistoryId: string) => {
-      setQnHistoryId(qnHistoryId);
-    });
-
-    collabSocket.on(CollabEvents.DOCUMENT_NOT_FOUND, () => {
-      toast.error(COLLAB_DOCUMENT_ERROR);
-      setIsDocumentLoaded(false);
-
-      const text = doc.getText();
-      doc.transact(() => {
-        text.delete(0, text.length);
-      }, matchUser?.id);
-
-      collabSocket.once(CollabEvents.UPDATE, (update) => {
-        applyUpdateV2(doc, new Uint8Array(update), matchUser?.id);
-        toast.success(COLLAB_DOCUMENT_RESTORED);
-        setIsDocumentLoaded(true);
+    if (!collabSocket.hasListeners(CollabEvents.DOCUMENT_READY)) {
+      collabSocket.on(CollabEvents.DOCUMENT_READY, (qnHistoryId: string) => {
+        setQnHistoryId(qnHistoryId);
       });
+    }
 
-      collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
-    });
+    if (!collabSocket.hasListeners(CollabEvents.DOCUMENT_NOT_FOUND)) {
+      collabSocket.on(CollabEvents.DOCUMENT_NOT_FOUND, () => {
+        toast.error(COLLAB_DOCUMENT_ERROR);
+        setIsDocumentLoaded(false);
+
+        const text = doc.getText();
+        doc.transact(() => {
+          text.delete(0, text.length);
+        }, matchUser?.id);
+
+        collabSocket.once(CollabEvents.UPDATE, (update) => {
+          applyUpdateV2(doc, new Uint8Array(update), matchUser?.id);
+          toast.success(COLLAB_DOCUMENT_RESTORED);
+          setIsDocumentLoaded(true);
+        });
+
+        collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
+      });
+    }
+
+    if (!collabSocket.hasListeners(CollabEvents.SOCKET_DISCONNECT)) {
+      collabSocket.on(CollabEvents.SOCKET_DISCONNECT, (reason) => {
+        console.log(reason);
+        if (
+          reason !== CollabEvents.SOCKET_CLIENT_DISCONNECT &&
+          reason !== CollabEvents.SOCKET_SERVER_DISCONNECT
+        ) {
+          toast.error(COLLAB_DOCUMENT_ERROR);
+          setIsDocumentLoaded(false);
+        }
+      });
+    }
+
+    if (!collabSocket.io.hasListeners(CollabEvents.SOCKET_RECONNECT_SUCCESS)) {
+      collabSocket.io.on(CollabEvents.SOCKET_RECONNECT_SUCCESS, () => {
+        const text = doc.getText();
+        doc.transact(() => {
+          text.delete(0, text.length);
+        }, matchUser?.id);
+
+        collabSocket.once(CollabEvents.UPDATE, (update) => {
+          applyUpdateV2(doc, new Uint8Array(update), matchUser?.id);
+          toast.success(COLLAB_DOCUMENT_RESTORED);
+          setIsDocumentLoaded(true);
+        });
+
+        collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
+      });
+    }
+
+    if (!collabSocket.io.hasListeners(CollabEvents.SOCKET_RECONNECT_FAILED)) {
+      collabSocket.io.on(CollabEvents.SOCKET_RECONNECT_FAILED, () => {
+        toast.error(COLLAB_RECONNECTION_ERROR);
+
+        if (matchUser) {
+          leave(matchUser.id, roomId, true);
+        }
+        communicationSocket.emit(CommunicationEvents.USER_DISCONNECT);
+
+        handleExitSession();
+      });
+    }
   };
 
   const resetCollab = () => {
     setCompilerResult([]);
+    setIsEndSessionModalOpen(false);
+    setIsExitSessionModalOpen(false);
     setQnHistoryId(null);
   };
 

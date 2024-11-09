@@ -391,12 +391,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       return;
     }
 
-    matchSocket.emit(
-      MatchEvents.MATCH_ACCEPT_REQUEST,
-      matchId,
-      matchUser.id,
-      partner.id
-    );
+    matchSocket.emit(MatchEvents.MATCH_ACCEPT_REQUEST, matchId);
   };
 
   const rematch = () => {

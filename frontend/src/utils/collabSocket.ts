@@ -41,7 +41,7 @@ export type CollabSessionData = {
 const COLLAB_SOCKET_URL = "http://localhost:3003";
 
 export const collabSocket = io(COLLAB_SOCKET_URL, {
-  reconnectionAttempts: 3,
+  reconnectionAttempts: 5,
   autoConnect: false,
   auth: {
     token: getToken(),
@@ -57,7 +57,6 @@ export const join = (
   roomId: string
 ): Promise<CollabSessionData> => {
   collabSocket.connect();
-  initConnectionStatusListeners(roomId);
 
   doc = new Doc();
   text = doc.getText();
@@ -140,34 +139,4 @@ export const receiveCursorUpdate = (view: EditorView) => {
       effects: updateCursor.of(cursor),
     });
   });
-};
-
-export const reconnectRequest = (roomId: string) => {
-  collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
-};
-
-const initConnectionStatusListeners = (roomId: string) => {
-  if (!collabSocket.hasListeners(CollabEvents.SOCKET_DISCONNECT)) {
-    collabSocket.on(CollabEvents.SOCKET_DISCONNECT, (reason) => {
-      if (
-        reason !== CollabEvents.SOCKET_CLIENT_DISCONNECT &&
-        reason !== CollabEvents.SOCKET_SERVER_DISCONNECT
-      ) {
-        // TODO: Handle socket disconnection
-      }
-    });
-  }
-
-  if (!collabSocket.io.hasListeners(CollabEvents.SOCKET_RECONNECT_SUCCESS)) {
-    collabSocket.io.on(CollabEvents.SOCKET_RECONNECT_SUCCESS, () => {
-      console.log("reconnect request");
-      collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
-    });
-  }
-
-  if (!collabSocket.io.hasListeners(CollabEvents.SOCKET_RECONNECT_FAILED)) {
-    collabSocket.io.on(CollabEvents.SOCKET_RECONNECT_FAILED, () => {
-      console.log("reconnect failed");
-    });
-  }
 };
