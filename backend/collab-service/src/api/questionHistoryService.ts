@@ -12,20 +12,31 @@ const qnHistoryService = axios.create({
 });
 
 export const createQuestionHistory = (
+  userIds: string[],
   questionId: string,
   title: string,
   submissionStatus: string,
+  code: string,
   language: string,
-  ...userIds: string[]
+  authToken: string
 ) => {
   const dateAttempted = new Date();
-  return qnHistoryService.post("/", {
-    userIds,
-    questionId,
-    title,
-    submissionStatus,
-    language,
-    dateAttempted,
-    timeTaken: 0,
-  });
+  return qnHistoryService.post(
+    "/",
+    {
+      userIds,
+      questionId,
+      title,
+      submissionStatus,
+      dateAttempted,
+      timeTaken: 0,
+      code,
+      language,
+    },
+    {
+      headers: {
+        Authorization: authToken,
+      },
+    }
+  );
 };

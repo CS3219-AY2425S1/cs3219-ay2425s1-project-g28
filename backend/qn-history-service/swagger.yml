@@ -5,6 +5,12 @@ info:
   version: 1.0.0
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     QnHistory:
       properties:
@@ -28,7 +34,7 @@ components:
           description: Date that question was attempted
         timeTaken:
           type: number
-          description: Time taken for question attempt in minutes
+          description: Time taken for question attempt in seconds
         code:
           type: string
           description: Code submitted
@@ -63,7 +69,7 @@ definitions:
         description: Date that question was attempted
       timeTaken:
         type: number
-        description: Time taken for question attempt in minutes
+        description: Time taken for question attempt in seconds
       code:
         type: string
         description: Code submitted
@@ -119,6 +125,8 @@ paths:
         - qnhistories
       summary: Creates a question history
       description: Creates a question history
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -167,6 +175,21 @@ paths:
           type: string
           required: true
           description: User id of user to retrieve question histories
+        - in: query
+          name: title
+          type: string
+          required: false
+          description: Search keywords for question history title
+        - in: query
+          name: status
+          type: string
+          required: false
+          description: Filter for question history submission status
+        - in: query
+          name: order
+          type: integer
+          required: true
+          description: Order (based on date attempted) to sort question history records by (1 for ascending and -1 for descending).
       responses:
         200:
           description: Successful Response
@@ -203,6 +226,8 @@ paths:
         - qnhistories
       summary: Updates a question history
       description: Updates a question history
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
@@ -228,40 +253,6 @@ paths:
                     description: Message
                   qnHistory:
                     $ref: "#/definitions/QnHistory"
-        404:
-          description: Question History Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/definitions/Error"
-        500:
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/definitions/ServerError"
-    delete:
-      tags:
-        - qnhistories
-      summary: Deletes a question history
-      description: Deletes a question history
-      parameters:
-        - in: path
-          name: id
-          type: string
-          required: true
-          description: Question history id
-      responses:
-        200:
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Message
         404:
           description: Question History Not Found
           content:

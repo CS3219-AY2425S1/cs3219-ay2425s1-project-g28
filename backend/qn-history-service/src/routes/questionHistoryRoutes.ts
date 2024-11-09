@@ -1,22 +1,20 @@
 import express from "express";
 import {
   createQnHistory,
-  deleteQnHistory,
   readQnHistIndiv,
   readQnHistoryList,
   updateQnHistory,
 } from "../controllers/questionHistoryController";
+import { verifyToken } from "../middlewares/basicAccessControl";
 
 const router = express.Router();
 
-router.post("/", createQnHistory);
+router.post("/", verifyToken, createQnHistory);
 
-router.put("/:id", updateQnHistory);
+router.put("/:id", verifyToken, updateQnHistory);
 
 router.get("/", readQnHistoryList);
 
 router.get("/:id", readQnHistIndiv);
-
-router.delete("/:id", deleteQnHistory);
 
 export default router;
