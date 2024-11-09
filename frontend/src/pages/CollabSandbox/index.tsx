@@ -1,16 +1,5 @@
 import AppMargin from "../../components/AppMargin";
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Grid2,
-  Tab,
-  Tabs,
-} from "@mui/material";
+import { Box, Button, Grid2, Tab, Tabs } from "@mui/material";
 import classes from "./index.module.css";
 import { CompilerResult, useCollab } from "../../contexts/CollabContext";
 import { useMatch } from "../../contexts/MatchContext";
@@ -35,57 +24,36 @@ import { CollabSessionData, join, leave } from "../../utils/collabSocket";
 import { toast } from "react-toastify";
 
 const CollabSandbox: React.FC = () => {
-  const [editorState, setEditorState] = useState<CollabSessionData | null>(
-    null
-  );
-  const [isConnecting, setIsConnecting] = useState<boolean>(true);
-
   const match = useMatch();
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
 
-  const {
-    verifyMatchStatus,
-    getMatchId,
-    matchUser,
-    partner,
-    matchCriteria,
-    loading,
-    questionId,
-  } = match;
+  const { getMatchId, matchUser, matchCriteria, questionId } = match;
 
   const collab = useCollab();
   if (!collab) {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
-  const {
-    compilerResult,
-    handleRejectEndSession,
-    handleConfirmEndSession,
-    checkPartnerStatus,
-    isEndSessionModalOpen,
-    resetCollab,
-  } = collab;
+  const { compilerResult, resetCollab } = collab;
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const { selectedQuestion } = state;
   const [selectedTab, setSelectedTab] = useState<"tests" | "chat">("tests");
   const [selectedTestcase, setSelectedTestcase] = useState(0);
+  const [editorState, setEditorState] = useState<CollabSessionData | null>(
+    null
+  );
+  const [isConnecting, setIsConnecting] = useState<boolean>(true);
+  const matchId = getMatchId();
 
   useEffect(() => {
-    verifyMatchStatus();
-
-    if (!questionId) {
-      return;
-    }
-    getQuestionById(questionId, dispatch);
-
     resetCollab();
 
-    const matchId = getMatchId();
     if (!matchUser || !matchId) {
+      toast.error(COLLAB_CONNECTION_ERROR);
+      setIsConnecting(false);
       return;
     }
 
@@ -94,7 +62,6 @@ const CollabSandbox: React.FC = () => {
         const editorState = await join(matchUser.id, matchId);
         if (editorState.ready) {
           setEditorState(editorState);
-          checkPartnerStatus();
         } else {
           toast.error(COLLAB_CONNECTION_ERROR);
           setIsConnecting(false);
@@ -107,22 +74,28 @@ const CollabSandbox: React.FC = () => {
 
     connectToCollabSession();
 
-    return () => leave(matchUser.id, matchId);
+    // handle page refresh / tab closure
+    const handleUnload = () => {
+      leave(matchUser.id, matchId, false);
+    };
+    window.addEventListener("unload", handleUnload);
+
+    return () => {
+      leave(matchUser.id, matchId, false);
+      window.removeEventListener("unload", handleUnload);
+    };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (loading) {
-    return <Loader />;
-  }
+  useEffect(() => {
+    if (!questionId) {
+      return;
+    }
+    getQuestionById(questionId, dispatch);
+  }, [questionId]);
 
-  if (
-    !matchUser ||
-    !partner ||
-    !matchCriteria ||
-    !getMatchId() ||
-    !isConnecting
-  ) {
+  if (!matchUser || !matchCriteria || !matchId || !isConnecting) {
     return <Navigate to="/home" replace />;
   }
 
@@ -132,52 +105,6 @@ const CollabSandbox: React.FC = () => {
 
   return (
     <AppMargin classname={`${classes.fullheight} ${classes.flex}`}>
-      <Dialog
-        sx={{
-          "& .MuiDialog-paper": {
-            padding: "20px",
-          },
-        }}
-        open={isEndSessionModalOpen}
-        onClose={handleRejectEndSession}
-      >
-        <DialogTitle sx={{ textAlign: "center", fontSize: 20 }}>
-          {"End Session?"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ textAlign: "center", fontSize: 16 }}>
-            Are you sure you want to end session?
-            <br />
-            You will lose your current progress.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            justifyContent: "center",
-            paddingBottom: "20px",
-          }}
-        >
-          <Button
-            sx={{
-              width: "250px",
-            }}
-            variant="contained"
-            color="secondary"
-            onClick={handleRejectEndSession}
-          >
-            Back
-          </Button>
-          <Button
-            sx={{
-              width: "250px",
-            }}
-            variant="contained"
-            onClick={handleConfirmEndSession}
-          >
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
       <Grid2 container sx={{ flexGrow: 1 }} spacing={4}>
         <Grid2
           sx={{ flexGrow: 1, overflowY: "auto", maxHeight: "90vh" }}
@@ -228,7 +155,7 @@ const CollabSandbox: React.FC = () => {
                   ? selectedQuestion.cTemplate
                   : ""
               }
-              roomId={getMatchId()!}
+              roomId={matchId}
             />
           </Box>
           <Box
