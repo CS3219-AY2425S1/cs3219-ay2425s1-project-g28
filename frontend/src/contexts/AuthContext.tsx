@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import Loader from "../components/Loader";
 import { SUCCESS_LOG_OUT } from "../utils/constants";
 import { User } from "../types/types";
+import { getToken, removeToken, setToken } from "../utils/token";
 
 type AuthContextType = {
   signup: (
@@ -32,11 +33,11 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("token");
+    const accessToken = getToken();
     if (accessToken) {
       userClient
         .get("/auth/verify-token", {
-          headers: { Authorization: `Bearer ${accessToken}` },
+          headers: { Authorization: accessToken },
         })
         .then((res) => setUser(res.data.data))
         .catch(() => setUser(null))
@@ -82,7 +83,7 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       })
       .then((res) => {
         const { accessToken, user } = res.data.data;
-        localStorage.setItem("token", accessToken);
+        setToken(accessToken);
         setUser(user);
         navigate("/home");
       })
@@ -96,7 +97,7 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
+    removeToken();
     setUser(null);
     navigate("/");
     toast.success(SUCCESS_LOG_OUT);

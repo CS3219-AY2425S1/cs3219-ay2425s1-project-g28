@@ -40,21 +40,3 @@ export const createFirebaseUserWithEmailAndPassword = async (
 ): Promise<UserRecord> => {
   return auth.createUser({ uid, email, password });
 };
-
-/*export const deleteFileFromFirebase = async (
-    fileUrl: string
-): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const fileName = fileUrl.split('/o/')[1].split('?')[0].replace(/%2F/g, '/');
-        const ref = bucket.file(fileName);
-    
-        async () => {
-          try {
-            await ref.delete();
-            resolve("File deleted");
-          } catch (error) {
-            reject(error);
-          }
-        }
-    })
-};*/

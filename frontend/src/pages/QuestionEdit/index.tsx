@@ -30,6 +30,7 @@ import QuestionCategoryAutoComplete from "../../components/QuestionCategoryAutoC
 import QuestionDetail from "../../components/QuestionDetail";
 import QuestionTestCasesFileUpload from "../../components/QuestionTestCasesFileUpload";
 import QuestionCodeTemplates from "../../components/QuestionCodeTemplates";
+import { convertFileToTestCaseFormat } from "../NewQuestion";
 
 const QuestionEdit = () => {
   const navigate = useNavigate();
@@ -58,6 +59,9 @@ const QuestionEdit = () => {
   const [uploadedImagesUrl, setUploadedImagesUrl] = useState<string[]>([]);
   const [isPreviewQuestion, setIsPreviewQuestion] = useState<boolean>(false);
 
+  const [inputTestCases, setInputTestCases] = useState<string[]>([]);
+  const [outputTestCases, setOutputTestCases] = useState<string[]>([]);
+
   useEffect(() => {
     if (!questionId) {
       return;
@@ -77,8 +81,25 @@ const QuestionEdit = () => {
         java: state.selectedQuestion.javaTemplate,
         c: state.selectedQuestion.cTemplate,
       });
+      setInputTestCases(state.selectedQuestion.inputs);
+      setOutputTestCases(state.selectedQuestion.outputs);
     }
   }, [state.selectedQuestion]);
+
+  useEffect(() => {
+    const loadTestCases = async () => {
+      if (testcaseInputFile) {
+        setInputTestCases(await convertFileToTestCaseFormat(testcaseInputFile));
+      }
+      if (testcaseOutputFile) {
+        setOutputTestCases(
+          await convertFileToTestCaseFormat(testcaseOutputFile)
+        );
+      }
+    };
+
+    loadTestCases();
+  }, [testcaseInputFile, testcaseOutputFile]);
 
   const handleBack = () => {
     if (!confirm(ABORT_CREATE_OR_EDIT_QUESTION_CONFIRMATION_MESSAGE)) {
@@ -125,8 +146,6 @@ const QuestionEdit = () => {
         description: markdownText,
         complexity: selectedComplexity,
         categories: selectedCategories,
-        testcaseInputFileUrl: state.selectedQuestion.testcaseInputFileUrl,
-        testcaseOutputFileUrl: state.selectedQuestion.testcaseOutputFileUrl,
         pythonTemplate: codeTemplates.python,
         javaTemplate: codeTemplates.java,
         cTemplate: codeTemplates.c,
@@ -158,6 +177,13 @@ const QuestionEdit = () => {
           complexity={selectedComplexity}
           categories={selectedCategories}
           description={markdownText}
+          cTemplate={codeTemplates.c}
+          javaTemplate={codeTemplates.java}
+          pythonTemplate={codeTemplates.python}
+          inputTestCases={inputTestCases}
+          outputTestCases={outputTestCases}
+          showCodeTemplate={true}
+          showTestCases={true}
         />
       ) : (
         <>
@@ -208,6 +234,7 @@ const QuestionEdit = () => {
           <QuestionCodeTemplates
             codeTemplates={codeTemplates}
             setCodeTemplates={setCodeTemplates}
+            isEditable={true}
           />
         </>
       )}

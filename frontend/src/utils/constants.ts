@@ -97,14 +97,28 @@ export const MATCH_LOGIN_REQUIRED_MESSAGE =
 export const MATCH_OFFER_TIMEOUT_MESSAGE = "Match offer timeout!";
 export const MATCH_CONNECTION_ERROR =
   "Connection error! Please try again later.";
+export const MATCH_ACCEPTANCE_ERROR =
+  "Error accepting match request! Please try again.";
 export const QUESTION_DOES_NOT_EXIST_ERROR =
   "There are no questions with the specified complexity and category. Please try another combination.";
 
 // Collab
 export const COLLAB_ENDED_MESSAGE =
-  "Your partner has left the collaboration session.";
+  "Your partner has ended the collaboration session.";
+export const COLLAB_PARTNER_DISCONNECTED_MESSAGE =
+  "Unfortunately, the collaboration session has ended as your partner has disconnected.";
 export const COLLAB_CONNECTION_ERROR =
-  "Error connecting you to the collaboration session! Please try again.";
+  "Error connecting you to the collaboration session! Please find another match.";
+export const COLLAB_RECONNECTION_ERROR =
+  "Error reconnecting you to the collaboration session! Closing the session...";
+export const COLLAB_END_ERROR =
+  "Something went wrong! Forcefully ending the session...";
+export const COLLAB_SUBMIT_ERROR =
+  "Error submitting your attempt! Please try again.";
+export const COLLAB_DOCUMENT_ERROR =
+  "Error syncing the code! Please wait as we try to reconnect. Recent changes may be lost.";
+export const COLLAB_DOCUMENT_RESTORED =
+  "Connection restored! You may resume editing the code.";
 
 // Code execution
 export const FAILED_TESTCASE_MESSAGE =
@@ -117,11 +131,15 @@ export const FAILED_TO_SUBMIT_CODE_MESSAGE =
 /* Alerts & Dialog Boxes */
 // Questions
 export const ABORT_CREATE_OR_EDIT_QUESTION_CONFIRMATION_MESSAGE =
-  "Are you sure you want to leave this page? All process will be lost.";
+  "Are you sure you want to leave this page? All progress will be lost.";
 
 // Match
 export const ABORT_MATCH_PROCESS_CONFIRMATION_MESSAGE =
-  "Are you sure you want to leave the matching process?";
+  "Are you sure you want to leave the matching process? Your match request will be cancelled.";
+
+// Collab
+export const ABORT_COLLAB_SESSION_CONFIRMATION_MESSAGE =
+  "Are you sure you want to leave the collaboration session? You will not be able to rejoin.";
 
 /* Image paths */
 export const FIND_MATCH_FORM_PATH = "/find_match_form.png";

@@ -10,6 +10,7 @@ import {
 } from "../utils/constants";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { getToken } from "../utils/token";
 
 interface UserProfileBase {
   firstName: string;
@@ -81,10 +82,10 @@ const ProfileContextProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const updateProfile = async (data: UserProfileBase): Promise<boolean> => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     try {
       const res = await userClient.patch(`/users/${user?.id}`, data, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: token },
       });
       setUser(res.data.data);
       toast.success(SUCCESS_PROFILE_UPDATE_MESSAGE);
@@ -110,12 +111,12 @@ const ProfileContextProvider: React.FC<{ children: React.ReactNode }> = ({
     oldPassword: string;
     newPassword: string;
   }) => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     await userClient
       .patch(
         `/users/${user?.id}`,
         { oldPassword, newPassword },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: token } }
       )
       .then(() => toast.success(SUCCESS_PW_UPDATE_MESSAGE))
       .catch((err) => {

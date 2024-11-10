@@ -1,18 +1,53 @@
-import { Box, Chip, List, ListItem, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Chip,
+  List,
+  ListItem,
+  Stack,
+  Typography,
+  styled,
+} from "@mui/material";
 import MDEditor from "@uiw/react-md-editor";
+import QuestionCodeTemplates from "../QuestionCodeTemplates";
+import theme from "../../theme";
 
 interface QuestionDetailProps {
   title: string;
   complexity: string | null;
   categories: string[];
   description: string;
+  cTemplate: string;
+  javaTemplate: string;
+  pythonTemplate: string;
+  inputTestCases: string[];
+  outputTestCases: string[];
+  showCodeTemplate: boolean;
+  showTestCases: boolean;
 }
+
+const StyledBox = styled(Box)(({ theme }) => ({
+  margin: theme.spacing(2, 0),
+}));
+
+const StyledTypography = styled(Typography)(({ theme }) => ({
+  background: theme.palette.divider,
+  padding: theme.spacing(1, 2),
+  borderRadius: theme.spacing(1),
+  whiteSpace: "pre-line",
+}));
 
 const QuestionDetail: React.FC<QuestionDetailProps> = ({
   title,
   complexity,
   categories,
   description,
+  cTemplate,
+  javaTemplate,
+  pythonTemplate,
+  inputTestCases,
+  outputTestCases,
+  showCodeTemplate,
+  showTestCases,
 }) => {
   return (
     <Box
@@ -107,6 +142,41 @@ const QuestionDetail: React.FC<QuestionDetailProps> = ({
           }}
         />
       </Stack>
+
+      {showTestCases && (
+        <Stack marginTop={theme.spacing(4)}>
+          <Typography variant="h6">Test Cases</Typography>
+          {Array.from({
+            length: Math.max(inputTestCases.length, outputTestCases.length),
+          }).map((_, index) => (
+            <Box key={index}>
+              <StyledBox>
+                <Typography variant="overline">Input</Typography>
+                <StyledTypography fontFamily={"monospace"}>
+                  {inputTestCases[index] || "\u00A0"}
+                </StyledTypography>
+              </StyledBox>
+              <StyledBox>
+                <Typography variant="overline">Output</Typography>
+                <StyledTypography fontFamily={"monospace"}>
+                  {outputTestCases[index] || "\u00A0"}
+                </StyledTypography>
+              </StyledBox>
+            </Box>
+          ))}
+        </Stack>
+      )}
+
+      {showCodeTemplate && (
+        <QuestionCodeTemplates
+          codeTemplates={{
+            python: pythonTemplate,
+            java: javaTemplate,
+            c: cTemplate,
+          }}
+          isEditable={false}
+        />
+      )}
     </Box>
   );
 };

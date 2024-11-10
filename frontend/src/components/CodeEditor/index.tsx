@@ -8,13 +8,17 @@ import { useEffect, useState } from "react";
 import { initDocument } from "../../utils/collabSocket";
 import { cursorExtension } from "../../utils/collabCursor";
 import { yCollab } from "y-codemirror.next";
-import { Text } from "yjs";
+import { Doc, Text } from "yjs";
 import { Awareness } from "y-protocols/awareness";
 import { useCollab } from "../../contexts/CollabContext";
-import { USE_COLLAB_ERROR_MESSAGE } from "../../utils/constants";
+import {
+  USE_COLLAB_ERROR_MESSAGE,
+  USE_MATCH_ERROR_MESSAGE,
+} from "../../utils/constants";
+import { useMatch } from "../../contexts/MatchContext";
 
 interface CodeEditorProps {
-  editorState?: { text: Text; awareness: Awareness };
+  editorState?: { doc: Doc; text: Text; awareness: Awareness };
   uid?: string;
   username?: string;
   language: string;
@@ -40,12 +44,20 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     isReadOnly = false,
   } = props;
 
+  const match = useMatch();
+  if (!match) {
+    throw new Error(USE_MATCH_ERROR_MESSAGE);
+  }
+
+  const { matchCriteria, matchUser, partner, questionId, questionTitle } =
+    match;
+
   const collab = useCollab();
   if (!collab) {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
-  const { setCode } = collab;
+  const { checkDocReady } = collab;
 
   const [isEditorReady, setIsEditorReady] = useState<boolean>(false);
   const [isDocumentLoaded, setIsDocumentLoaded] = useState<boolean>(false);
@@ -56,22 +68,36 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     }
   };
 
-  const handleChange = (value: string) => {
-    setCode(value);
-  };
-
   useEffect(() => {
-    if (isReadOnly || !isEditorReady) {
+    if (isReadOnly || !isEditorReady || !editorState) {
       return;
     }
 
     const loadTemplate = async () => {
-      await initDocument(uid, roomId, template);
-      setIsDocumentLoaded(true);
+      if (
+        matchUser &&
+        partner &&
+        matchCriteria &&
+        questionId &&
+        questionTitle
+      ) {
+        checkDocReady(roomId, editorState.doc, setIsDocumentLoaded);
+        await initDocument(
+          uid,
+          roomId,
+          template,
+          matchUser.id,
+          partner.id,
+          matchCriteria.language,
+          questionId,
+          questionTitle
+        );
+        setIsDocumentLoaded(true);
+      }
     };
     loadTemplate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReadOnly, isEditorReady]);
+  }, [isReadOnly, isEditorReady, editorState]);
 
   return (
     <CodeMirror
@@ -81,7 +107,6 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       width="100%"
       basicSetup={false}
       id="codeEditor"
-      onChange={handleChange}
       extensions={[
         indentUnit.of("\t"),
         basicSetup(),
@@ -98,9 +123,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
       ]}
       value={isReadOnly ? template : undefined}
       placeholder={
-        !isReadOnly && !isDocumentLoaded
-          ? "Loading code template..."
-          : undefined
+        !isReadOnly && !isDocumentLoaded ? "Loading the code..." : undefined
       }
     />
   );

@@ -1,6 +1,7 @@
 import { Dispatch } from "react";
 import { questionClient } from "../utils/api";
 import { isString, isStringArray } from "../utils/typeChecker";
+import { getToken } from "../utils/token";
 
 type TestcaseFiles = {
   testcaseInputFile: File | null;
@@ -18,17 +19,12 @@ type QuestionDetail = {
   description: string;
   complexity: string;
   categories: Array<string>;
-  inputs: Array<string>;
-  outputs: Array<string>;
   pythonTemplate: string;
   javaTemplate: string;
   cTemplate: string;
+  inputs: string[];
+  outputs: string[];
 };
-
-// type QuestionDetailWithUrl = QuestionDetail & {
-//   testcaseInputFileUrl: string;
-//   testcaseOutputFileUrl: string;
-// };
 
 type QuestionListDetail = {
   id: string;
@@ -126,11 +122,11 @@ export const uploadTestcaseFiles = async (
   formData.append("requestType", requestType);
 
   try {
-    const accessToken = localStorage.getItem("token");
+    const accessToken = getToken();
     const res = await questionClient.post("/tcfiles", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: accessToken,
       },
     });
     return res.data;
@@ -140,7 +136,7 @@ export const uploadTestcaseFiles = async (
 };
 
 export const createQuestion = async (
-  question: Omit<QuestionDetail, "id">,
+  question: Omit<QuestionDetail, "id" | "inputs" | "outputs">,
   testcaseFiles: TestcaseFiles,
   dispatch: Dispatch<QuestionActions>
 ): Promise<boolean> => {
@@ -159,7 +155,7 @@ export const createQuestion = async (
 
   const { testcaseInputFileUrl, testcaseOutputFileUrl } = uploadResult.urls;
 
-  const accessToken = localStorage.getItem("token");
+  const accessToken = getToken();
   return questionClient
     .post(
       "/",
@@ -176,7 +172,7 @@ export const createQuestion = async (
       },
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: accessToken,
         },
       }
     )
@@ -269,7 +265,7 @@ export const getQuestionById = (
 
 export const updateQuestionById = async (
   questionId: string,
-  question: Omit<QuestionDetail, "id">,
+  question: Omit<QuestionDetail, "id" | "inputs" | "outputs">,
   testcaseFiles: TestcaseFiles,
   dispatch: Dispatch<QuestionActions>
 ): Promise<boolean> => {
@@ -297,7 +293,7 @@ export const updateQuestionById = async (
     };
   }
 
-  const accessToken = localStorage.getItem("token");
+  const accessToken = getToken();
   return questionClient
     .put(
       `/${questionId}`,
@@ -315,7 +311,7 @@ export const updateQuestionById = async (
       },
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: accessToken,
         },
       }
     )
@@ -337,10 +333,10 @@ export const updateQuestionById = async (
 
 export const deleteQuestionById = async (questionId: string) => {
   try {
-    const accessToken = localStorage.getItem("token");
+    const accessToken = getToken();
     await questionClient.delete(`/${questionId}`, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: accessToken,
       },
     });
     return true;
@@ -363,11 +359,11 @@ export const createImageUrls = async (
   formData: FormData
 ): Promise<{ imageUrls: string[]; message: string } | null> => {
   try {
-    const accessToken = localStorage.getItem("token");
+    const accessToken = getToken();
     const response = await questionClient.post("/images", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: accessToken,
       },
     });
     return response.data;

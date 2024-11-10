@@ -12,7 +12,6 @@ import {
 import { io } from "../server";
 import { v4 as uuidv4 } from "uuid";
 import { getRandomQuestion } from "../api/questionService";
-import { createQuestionHistory } from "../api/questionHistoryService";
 
 enum MatchEvents {
   // Receive
@@ -120,37 +119,24 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
     userConnections.delete(uid);
   });
 
-  socket.on(
-    MatchEvents.MATCH_ACCEPT_REQUEST,
-    (matchId: string, userId1: string, userId2: string) => {
-      const partnerAccepted = handleMatchAccept(matchId);
-      if (partnerAccepted) {
-        const match = getMatchById(matchId);
-        if (!match) {
-          return;
-        }
-
-        const { complexity, category, language } = match;
-        getRandomQuestion(complexity, category).then((res) => {
-          const qnId = res.data.question.id;
-          createQuestionHistory(
-            qnId,
-            res.data.question.title,
-            "Attempted",
-            language,
-            userId1,
-            userId2
-          ).then((res) => {
-            io.to(matchId).emit(
-              MatchEvents.MATCH_SUCCESSFUL,
-              qnId,
-              res.data.qnHistory.id
-            );
-          });
-        });
+  socket.on(MatchEvents.MATCH_ACCEPT_REQUEST, (matchId: string) => {
+    const partnerAccepted = handleMatchAccept(matchId);
+    if (partnerAccepted) {
+      const match = getMatchById(matchId);
+      if (!match) {
+        return;
       }
+
+      const { complexity, category } = match;
+      getRandomQuestion(complexity, category).then((res) => {
+        io.to(matchId).emit(
+          MatchEvents.MATCH_SUCCESSFUL,
+          res.data.question.id,
+          res.data.question.title
+        );
+      });
     }
-  );
+  });
 
   socket.on(
     MatchEvents.MATCH_DECLINE_REQUEST,
