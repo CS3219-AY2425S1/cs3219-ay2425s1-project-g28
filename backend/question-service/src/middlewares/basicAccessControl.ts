@@ -1,5 +1,5 @@
 import { NextFunction, Response, Request } from "express";
-import { userClient } from "../utils/api";
+import { userClient } from "../utils/userApi";
 
 export const verifyAdminToken = (
   req: Request,
