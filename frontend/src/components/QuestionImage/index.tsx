@@ -1,7 +1,6 @@
 import { Box, ImageListItem, IconButton } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
-import { toast } from "react-toastify";
 
 interface QuestionImageProps {
   url: string;
@@ -56,8 +55,11 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
       >
         <IconButton
           onClick={() => {
-            navigator.clipboard.writeText(`![image](${url})`);
-            toast.success("Image URL copied to clipboard");
+            // switch to window.prompt since navigator.clipboard.writeText is not supported in HTTP
+            window.prompt(
+              "Copy to clipboard: Ctrl+C, Enter",
+              `![image](${url})`
+            );
           }}
           sx={{ color: "#fff" }}
           aria-label="copy"
