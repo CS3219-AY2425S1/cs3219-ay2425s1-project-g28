@@ -4,8 +4,9 @@
   "main": "server.ts",
   "type": "module",
   "scripts": {
-    "start": "tsx src/server.ts",
+    "start": "tsx dist/server.js",
     "dev": "tsx watch src/server.ts",
+    "build": "tsc",
     "test": "cross-env NODE_ENV=test && jest",
     "test:watch": "cross-env NODE_ENV=test && jest --watch",
     "lint": "eslint ."

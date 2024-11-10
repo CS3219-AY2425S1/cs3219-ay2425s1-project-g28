@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import Question, { IQuestion } from "../models/Question.ts";
+import Question, { IQuestion } from "../models/Question";
 import {
   checkIsExistingQuestion,
   getFileContent,
   sortAlphabetically,
-} from "../utils/utils.ts";
+} from "../utils/utils";
 import {
   DUPLICATE_QUESTION_MESSAGE,
   QN_DESC_EXCEED_CHAR_LIMIT_MESSAGE,
@@ -19,11 +19,11 @@ import {
   CATEGORIES_RETRIEVED_MESSAGE,
   MONGO_OBJ_ID_FORMAT,
   MONGO_OBJ_ID_MALFORMED_MESSAGE,
-} from "../utils/constants.ts";
+} from "../utils/constants";
 
-import { upload, uploadTestcaseFiles } from "../config/multer.ts";
+import { upload, uploadTestcaseFiles } from "../config/multer";
 import { uploadFileToFirebase } from "../utils/utils";
-import { QnListSearchFilterParams, RandomQnCriteria } from "../utils/types.ts";
+import { QnListSearchFilterParams, RandomQnCriteria } from "../utils/types";
 
 const FIREBASE_TESTCASE_FILES_FOLDER_NAME = "testcaseFiles/";
 

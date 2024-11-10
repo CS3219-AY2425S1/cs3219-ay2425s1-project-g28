@@ -1,9 +1,9 @@
 import http from "http";
-import app, { allowedOrigins } from "./app.ts";
-import { handleWebsocketCollabEvents } from "./handlers/websocketHandler.ts";
+import app, { allowedOrigins } from "./app";
+import { handleWebsocketCollabEvents } from "./handlers/websocketHandler";
 import { Server, Socket } from "socket.io";
-import { connectRedis } from "./config/redis.ts";
-import { verifyUserToken } from "./middlewares/basicAccessControl.ts";
+import { connectRedis } from "./config/redis";
+import { verifyUserToken } from "./middlewares/basicAccessControl";
 
 const server = http.createServer(app);
 

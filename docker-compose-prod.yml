@@ -4,9 +4,7 @@ services:
     build:
       context: ./backend/user-service
       dockerfile: Dockerfile
-      target: dev
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      target: prod
     env_file: ./backend/user-service/.env
     ports:
       - 3001:3001
@@ -15,9 +13,6 @@ services:
       - user-service-redis
     networks:
       - peerprep-network
-    volumes:
-      - ./backend/user-service:/user-service
-      - /user-service/node_modules
     restart: on-failure
 
   question-service:
@@ -25,9 +20,7 @@ services:
     build:
       context: ./backend/question-service
       dockerfile: Dockerfile
-      target: dev
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      target: prod
     env_file: ./backend/question-service/.env
     ports:
       - 3000:3000
@@ -36,9 +29,6 @@ services:
       - user-service
     networks:
       - peerprep-network
-    volumes:
-      - ./backend/question-service:/question-service
-      - /question-service/node_modules
     restart: on-failure
 
   matching-service:
@@ -46,9 +36,7 @@ services:
     build:
       context: ./backend/matching-service
       dockerfile: Dockerfile
-      target: dev
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      target: prod
     env_file: ./backend/matching-service/.env
     ports:
       - 3002:3002
@@ -59,9 +47,6 @@ services:
         condition: service_started
     networks:
       - peerprep-network
-    volumes:
-      - ./backend/matching-service:/matching-service
-      - /matching-service/node_modules
     restart: on-failure
 
   collab-service:
@@ -69,9 +54,7 @@ services:
     build:
       context: ./backend/collab-service
       dockerfile: Dockerfile
-      target: dev
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      target: prod
     env_file: ./backend/collab-service/.env
     ports:
       - 3003:3003
@@ -79,9 +62,6 @@ services:
       - collab-service-redis
     networks:
       - peerprep-network
-    volumes:
-      - ./backend/collab-service:/collab-service
-      - /collab-service/node_modules
     restart: on-failure
 
   code-execution-service:
@@ -89,17 +69,12 @@ services:
     build:
       context: ./backend/code-execution-service
       dockerfile: Dockerfile
-      target: dev
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      target: prod
     env_file: ./backend/code-execution-service/.env
     ports:
       - 3004:3004
     networks:
       - peerprep-network
-    volumes:
-      - ./backend/code-execution-service:/code-execution-service
-      - /code-execution-service/node_modules
     restart: on-failure
 
   communication-service:
@@ -107,9 +82,7 @@ services:
     build:
       context: ./backend/communication-service
       dockerfile: Dockerfile
-      target: dev
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      target: prod
     env_file: ./backend/communication-service/.env
     ports:
       - 3005:3005
@@ -117,9 +90,6 @@ services:
       - user-service
     networks:
       - peerprep-network
-    volumes:
-      - ./backend/communication-service:/communication-service
-      - /communication-service/node_modules
     restart: on-failure
 
   qn-history-service:
@@ -127,9 +97,7 @@ services:
     build:
       context: ./backend/qn-history-service
       dockerfile: Dockerfile
-      target: dev
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      target: prod
     env_file: ./backend/qn-history-service/.env
     ports:
       - 3006:3006
@@ -139,35 +107,24 @@ services:
       - question-service
     networks:
       - peerprep-network
-    volumes:
-      - ./backend/qn-history-service:/qn-history-service
-      - /qn-history-service/node_modules
     restart: on-failure
 
-  frontend:
-    image: peerprep/frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      target: dev
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-    ports:
-      - 5173:5173
-    depends_on:
-      - user-service
-      - question-service
-      - matching-service
-      - collab-service
-      - code-execution-service
-      - communication-service
-      - qn-history-service
-    networks:
-      - peerprep-network
-    volumes:
-      - ./frontend:/frontend
-      - /frontend/node_modules
-    restart: on-failure
+  # frontend:
+  #   image: peerprep/frontend
+  #   build: ./frontend
+  #   ports:
+  #     - 5173:5173
+  #   depends_on:
+  #     - user-service
+  #     # - question-service
+  #     # - matching-service
+  #     # - collab-service
+  #     # - code-execution-service
+  #     # - communication-service
+  #     # - qn-history-service
+  #   networks:
+  #     - peerprep-network
+  #   restart: on-failure
 
   question-service-mongo:
     image: mongo

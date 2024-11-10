@@ -9,8 +9,8 @@ import {
   readCategories,
   readRandomQuestion,
   createFileLink,
-} from "../controllers/questionController.ts";
-import { verifyAdminToken } from "../middlewares/basicAccessControl.ts";
+} from "../controllers/questionController";
+import { verifyAdminToken } from "../middlewares/basicAccessControl";
 
 const router = express.Router();
 

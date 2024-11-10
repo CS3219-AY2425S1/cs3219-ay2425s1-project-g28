@@ -5,7 +5,7 @@ import yaml from "yaml";
 import fs from "fs";
 import cors from "cors";
 
-import questionRoutes from "./routes/questionRoutes.ts";
+import questionRoutes from "./routes/questionRoutes";
 
 dotenv.config();
 
