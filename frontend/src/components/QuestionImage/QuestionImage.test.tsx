@@ -1,12 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import QuestionImage from ".";
 
-Object.assign(navigator, {
-  clipboard: {
-    writeText: jest.fn(),
-  },
-});
-
 describe("Question Image", () => {
   const url = "https://example.com/image.jpg";
   const mockHandleClickOpen = jest.fn();
@@ -15,19 +9,23 @@ describe("Question Image", () => {
     render(<QuestionImage url={url} handleClickOpen={mockHandleClickOpen} />);
 
     const image = screen.getByAltText("question image");
-
     expect(image).toBeInTheDocument();
   });
 
   it("Copy Question Image url", () => {
+    const promptSpy = jest.spyOn(window, "prompt").mockImplementation(() => "");
+
     render(<QuestionImage url={url} handleClickOpen={mockHandleClickOpen} />);
 
     const copyButton = screen.getByLabelText("copy");
     fireEvent.click(copyButton);
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+    expect(promptSpy).toHaveBeenCalledWith(
+      "Copy to clipboard: Ctrl+C, Enter",
       `![image](${url})`
     );
+
+    promptSpy.mockRestore();
   });
 
   it("Expand Question Image", () => {
