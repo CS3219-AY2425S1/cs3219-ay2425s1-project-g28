@@ -18,12 +18,24 @@ describe("Question details", () => {
     const complexity = "Easy";
     const categories = ["Algorithms", "Data Structures"];
     const description = "# Test description";
+    const pythonTemplate = "Python template";
+    const javaTemplate = "Java template";
+    const cTemplate = "C template";
+    const inputTestCases = ["1", "2"];
+    const outputTestCases = ["1", "2"];
     render(
       <QuestionDetail
         title={title}
         complexity={complexity}
         categories={categories}
         description={description}
+        pythonTemplate={pythonTemplate}
+        javaTemplate={javaTemplate}
+        cTemplate={cTemplate}
+        inputTestCases={inputTestCases}
+        outputTestCases={outputTestCases}
+        showCodeTemplate={true}
+        showTestCases={true}
       />
     );
     expect(screen.getByText(title)).toBeInTheDocument();
@@ -34,12 +46,24 @@ describe("Question details", () => {
     const complexity = "Easy";
     const categories = ["Algorithms", "Data Structures"];
     const description = "# Test description";
+    const pythonTemplate = "Python template";
+    const javaTemplate = "Java template";
+    const cTemplate = "C template";
+    const inputTestCases = ["1", "2"];
+    const outputTestCases = ["1", "2"];
     render(
       <QuestionDetail
         title={title}
         complexity={complexity}
         categories={categories}
         description={description}
+        pythonTemplate={pythonTemplate}
+        javaTemplate={javaTemplate}
+        cTemplate={cTemplate}
+        inputTestCases={inputTestCases}
+        outputTestCases={outputTestCases}
+        showCodeTemplate={true}
+        showTestCases={true}
       />
     );
     expect(screen.getByText(complexity)).toBeInTheDocument();
@@ -50,12 +74,24 @@ describe("Question details", () => {
     const complexity = "Easy";
     const categories = ["Algorithms", "Data Structures"];
     const description = "# Test description";
+    const pythonTemplate = "Python template";
+    const javaTemplate = "Java template";
+    const cTemplate = "C template";
+    const inputTestCases = ["1", "2"];
+    const outputTestCases = ["1", "2"];
     render(
       <QuestionDetail
         title={title}
         complexity={complexity}
         categories={categories}
         description={description}
+        pythonTemplate={pythonTemplate}
+        javaTemplate={javaTemplate}
+        cTemplate={cTemplate}
+        inputTestCases={inputTestCases}
+        outputTestCases={outputTestCases}
+        showCodeTemplate={true}
+        showTestCases={true}
       />
     );
     expect(screen.getByText(categories[0])).toBeInTheDocument();

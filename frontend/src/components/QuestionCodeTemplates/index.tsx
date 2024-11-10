@@ -3,12 +3,16 @@ import {
   Box,
   IconButton,
   Stack,
-  TextField,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
   Typography,
 } from "@mui/material";
+import CodeMirror from "@uiw/react-codemirror";
+import { EditorView } from "@codemirror/view";
+import { indentUnit } from "@codemirror/language";
+import { langs } from "@uiw/codemirror-extensions-langs";
+import { basicSetup } from "@uiw/codemirror-extensions-basic-setup";
 import { useState } from "react";
 import { CODE_TEMPLATES_TOOLTIP_MESSAGE } from "../../utils/constants";
 
@@ -16,16 +20,24 @@ interface QuestionCodeTemplatesProps {
   codeTemplates: {
     [key: string]: string;
   };
-  setCodeTemplates: React.Dispatch<
+  setCodeTemplates?: React.Dispatch<
     React.SetStateAction<{
       [key: string]: string;
     }>
   >;
+  isEditable: boolean;
 }
+
+const languageSupport = {
+  python: langs.python(),
+  java: langs.java(),
+  c: langs.c(),
+};
 
 const QuestionCodeTemplates: React.FC<QuestionCodeTemplatesProps> = ({
   codeTemplates,
   setCodeTemplates,
+  isEditable,
 }) => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>("python");
 
@@ -38,32 +50,12 @@ const QuestionCodeTemplates: React.FC<QuestionCodeTemplatesProps> = ({
     }
   };
 
-  const handleCodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    setCodeTemplates((prevTemplates) => ({
-      ...prevTemplates,
-      [selectedLanguage]: value,
-    }));
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleTabKeys = (event: any) => {
-    const { value } = event.target;
-
-    if (event.key === "Tab") {
-      event.preventDefault();
-
-      const cursorPosition = event.target.selectionStart;
-      const cursorEndPosition = event.target.selectionEnd;
-      const tab = "\t";
-
-      event.target.value =
-        value.substring(0, cursorPosition) +
-        tab +
-        value.substring(cursorEndPosition);
-
-      event.target.selectionStart = cursorPosition + 1;
-      event.target.selectionEnd = cursorPosition + 1;
+  const handleCodeChange = (value: string) => {
+    if (setCodeTemplates) {
+      setCodeTemplates((prevTemplates) => ({
+        ...prevTemplates,
+        [selectedLanguage]: value,
+      }));
     }
   };
 
@@ -104,27 +96,19 @@ const QuestionCodeTemplates: React.FC<QuestionCodeTemplatesProps> = ({
         <ToggleButton value="c">C</ToggleButton>
       </ToggleButtonGroup>
 
-      <TextField
-        label={
-          codeTemplates[selectedLanguage]
-            ? ``
-            : `${
-                selectedLanguage.charAt(0).toUpperCase() +
-                selectedLanguage.slice(1)
-              } Code Template`
-        }
-        variant="outlined"
-        multiline
-        rows={8}
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            fontFamily: "monospace",
-          },
-        }}
+      <CodeMirror
+        style={{ fontSize: "14px" }}
+        basicSetup={false}
+        id="codeEditor"
         value={codeTemplates[selectedLanguage]}
+        extensions={[
+          indentUnit.of("\t"),
+          basicSetup(),
+          languageSupport[selectedLanguage as keyof typeof languageSupport],
+          EditorView.lineWrapping,
+          EditorView.editable.of(isEditable),
+        ]}
         onChange={handleCodeChange}
-        onKeyDown={handleTabKeys}
-        fullWidth
       />
     </Box>
   );

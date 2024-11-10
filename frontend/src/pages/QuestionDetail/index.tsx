@@ -43,6 +43,13 @@ const QuestionDetail: React.FC = () => {
         complexity={state.selectedQuestion.complexity}
         categories={state.selectedQuestion.categories}
         description={state.selectedQuestion.description}
+        cTemplate={state.selectedQuestion.cTemplate}
+        javaTemplate={state.selectedQuestion.javaTemplate}
+        pythonTemplate={state.selectedQuestion.pythonTemplate}
+        inputTestCases={state.selectedQuestion.inputs}
+        outputTestCases={state.selectedQuestion.outputs}
+        showCodeTemplate={false}
+        showTestCases={true}
       />
     </AppMargin>
   );

@@ -106,12 +106,22 @@ const CollabSandbox: React.FC = () => {
   return (
     <AppMargin classname={`${classes.fullheight} ${classes.flex}`}>
       <Grid2 container sx={{ flexGrow: 1 }} spacing={4}>
-        <Grid2 sx={{ flexGrow: 1 }} size={6}>
+        <Grid2
+          sx={{ flexGrow: 1, overflowY: "auto", maxHeight: "90vh" }}
+          size={6}
+        >
           <QuestionDetailComponent
             title={selectedQuestion.title}
             description={selectedQuestion.description}
             complexity={selectedQuestion.complexity}
             categories={selectedQuestion.categories}
+            cTemplate={selectedQuestion.cTemplate}
+            javaTemplate={selectedQuestion.javaTemplate}
+            pythonTemplate={selectedQuestion.pythonTemplate}
+            inputTestCases={selectedQuestion.inputs}
+            outputTestCases={selectedQuestion.outputs}
+            showCodeTemplate={false}
+            showTestCases={false}
           />
         </Grid2>
         <Grid2

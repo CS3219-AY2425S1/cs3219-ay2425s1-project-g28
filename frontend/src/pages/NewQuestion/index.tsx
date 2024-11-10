@@ -1,4 +1,4 @@
-import { useState, useReducer } from "react";
+import { useEffect, useState, useReducer } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Autocomplete,
@@ -32,6 +32,27 @@ import QuestionDetail from "../../components/QuestionDetail";
 import QuestionTestCasesFileUpload from "../../components/QuestionTestCasesFileUpload";
 import QuestionCodeTemplates from "../../components/QuestionCodeTemplates";
 
+export const convertFileToTestCaseFormat = async (
+  file: File | null
+): Promise<string[]> => {
+  if (!file) return [];
+
+  return new Promise((resolve, reject) => {
+    const fileReader = new FileReader();
+
+    fileReader.onload = (e) => {
+      const fileContent = (e.target?.result as string) || "";
+      resolve(fileContent.replace(/\r\n/g, "\n").split("\n\n"));
+    };
+
+    fileReader.onerror = () => {
+      reject(new Error("Error reading file"));
+    };
+
+    fileReader.readAsText(file);
+  });
+};
+
 const NewQuestion = () => {
   const navigate = useNavigate();
 
@@ -51,6 +72,9 @@ const NewQuestion = () => {
     null
   );
 
+  const [inputTestCases, setInputTestCases] = useState<string[]>([]);
+  const [outputTestCases, setOutputTestCases] = useState<string[]>([]);
+
   const [codeTemplates, setCodeTemplates] = useState<{ [key: string]: string }>(
     {
       python: PYTHON_CODE_TEMPLATE,
@@ -59,12 +83,32 @@ const NewQuestion = () => {
     }
   );
 
+  useEffect(() => {
+    const loadTestCases = async () => {
+      if (testcaseInputFile) {
+        setInputTestCases(await convertFileToTestCaseFormat(testcaseInputFile));
+      }
+      if (testcaseOutputFile) {
+        setOutputTestCases(
+          await convertFileToTestCaseFormat(testcaseOutputFile)
+        );
+      }
+    };
+
+    loadTestCases();
+  }, [testcaseInputFile, testcaseOutputFile]);
+
   const handleBack = () => {
     if (
       title ||
       markdownText ||
       selectedComplexity ||
-      selectedCategories.length > 0
+      selectedCategories.length > 0 ||
+      testcaseInputFile ||
+      testcaseOutputFile ||
+      codeTemplates.python !== PYTHON_CODE_TEMPLATE ||
+      codeTemplates.java !== JAVA_CODE_TEMPLATE ||
+      codeTemplates.c !== C_CODE_TEMPLATE
     ) {
       if (!confirm(ABORT_CREATE_OR_EDIT_QUESTION_CONFIRMATION_MESSAGE)) {
         return;
@@ -124,6 +168,13 @@ const NewQuestion = () => {
           complexity={selectedComplexity}
           categories={selectedCategories}
           description={markdownText}
+          cTemplate={codeTemplates.c}
+          javaTemplate={codeTemplates.java}
+          pythonTemplate={codeTemplates.python}
+          inputTestCases={inputTestCases}
+          outputTestCases={outputTestCases}
+          showCodeTemplate={true}
+          showTestCases={true}
         />
       ) : (
         <>
@@ -173,6 +224,7 @@ const NewQuestion = () => {
           <QuestionCodeTemplates
             codeTemplates={codeTemplates}
             setCodeTemplates={setCodeTemplates}
+            isEditable={true}
           />
         </>
       )}
@@ -189,7 +241,12 @@ const NewQuestion = () => {
             !title &&
             !markdownText &&
             !selectedComplexity &&
-            selectedCategories.length === 0
+            selectedCategories.length === 0 &&
+            !testcaseInputFile &&
+            !testcaseOutputFile &&
+            !(codeTemplates.python === PYTHON_CODE_TEMPLATE) &&
+            !(codeTemplates.java === JAVA_CODE_TEMPLATE) &&
+            !(codeTemplates.c === C_CODE_TEMPLATE)
           }
           onClick={() => setIsPreviewQuestion((prev) => !prev)}
         >
