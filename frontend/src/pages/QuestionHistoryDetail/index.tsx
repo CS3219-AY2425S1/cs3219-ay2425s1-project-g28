@@ -210,6 +210,13 @@ const QuestionHistoryDetail: React.FC = () => {
               complexity={qnState.selectedQuestion.complexity}
               categories={qnState.selectedQuestion.categories}
               description={qnState.selectedQuestion.description}
+              cTemplate={qnState.selectedQuestion.cTemplate}
+              javaTemplate={qnState.selectedQuestion.javaTemplate}
+              pythonTemplate={qnState.selectedQuestion.pythonTemplate}
+              inputTestCases={qnState.selectedQuestion.inputs}
+              outputTestCases={qnState.selectedQuestion.outputs}
+              showCodeTemplate={false}
+              showTestCases={true}
             />
           ) : (
             <ServerError
