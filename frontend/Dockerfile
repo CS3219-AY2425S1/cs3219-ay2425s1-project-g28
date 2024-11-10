@@ -8,11 +8,11 @@ RUN npm ci
 
 COPY . .
 
-EXPOSE 5173
-
 # DEV
 
 FROM base AS dev
+
+EXPOSE 5173
 
 CMD ["npm", "run", "dev"]
 
@@ -21,5 +21,7 @@ CMD ["npm", "run", "dev"]
 FROM base AS prod
 
 RUN npm run build
+
+EXPOSE 4173
 
 CMD ["npm", "run", "preview"]

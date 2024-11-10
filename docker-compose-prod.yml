@@ -109,22 +109,25 @@ services:
       - peerprep-network
     restart: on-failure
 
-  # frontend:
-  #   image: peerprep/frontend
-  #   build: ./frontend
-  #   ports:
-  #     - 5173:5173
-  #   depends_on:
-  #     - user-service
-  #     # - question-service
-  #     # - matching-service
-  #     # - collab-service
-  #     # - code-execution-service
-  #     # - communication-service
-  #     # - qn-history-service
-  #   networks:
-  #     - peerprep-network
-  #   restart: on-failure
+  frontend:
+    image: peerprep/frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: prod
+    ports:
+      - 5173:4173
+    depends_on:
+      - user-service
+      - question-service
+      - matching-service
+      - collab-service
+      - code-execution-service
+      - communication-service
+      - qn-history-service
+    networks:
+      - peerprep-network
+    restart: on-failure
 
   question-service-mongo:
     image: mongo
