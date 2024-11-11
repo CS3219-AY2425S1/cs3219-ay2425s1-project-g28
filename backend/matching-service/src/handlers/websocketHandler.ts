@@ -20,7 +20,6 @@ enum MatchEvents {
   MATCH_DECLINE_REQUEST = "match_decline_request",
   REMATCH_REQUEST = "rematch_request",
   MATCH_END_REQUEST = "match_end_request",
-  MATCH_STATUS_REQUEST = "match_status_request",
 
   USER_CONNECTED = "user_connected",
   USER_DISCONNECTED = "user_disconnected",
@@ -181,17 +180,6 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
     userConnections.delete(uid);
     handleMatchDelete(matchId);
   });
-
-  socket.on(
-    MatchEvents.MATCH_STATUS_REQUEST,
-    (
-      uid: string,
-      callback: (match: { matchId: string; partner: MatchUser } | null) => void
-    ) => {
-      const match = getMatchByUid(uid);
-      callback(match);
-    }
-  );
 
   socket.on(MatchEvents.SOCKET_DISCONNECT, () => {
     for (const [uid, userConnection] of userConnections) {

@@ -11,6 +11,7 @@ export const allowedOrigins = process.env.ORIGINS
 const app = express();
 
 app.use(cors({ origin: allowedOrigins, credentials: true }));
+
 app.options("*", cors({ origin: allowedOrigins, credentials: true }));
 
 app.get("/", (req: Request, res: Response) => {
