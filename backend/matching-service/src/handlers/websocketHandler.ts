@@ -15,7 +15,7 @@ import { sendToProducer } from "../config/rabbitmq";
 enum MatchEvents {
   // Receive
   MATCH_REQUEST = "match_request",
-  CANCEL_MATCH_REQUEST = "cancel_match_request",
+  MATCH_CANCEL_REQUEST = "match_cancel_request",
   MATCH_ACCEPT_REQUEST = "match_accept_request",
   MATCH_DECLINE_REQUEST = "match_decline_request",
   REMATCH_REQUEST = "rematch_request",
@@ -114,7 +114,7 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
     }
   );
 
-  socket.on(MatchEvents.CANCEL_MATCH_REQUEST, (uid: string) => {
+  socket.on(MatchEvents.MATCH_CANCEL_REQUEST, (uid: string) => {
     userConnections.delete(uid);
   });
 
@@ -154,7 +154,7 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
       matchId: string,
       partnerId: string,
       rematchRequest: MatchRequest,
-      callback: (result: boolean) => void
+      callback: (requested: boolean) => void
     ) => {
       const matchDeleted = handleMatchDelete(matchId);
       if (matchDeleted) {
@@ -233,7 +233,7 @@ const endMatchOnUserDisconnect = (socket: Socket, uid: string) => {
   if (matchId) {
     const matchDeleted = handleMatchDelete(matchId);
     if (matchDeleted) {
-      socket.to(matchId).emit(MatchEvents.MATCH_UNSUCCESSFUL); // on matching page
+      socket.to(matchId).emit(MatchEvents.MATCH_UNSUCCESSFUL);
     }
   }
 };

@@ -28,6 +28,55 @@
 
 ## After running
 
-1. To view Matching Service documentation, go to http://localhost:3002/docs.
+1. Using applications like Postman, you can interact with the Matching Service on port 3002. If you wish to change this, please update the `.env` file.
 
-2. Using applications like Postman, you can interact with the Matching Service on port 3002. If you wish to change this, please update the `.env` file.
+2. Setting up Socket.IO connection on Postman:
+
+   - You should open 2 tabs on Postman to simulate 2 users in the Matching Service.
+
+   - Select the `Socket.IO` option and set URL to `http://localhost:3002`. Click `Connect`.
+
+   ![image1.png](./docs/images/postman-setup1.png)
+
+   - Add the following events in the `Events` tab and listen to them.
+
+   ![image2.png](./docs/images/postman-setup2.png)
+
+   - In the `Headers` tab, add a valid JWT token in the `Authorization` header.
+
+   ![image3.png](./docs/images/postman-setup3.png)
+
+   - In the `Message` tab, select `JSON` in the bottom left dropdown to ensure that your message is being parsed correctly. In the `Event name` input field, enter the name of the event you would like to send a message to. Click on `Send` to send a message.
+
+   ![image4.png](./docs/images/postman-setup4.png)
+
+## Events Available
+
+| Event Name                | Description                                                             | Parameters                                                                                                                                                                                                                                                                    | Response Event                                                                                                                                                                             |
+| ------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **user_connected**        | User joins the matching process                                         | `uid` (string): ID of the user.                                                                                                                                                                                                                                               | None                                                                                                                                                                                       |
+| **user_disconnected**     | User leaves the matching process                                        | `uid` (string): ID of the user.                                                                                                                                                                                                                                               | **match_unsuccessful**: If the user left during the match offer phase, notify the partner user that the match was unsuccessful                                                             |
+| **match_request**         | Sends a match request                                                   | `matchRequest` (`MatchRequest`): Match request details. <br><br> `callback` (`(requested: boolean) => void`): To check if the match request was successfully sent.                                                                                                            | **match_request_exists**: Notify the user that only one match request can be processed at a time. <br><br> **match_request_error**: Notify the user that the match request failed to send. |
+| **match_cancel_request**  | Cancels the match request                                               | `uid` (string): ID of the user.                                                                                                                                                                                                                                               | None                                                                                                                                                                                       |
+| **match_accept_request**  | Accepts the match request                                               | `uid` (string): ID of the user.                                                                                                                                                                                                                                               | **match_successful**: If both users have accepted the match offer, notify them that the match is successful.                                                                               |
+| **match_decline_request** | Declines the match request                                              | `uid` (string): ID of the user. <br><br> `matchId` (string): ID of the user. <br><br> `isTimeout` (boolean): Whether the match was declined due to match offer timeout.                                                                                                       | **match_unsuccessful**: If the match was not declined due to match offer timeout (was explicitly rejected by the user), notify the partner user that the match is unsuccessful.            |
+| **rematch_request**       | Sends a rematch request                                                 | `matchId` (string): ID of the match. <br><br> `partnerId` (string): ID of the partner user. <br><br> `rematchRequest` (`MatchRequest`): Rematch request details. <br><br> `callback` (`(requested: boolean) => void`): To check if the rematch request was successfully sent. | **match_request_error**: Notify the user that the rematch request failed to send.                                                                                                          |
+| **match_end_request**     | User leaves the matching process upon leaving the collaboration session | `uid` (string): ID of the user. <br><br> `matchId` (string): ID of the match.                                                                                                                                                                                                 | None                                                                                                                                                                                       |
+
+### Event Parameter Types
+
+```typescript
+interface MatchUser {
+  id: string;
+  username: string;
+  profile?: string;
+}
+
+interface MatchRequest {
+  user: MatchUser;
+  complexity: string;
+  category: string;
+  language: string;
+  timeout: number;
+}
+```
