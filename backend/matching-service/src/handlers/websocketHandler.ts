@@ -1,17 +1,16 @@
 import { Socket } from "socket.io";
 import {
-  sendMatchRequest,
   handleMatchAccept,
-  MatchRequest,
   handleMatchDelete,
   getMatchIdByUid,
-  MatchUser,
   getMatchByUid,
   getMatchById,
 } from "./matchHandler";
 import { io } from "../server";
 import { v4 as uuidv4 } from "uuid";
 import { getRandomQuestion } from "../api/questionService";
+import { MatchRequest, MatchUser } from "../utils/types";
+import { sendToProducer } from "../config/rabbitmq";
 
 enum MatchEvents {
   // Receive
@@ -105,7 +104,7 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
         requestId: requestId,
       });
 
-      const sent = await sendMatchRequest(matchRequest, requestId);
+      const sent = await sendToProducer(matchRequest, requestId);
       if (!sent) {
         socket.emit(MatchEvents.MATCH_REQUEST_ERROR);
         userConnections.delete(uid);
@@ -170,7 +169,7 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
         requestId: requestId,
       });
 
-      const sent = await sendMatchRequest(rematchRequest, requestId, partnerId);
+      const sent = await sendToProducer(rematchRequest, requestId, partnerId);
       if (!sent) {
         socket.emit(MatchEvents.MATCH_REQUEST_ERROR);
       }
