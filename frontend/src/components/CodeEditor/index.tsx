@@ -13,9 +13,7 @@ import { useCollab } from "../../contexts/CollabContext";
 import {
   COLLAB_DOCUMENT_INIT_ERROR,
   USE_COLLAB_ERROR_MESSAGE,
-  USE_MATCH_ERROR_MESSAGE,
 } from "../../utils/constants";
-import { useMatch } from "../../contexts/MatchContext";
 import { toast } from "react-toastify";
 
 interface CodeEditorProps {
@@ -45,13 +43,6 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     isReadOnly = false,
   } = props;
 
-  const match = useMatch();
-  if (!match) {
-    throw new Error(USE_MATCH_ERROR_MESSAGE);
-  }
-
-  const { partner, questionTitle } = match;
-
   const collab = useCollab();
   if (!collab) {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
@@ -59,7 +50,9 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
 
   const {
     collabUser,
+    collabPartner,
     qnId,
+    qnTitle,
     initDocument,
     checkDocReady,
     sendCursorUpdate,
@@ -81,7 +74,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     }
 
     const loadTemplate = async () => {
-      if (collabUser && partner && qnId && questionTitle) {
+      if (collabUser && collabPartner && qnId && qnTitle) {
         checkDocReady(roomId, editorState.doc, setIsDocumentLoaded);
         try {
           await initDocument(
@@ -89,10 +82,10 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
             roomId,
             template,
             collabUser.id,
-            partner.id,
+            collabPartner.id,
             language,
             qnId,
-            questionTitle
+            qnTitle
           );
           setIsDocumentLoaded(true);
         } catch {

@@ -101,9 +101,11 @@ type CollabContextType = {
 
   // Collab session data
   collabUser: CollabUser | null;
+  collabPartner: CollabUser | null;
   language: string | null;
   roomId: string | null;
   qnId: string | null;
+  qnTitle: string | null;
   qnHistoryId: string | null;
   compilerResult: CompilerResult[];
   stopTime: boolean;
@@ -123,7 +125,15 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
 
-  const { matchId, matchUser, matchCriteria, questionId, stopMatch } = match;
+  const {
+    matchId,
+    matchUser,
+    matchCriteria,
+    partner,
+    questionId,
+    questionTitle,
+    stopMatch,
+  } = match;
 
   // eslint-disable-next-line
   const [_qnHistoryState, qnHistoryDispatch] = useReducer(
@@ -139,9 +149,11 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
   // Session data
   const [collabUser, setCollabUser] = useState<CollabUser | null>(null);
+  const [collabPartner, setCollabPartner] = useState<CollabUser | null>(null);
   const [language, setLanguage] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [qnId, setQnId] = useState<string | null>(null);
+  const [qnTitle, setQnTitle] = useState<string | null>(null);
   const [qnHistoryId, setQnHistoryId] = useState<string | null>(null);
   const [compilerResult, setCompilerResult] = useState<CompilerResult[]>([]);
   const [stopTime, setStopTime] = useState<boolean>(true);
@@ -173,16 +185,19 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   }, [matchUser]);
 
   useEffect(() => {
+    setCollabPartner(
+      partner
+        ? {
+            id: partner.id,
+            username: partner.username,
+          }
+        : null
+    );
     setLanguage(matchCriteria?.language || null);
-  }, [matchCriteria]);
-
-  useEffect(() => {
     setRoomId(matchId);
-  }, [matchId]);
-
-  useEffect(() => {
     setQnId(questionId);
-  }, [questionId]);
+    setQnTitle(questionTitle);
+  }, [matchCriteria, matchId, questionId, questionTitle]);
 
   useEffect(() => {
     qnHistoryIdRef.current = qnHistoryId;
@@ -517,9 +532,11 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
         // Collab session data
         collabUser,
+        collabPartner,
         language,
         roomId,
         qnId,
+        qnTitle,
         qnHistoryId,
         compilerResult,
         stopTime,
