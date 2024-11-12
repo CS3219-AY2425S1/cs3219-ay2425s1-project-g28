@@ -13,7 +13,7 @@ import { io } from "../server";
 import { v4 as uuidv4 } from "uuid";
 import { getRandomQuestion } from "../api/questionService";
 
-enum MatchEvents {
+export enum MatchEvents {
   // Receive
   MATCH_REQUEST = "match_request",
   CANCEL_MATCH_REQUEST = "cancel_match_request",
