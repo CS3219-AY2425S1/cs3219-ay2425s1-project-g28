@@ -197,7 +197,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     setRoomId(matchId);
     setQnId(questionId);
     setQnTitle(questionTitle);
-  }, [matchCriteria, matchId, questionId, questionTitle]);
+  }, [partner, matchCriteria, matchId, questionId, questionTitle]);
 
   useEffect(() => {
     qnHistoryIdRef.current = qnHistoryId;
