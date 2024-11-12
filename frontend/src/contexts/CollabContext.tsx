@@ -68,7 +68,6 @@ type CollabContextType = {
   join: (uid: string, roomId: string) => Promise<CollabSessionData>;
   leave: (uid: string, roomId: string, isPartnerNotified: boolean) => void;
   initDocument: (
-    uid: string,
     roomId: string,
     template: string,
     uid1: string,
@@ -251,7 +250,6 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const initDocument = (
-    uid: string,
     roomId: string,
     template: string,
     uid1: string,
@@ -277,7 +275,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
           applyUpdateV2(
             collabSessionDataRef.current.doc,
             new Uint8Array(update),
-            uid
+            uid1
           );
           resolve();
         } else {

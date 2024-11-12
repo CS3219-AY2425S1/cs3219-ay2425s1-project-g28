@@ -144,8 +144,6 @@ const CollabSandbox: React.FC = () => {
           >
             <CodeEditor
               editorState={collabSessionData}
-              uid={collabUser.id}
-              username={collabUser.username}
               language={language}
               template={
                 language === "Python"
@@ -156,7 +154,6 @@ const CollabSandbox: React.FC = () => {
                   ? selectedQuestion.cTemplate
                   : ""
               }
-              roomId={roomId}
             />
           </Box>
           <Box

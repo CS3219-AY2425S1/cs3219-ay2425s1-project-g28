@@ -18,11 +18,8 @@ import { toast } from "react-toastify";
 
 interface CodeEditorProps {
   editorState?: { doc: Doc; text: Text; awareness: Awareness };
-  uid?: string;
-  username?: string;
   language: string;
   template?: string;
-  roomId?: string;
   isReadOnly?: boolean;
 }
 
@@ -33,15 +30,7 @@ const languageSupport = {
 };
 
 const CodeEditor: React.FC<CodeEditorProps> = (props) => {
-  const {
-    editorState,
-    uid = "",
-    username = "",
-    language,
-    template = "",
-    roomId = "",
-    isReadOnly = false,
-  } = props;
+  const { editorState, language, template = "", isReadOnly = false } = props;
 
   const collab = useCollab();
   if (!collab) {
@@ -51,6 +40,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
   const {
     collabUser,
     collabPartner,
+    roomId,
     qnId,
     qnTitle,
     initDocument,
@@ -74,11 +64,10 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     }
 
     const loadTemplate = async () => {
-      if (collabUser && collabPartner && qnId && qnTitle) {
+      if (collabUser && collabPartner && roomId && qnId && qnTitle) {
         checkDocReady(roomId, editorState.doc, setIsDocumentLoaded);
         try {
           await initDocument(
-            uid,
             roomId,
             template,
             collabUser.id,
@@ -111,13 +100,13 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
         indentUnit.of("\t"),
         basicSetup(),
         languageSupport[language as keyof typeof languageSupport],
-        ...(!isReadOnly && editorState
+        ...(!isReadOnly && editorState && roomId && collabUser
           ? [
               yCollab(editorState.text, editorState.awareness),
               cursorExtension(
                 roomId,
-                uid,
-                username,
+                collabUser.id,
+                collabUser.username,
                 sendCursorUpdate,
                 receiveCursorUpdate
               ),
