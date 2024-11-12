@@ -1,7 +1,11 @@
 import AppMargin from "../../components/AppMargin";
 import { Box, Button, Grid2, Tab, Tabs } from "@mui/material";
 import classes from "./index.module.css";
-import { CompilerResult, useCollab } from "../../contexts/CollabContext";
+import {
+  CollabSessionData,
+  CompilerResult,
+  useCollab,
+} from "../../contexts/CollabContext";
 import { useMatch } from "../../contexts/MatchContext";
 import {
   COLLAB_CONNECTION_ERROR,
@@ -20,7 +24,6 @@ import Chat from "../../components/Chat";
 import TabPanel from "../../components/TabPanel";
 import TestCase from "../../components/TestCase";
 import CodeEditor from "../../components/CodeEditor";
-import { CollabSessionData, join, leave } from "../../utils/collabSocket";
 import { toast } from "react-toastify";
 
 const CollabSandbox: React.FC = () => {
@@ -36,15 +39,14 @@ const CollabSandbox: React.FC = () => {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
-  const { compilerResult, resetCollab } = collab;
+  const { join, leave, compilerResult, resetCollab } = collab;
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const { selectedQuestion } = state;
   const [selectedTab, setSelectedTab] = useState<"tests" | "chat">("tests");
   const [selectedTestcase, setSelectedTestcase] = useState(0);
-  const [editorState, setEditorState] = useState<CollabSessionData | null>(
-    null
-  );
+  const [collabSessionData, setCollabSessionData] =
+    useState<CollabSessionData | null>(null);
   const [isConnecting, setIsConnecting] = useState<boolean>(true);
   const matchId = getMatchId();
 
@@ -59,9 +61,9 @@ const CollabSandbox: React.FC = () => {
 
     const connectToCollabSession = async () => {
       try {
-        const editorState = await join(matchUser.id, matchId);
-        if (editorState.ready) {
-          setEditorState(editorState);
+        const collabSessionData = await join(matchUser.id, matchId);
+        if (collabSessionData.ready) {
+          setCollabSessionData(collabSessionData);
         } else {
           toast.error(COLLAB_CONNECTION_ERROR);
           setIsConnecting(false);
@@ -99,7 +101,7 @@ const CollabSandbox: React.FC = () => {
     return <Navigate to="/home" replace />;
   }
 
-  if (!selectedQuestion || !editorState || !compilerResult) {
+  if (!selectedQuestion || !collabSessionData || !compilerResult) {
     return <Loader />;
   }
 
@@ -142,7 +144,7 @@ const CollabSandbox: React.FC = () => {
             })}
           >
             <CodeEditor
-              editorState={editorState}
+              editorState={collabSessionData}
               uid={matchUser.id}
               username={matchUser.username}
               language={matchCriteria.language}

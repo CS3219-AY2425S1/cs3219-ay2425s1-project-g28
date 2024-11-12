@@ -1,16 +1,13 @@
 import { Box, styled, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import {
-  CommunicationEvents,
-  communicationSocket,
-} from "../../utils/communicationSocket";
+import { CommunicationEvents } from "../../utils/communicationSocket";
 import { useMatch } from "../../contexts/MatchContext";
 import {
-  USE_AUTH_ERROR_MESSAGE,
+  USE_COLLAB_ERROR_MESSAGE,
   USE_MATCH_ERROR_MESSAGE,
 } from "../../utils/constants";
-import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "react-toastify";
+import { useCollab } from "../../contexts/CollabContext";
 
 type Message = {
   from: string;
@@ -34,33 +31,32 @@ const StyledTypography = styled(Typography)(({ theme }) => ({
 const Chat: React.FC<ChatProps> = ({ isActive }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const match = useMatch();
-  const auth = useAuth();
+
   const messagesRef = useRef<HTMLDivElement>(null);
   const errorHandledRef = useRef(false);
 
+  const match = useMatch();
   if (!match) {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
+  const { getMatchId, matchUser } = match;
 
-  if (!auth) {
-    throw new Error(USE_AUTH_ERROR_MESSAGE);
+  const collab = useCollab();
+  if (!collab) {
+    throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
-
-  const { getMatchId } = match;
-  const { user } = auth;
+  const { communicationSocket } = collab;
 
   useEffect(() => {
     // join the room automatically when this loads
-    communicationSocket.open();
-    communicationSocket.emit(CommunicationEvents.JOIN, {
+    communicationSocket?.open();
+    communicationSocket?.emit(CommunicationEvents.JOIN, {
       roomId: getMatchId(),
-      username: user?.username,
+      username: matchUser?.username,
     });
 
     return () => {
-      communicationSocket.emit(CommunicationEvents.USER_DISCONNECT);
-      // setMessages([]); // clear the earlier messages in dev mode
+      communicationSocket?.emit(CommunicationEvents.USER_DISCONNECT);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -77,19 +73,25 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
       }
     };
 
-    communicationSocket.on(CommunicationEvents.USER_JOINED, listener);
-    communicationSocket.on(CommunicationEvents.TEXT_MESSAGE_RECEIVED, listener);
-    communicationSocket.on(CommunicationEvents.DISCONNECTED, listener);
-    communicationSocket.on(CommunicationEvents.CONNECT_ERROR, errorListener);
+    communicationSocket?.on(CommunicationEvents.USER_JOINED, listener);
+    communicationSocket?.on(
+      CommunicationEvents.TEXT_MESSAGE_RECEIVED,
+      listener
+    );
+    communicationSocket?.on(CommunicationEvents.DISCONNECTED, listener);
+    communicationSocket?.on(CommunicationEvents.CONNECT_ERROR, errorListener);
 
     return () => {
-      communicationSocket.off(CommunicationEvents.USER_JOINED, listener);
-      communicationSocket.off(
+      communicationSocket?.off(CommunicationEvents.USER_JOINED, listener);
+      communicationSocket?.off(
         CommunicationEvents.TEXT_MESSAGE_RECEIVED,
         listener
       );
-      communicationSocket.off(CommunicationEvents.DISCONNECTED, listener);
-      communicationSocket.off(CommunicationEvents.CONNECT_ERROR, errorListener);
+      communicationSocket?.off(CommunicationEvents.DISCONNECTED, listener);
+      communicationSocket?.off(
+        CommunicationEvents.CONNECT_ERROR,
+        errorListener
+      );
     };
   }, []);
 
@@ -137,7 +139,7 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
                 {msg.message}
               </Typography>
             </Box>
-          ) : msg.from === user?.username ? (
+          ) : msg.from === matchUser?.username ? (
             <Box
               key={id}
               sx={(theme) => ({
@@ -185,10 +187,10 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
           const trimmedValue = inputValue.trim();
           if (e.key === "Enter" && !e.shiftKey && trimmedValue !== "") {
             e.preventDefault();
-            communicationSocket.emit(CommunicationEvents.SEND_TEXT_MESSAGE, {
+            communicationSocket?.emit(CommunicationEvents.SEND_TEXT_MESSAGE, {
               roomId: getMatchId(),
               message: trimmedValue,
-              username: user?.username,
+              username: matchUser?.username,
               createdTime: Date.now(),
             });
             setInputValue("");

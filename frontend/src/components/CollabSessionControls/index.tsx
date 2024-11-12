@@ -1,6 +1,6 @@
 import { Button, Stack } from "@mui/material";
 import Stopwatch from "../Stopwatch";
-import { useCollab } from "../../contexts/CollabContext";
+import { CollabEvents, useCollab } from "../../contexts/CollabContext";
 import {
   COLLAB_ENDED_MESSAGE,
   COLLAB_PARTNER_DISCONNECTED_MESSAGE,
@@ -13,7 +13,6 @@ import {
   extractMinutesFromTime,
   extractSecondsFromTime,
 } from "../../utils/sessionTime";
-import { CollabEvents, collabSocket } from "../../utils/collabSocket";
 import { toast } from "react-toastify";
 import reducer, {
   getQuestionById,
@@ -35,11 +34,12 @@ const CollabSessionControls: React.FC = () => {
   }
 
   const {
+    collabSocket,
     handleSubmitSessionClick,
     handleEndSessionClick,
     handleConfirmEndSession,
-    isEndSessionModalOpen,
     handleRejectEndSession,
+    isEndSessionModalOpen,
     handleExitSession,
     isExitSessionModalOpen,
     qnHistoryId,
@@ -54,21 +54,21 @@ const CollabSessionControls: React.FC = () => {
   const { selectedQuestion } = state;
 
   useEffect(() => {
-    collabSocket.once(CollabEvents.END_SESSION, (sessionDuration: number) => {
+    collabSocket?.once(CollabEvents.END_SESSION, (sessionDuration: number) => {
       collabSocket.off(CollabEvents.PARTNER_DISCONNECTED);
       toast.info(COLLAB_ENDED_MESSAGE);
       handleConfirmEndSession(timeRef.current, setTime, true, sessionDuration);
     });
 
-    collabSocket.once(CollabEvents.PARTNER_DISCONNECTED, () => {
+    collabSocket?.once(CollabEvents.PARTNER_DISCONNECTED, () => {
       collabSocket.off(CollabEvents.END_SESSION);
       toast.error(COLLAB_PARTNER_DISCONNECTED_MESSAGE);
       handleConfirmEndSession(timeRef.current, setTime, true);
     });
 
     return () => {
-      collabSocket.off(CollabEvents.END_SESSION);
-      collabSocket.off(CollabEvents.PARTNER_DISCONNECTED);
+      collabSocket?.off(CollabEvents.END_SESSION);
+      collabSocket?.off(CollabEvents.PARTNER_DISCONNECTED);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

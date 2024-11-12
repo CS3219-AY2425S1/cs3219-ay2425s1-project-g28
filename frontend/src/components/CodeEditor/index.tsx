@@ -5,17 +5,18 @@ import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { indentUnit } from "@codemirror/language";
 import { useEffect, useState } from "react";
-import { initDocument } from "../../utils/collabSocket";
 import { cursorExtension } from "../../utils/collabCursor";
 import { yCollab } from "y-codemirror.next";
 import { Doc, Text } from "yjs";
 import { Awareness } from "y-protocols/awareness";
 import { useCollab } from "../../contexts/CollabContext";
 import {
+  COLLAB_DOCUMENT_INIT_ERROR,
   USE_COLLAB_ERROR_MESSAGE,
   USE_MATCH_ERROR_MESSAGE,
 } from "../../utils/constants";
 import { useMatch } from "../../contexts/MatchContext";
+import { toast } from "react-toastify";
 
 interface CodeEditorProps {
   editorState?: { doc: Doc; text: Text; awareness: Awareness };
@@ -57,7 +58,8 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
-  const { checkDocReady } = collab;
+  const { checkDocReady, initDocument, sendCursorUpdate, receiveCursorUpdate } =
+    collab;
 
   const [isEditorReady, setIsEditorReady] = useState<boolean>(false);
   const [isDocumentLoaded, setIsDocumentLoaded] = useState<boolean>(false);
@@ -82,17 +84,21 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
         questionTitle
       ) {
         checkDocReady(roomId, editorState.doc, setIsDocumentLoaded);
-        await initDocument(
-          uid,
-          roomId,
-          template,
-          matchUser.id,
-          partner.id,
-          matchCriteria.language,
-          questionId,
-          questionTitle
-        );
-        setIsDocumentLoaded(true);
+        try {
+          await initDocument(
+            uid,
+            roomId,
+            template,
+            matchUser.id,
+            partner.id,
+            matchCriteria.language,
+            questionId,
+            questionTitle
+          );
+          setIsDocumentLoaded(true);
+        } catch {
+          toast.error(COLLAB_DOCUMENT_INIT_ERROR);
+        }
       }
     };
     loadTemplate();
@@ -114,7 +120,13 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
         ...(!isReadOnly && editorState
           ? [
               yCollab(editorState.text, editorState.awareness),
-              cursorExtension(roomId, uid, username),
+              cursorExtension(
+                roomId,
+                uid,
+                username,
+                sendCursorUpdate,
+                receiveCursorUpdate
+              ),
             ]
           : []),
         EditorView.lineWrapping,

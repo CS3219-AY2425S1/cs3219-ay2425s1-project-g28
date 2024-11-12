@@ -119,6 +119,8 @@ export const COLLAB_DOCUMENT_ERROR =
   "Error syncing the code! Please wait as we try to reconnect. Recent changes may be lost.";
 export const COLLAB_DOCUMENT_RESTORED =
   "Connection restored! You may resume editing the code.";
+export const COLLAB_DOCUMENT_INIT_ERROR =
+  "Error setting up the code editor! Please refresh this page or find another match.";
 
 // Code execution
 export const FAILED_TESTCASE_MESSAGE =
