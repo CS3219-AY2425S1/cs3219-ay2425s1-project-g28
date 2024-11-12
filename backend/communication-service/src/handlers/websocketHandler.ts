@@ -9,7 +9,6 @@ export const handleWebsocketCommunicationEvents = (socket: Socket) => {
     CommunicationEvents.JOIN,
     async ({ roomId, username }: { roomId: string; username: string }) => {
       connectUser(username);
-      console.log(username, roomId);
       const room = io.sockets.adapter.rooms.get(roomId);
       if (room?.has(socket.id)) {
         socket.emit(CommunicationEvents.ALREADY_JOINED);
