@@ -3,7 +3,6 @@ import {
   handleMatchAccept,
   handleMatchDelete,
   getMatchIdByUid,
-  getMatchByUid,
   getMatchById,
 } from "./matchHandler";
 import { io } from "../server";
