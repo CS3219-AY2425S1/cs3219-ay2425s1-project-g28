@@ -1,12 +1,16 @@
 import UserModel, { IUser } from "./user-model";
-import "dotenv/config";
+import dotenv from "dotenv";
 import { connect } from "mongoose";
+
+dotenv.config();
 
 export async function connectToDB() {
   const mongoDBUri: string | undefined =
     process.env.NODE_ENV === "production"
       ? process.env.MONGO_CLOUD_URI
       : process.env.MONGO_LOCAL_URI;
+
+  console.log(mongoDBUri);
 
   if (!mongoDBUri) {
     throw new Error("MongoDB URI is not provided");

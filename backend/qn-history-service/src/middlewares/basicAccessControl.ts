@@ -12,6 +12,6 @@ export const verifyToken = (
     .then(() => next())
     .catch((err) => {
       console.log(err.response);
-      return res.status(err.response.status).json(err.response.data);
+      return res.status(err.response?.status).json(err.response?.data);
     });
 };
