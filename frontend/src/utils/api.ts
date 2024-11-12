@@ -1,9 +1,14 @@
 import axios from "axios";
 
-const usersUrl = "http://localhost:3001/api";
-const questionsUrl = "http://localhost:3000/api/questions";
-const codeExecutionUrl = "http://localhost:3004/api/run";
-const qnHistoriesUrl = "http://localhost:3006/api/qnhistories";
+const usersUrl =
+  import.meta.env.VITE_USER_SERVICE_URL ?? "http://localhost:3001/api";
+const questionsUrl =
+  import.meta.env.VITE_QN_SERVICE_URL ?? "http://localhost:3000/api/questions";
+const codeExecutionUrl =
+  import.meta.env.VITE_CODE_EXEC_SERVICE_URL ?? "http://localhost:3004/api/run";
+const qnHistoriesUrl =
+  import.meta.env.VITE_QN_HIST_SERVICE_URL ??
+  "http://localhost:3006/api/qnhistories";
 
 export const questionClient = axios.create({
   baseURL: questionsUrl,

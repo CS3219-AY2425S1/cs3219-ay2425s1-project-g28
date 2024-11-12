@@ -35,12 +35,11 @@ type MatchCriteria = {
 enum MatchEvents {
   // Send
   MATCH_REQUEST = "match_request",
-  CANCEL_MATCH_REQUEST = "cancel_match_request",
+  MATCH_CANCEL_REQUEST = "match_cancel_request",
   MATCH_ACCEPT_REQUEST = "match_accept_request",
   MATCH_DECLINE_REQUEST = "match_decline_request",
   REMATCH_REQUEST = "rematch_request",
   MATCH_END_REQUEST = "match_end_request",
-  MATCH_STATUS_REQUEST = "match_status_request",
 
   USER_CONNECTED = "user_connected",
   USER_DISCONNECTED = "user_disconnected",
@@ -365,7 +364,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         appNavigate(MatchPaths.HOME);
         return;
       case MatchPaths.MATCHING:
-        matchSocket.emit(MatchEvents.CANCEL_MATCH_REQUEST, matchUser?.id);
+        matchSocket.emit(MatchEvents.MATCH_CANCEL_REQUEST, matchUser?.id);
         appNavigate(MatchPaths.HOME);
         return;
       case MatchPaths.MATCHED:
@@ -446,7 +445,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const matchingTimeout = () => {
-    matchSocket.emit(MatchEvents.CANCEL_MATCH_REQUEST, matchUser?.id);
+    matchSocket.emit(MatchEvents.MATCH_CANCEL_REQUEST, matchUser?.id);
     appNavigate(MatchPaths.TIMEOUT);
   };
 
