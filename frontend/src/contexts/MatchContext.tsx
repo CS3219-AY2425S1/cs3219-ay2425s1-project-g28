@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { createMatchSocket } from "../utils/matchSocket";
+import { createMatchSocket, MatchEvents } from "../utils/matchSocket";
 import {
   ABORT_COLLAB_SESSION_CONFIRMATION_MESSAGE,
   ABORT_MATCH_PROCESS_CONFIRMATION_MESSAGE,
@@ -33,32 +33,6 @@ type MatchCriteria = {
   timeout: number;
 };
 
-enum MatchEvents {
-  // Send
-  MATCH_REQUEST = "match_request",
-  MATCH_CANCEL_REQUEST = "match_cancel_request",
-  MATCH_ACCEPT_REQUEST = "match_accept_request",
-  MATCH_DECLINE_REQUEST = "match_decline_request",
-  REMATCH_REQUEST = "rematch_request",
-  MATCH_END_REQUEST = "match_end_request",
-
-  USER_CONNECTED = "user_connected",
-  USER_DISCONNECTED = "user_disconnected",
-
-  // Receive
-  MATCH_FOUND = "match_found",
-  MATCH_SUCCESSFUL = "match_successful",
-  MATCH_UNSUCCESSFUL = "match_unsuccessful",
-  MATCH_REQUEST_EXISTS = "match_request_exists",
-  MATCH_REQUEST_ERROR = "match_request_error",
-
-  SOCKET_DISCONNECT = "disconnect",
-  SOCKET_CLIENT_DISCONNECT = "io client disconnect",
-  SOCKET_SERVER_DISCONNECT = "io server disconnect",
-  SOCKET_RECONNECT_SUCCESS = "reconnect",
-  SOCKET_RECONNECT_FAILED = "reconnect_failed",
-}
-
 enum MatchPaths {
   HOME = "/home",
   TIMEOUT = "/matching/timeout",
@@ -80,7 +54,7 @@ type MatchContextType = {
   retryMatch: () => void;
   matchingTimeout: () => void;
   matchOfferTimeout: () => void;
-  getMatchId: () => string | null;
+  matchId: string | null;
   matchUser: MatchUser | null;
   matchCriteria: MatchCriteria | null;
   partner: MatchUser | null;
@@ -104,6 +78,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   }
   const { user } = auth;
 
+  const [matchSocket, setMatchSocket] = useState<Socket | null>(null);
   const [matchUser, setMatchUser] = useState<MatchUser | null>(null);
   const [matchCriteria, setMatchCriteria] = useState<MatchCriteria | null>(
     null
@@ -114,7 +89,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [questionId, setQuestionId] = useState<string | null>(null);
   const [questionTitle, setQuestionTitle] = useState<string | null>(null);
-  const [matchSocket, setMatchSocket] = useState<Socket | null>(null);
 
   const navigator = useContext(UNSAFE_NavigationContext).navigator as History;
 
@@ -467,10 +441,6 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     appNavigate(MatchPaths.HOME);
   };
 
-  const getMatchId = () => {
-    return matchId;
-  };
-
   return (
     <MatchContext.Provider
       value={{
@@ -481,7 +451,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         retryMatch,
         matchingTimeout,
         matchOfferTimeout,
-        getMatchId,
+        matchId,
         matchUser,
         matchCriteria,
         partner,

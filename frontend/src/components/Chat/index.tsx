@@ -1,11 +1,7 @@
 import { Box, styled, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { CommunicationEvents } from "../../utils/communicationSocket";
-import { useMatch } from "../../contexts/MatchContext";
-import {
-  USE_COLLAB_ERROR_MESSAGE,
-  USE_MATCH_ERROR_MESSAGE,
-} from "../../utils/constants";
+import { USE_COLLAB_ERROR_MESSAGE } from "../../utils/constants";
 import { toast } from "react-toastify";
 import { useCollab } from "../../contexts/CollabContext";
 
@@ -35,24 +31,18 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
   const messagesRef = useRef<HTMLDivElement>(null);
   const errorHandledRef = useRef(false);
 
-  const match = useMatch();
-  if (!match) {
-    throw new Error(USE_MATCH_ERROR_MESSAGE);
-  }
-  const { getMatchId, matchUser } = match;
-
   const collab = useCollab();
   if (!collab) {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
-  const { communicationSocket } = collab;
+  const { communicationSocket, collabUser, roomId } = collab;
 
   useEffect(() => {
     // join the room automatically when this loads
     communicationSocket?.open();
     communicationSocket?.emit(CommunicationEvents.JOIN, {
-      roomId: getMatchId(),
-      username: matchUser?.username,
+      roomId: roomId,
+      username: collabUser?.username,
     });
 
     return () => {
@@ -139,7 +129,7 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
                 {msg.message}
               </Typography>
             </Box>
-          ) : msg.from === matchUser?.username ? (
+          ) : msg.from === collabUser?.username ? (
             <Box
               key={id}
               sx={(theme) => ({
@@ -188,9 +178,9 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
           if (e.key === "Enter" && !e.shiftKey && trimmedValue !== "") {
             e.preventDefault();
             communicationSocket?.emit(CommunicationEvents.SEND_TEXT_MESSAGE, {
-              roomId: getMatchId(),
+              roomId: roomId,
               message: trimmedValue,
-              username: matchUser?.username,
+              username: collabUser?.username,
               createdTime: Date.now(),
             });
             setInputValue("");

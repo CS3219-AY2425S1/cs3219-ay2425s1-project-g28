@@ -25,7 +25,7 @@ import { codeExecutionClient, qnHistoryClient } from "../utils/api";
 import { useReducer } from "react";
 import { updateQnHistoryById } from "../reducers/qnHistoryReducer";
 import qnHistoryReducer, { initialQHState } from "../reducers/qnHistoryReducer";
-import { createCollabSocket } from "../utils/collabSocket";
+import { CollabEvents, createCollabSocket } from "../utils/collabSocket";
 import useAppNavigate from "../hooks/useAppNavigate";
 import { applyUpdateV2, Doc, Text } from "yjs";
 import { Socket } from "socket.io-client";
@@ -34,31 +34,10 @@ import { Cursor, updateCursor } from "../utils/collabCursor";
 import { EditorView } from "@uiw/react-codemirror";
 import { createCommunicationSocket } from "../utils/communicationSocket";
 
-export enum CollabEvents {
-  // Send
-  JOIN = "join",
-  LEAVE = "leave",
-  INIT_DOCUMENT = "init_document",
-  UPDATE_REQUEST = "update_request",
-  UPDATE_CURSOR_REQUEST = "update_cursor_request",
-  RECONNECT_REQUEST = "reconnect_request",
-  END_SESSION_REQUEST = "end_session_request",
-
-  // Receive
-  ROOM_READY = "room_ready",
-  DOCUMENT_READY = "document_ready",
-  DOCUMENT_NOT_FOUND = "document_not_found",
-  UPDATE = "updateV2",
-  UPDATE_CURSOR = "update_cursor",
-  END_SESSION = "end_session",
-  PARTNER_DISCONNECTED = "partner_disconnected",
-
-  SOCKET_DISCONNECT = "disconnect",
-  SOCKET_CLIENT_DISCONNECT = "io client disconnect",
-  SOCKET_SERVER_DISCONNECT = "io server disconnect",
-  SOCKET_RECONNECT_SUCCESS = "reconnect",
-  SOCKET_RECONNECT_FAILED = "reconnect_failed",
-}
+type CollabUser = {
+  id: string;
+  username: string;
+};
 
 export type CollabSessionData = {
   ready: boolean;
@@ -81,9 +60,13 @@ export type CompilerResult = {
 };
 
 type CollabContextType = {
+  // Sockets
   collabSocket: Socket | null;
   communicationSocket: Socket | null;
+
+  // Real-time logic
   join: (uid: string, roomId: string) => Promise<CollabSessionData>;
+  leave: (uid: string, roomId: string, isPartnerNotified: boolean) => void;
   initDocument: (
     uid: string,
     roomId: string,
@@ -94,9 +77,15 @@ type CollabContextType = {
     qnId: string,
     qnTitle: string
   ) => Promise<void>;
-  leave: (uid: string, roomId: string, isPartnerNotified: boolean) => void;
+  checkDocReady: (
+    roomId: string,
+    doc: Doc,
+    setIsDocumentLoaded: React.Dispatch<React.SetStateAction<boolean>>
+  ) => void;
   sendCursorUpdate: (roomId: string, cursor: Cursor) => void;
   receiveCursorUpdate: (view: EditorView) => void;
+
+  // End session logic
   handleSubmitSessionClick: (time: number) => void;
   handleEndSessionClick: () => void;
   handleRejectEndSession: () => void;
@@ -106,20 +95,20 @@ type CollabContextType = {
     isInitiatedByPartner: boolean,
     sessionDuration?: number
   ) => void;
-  isEndSessionModalOpen: boolean;
-  compilerResult: CompilerResult[];
-  setCompilerResult: React.Dispatch<React.SetStateAction<CompilerResult[]>>;
-  resetCollab: () => void;
-  checkDocReady: (
-    roomId: string,
-    doc: Doc,
-    setIsDocumentLoaded: React.Dispatch<React.SetStateAction<boolean>>
-  ) => void;
   handleExitSession: () => void;
+  isEndSessionModalOpen: boolean;
   isExitSessionModalOpen: boolean;
+
+  // Collab session data
+  collabUser: CollabUser | null;
+  language: string | null;
+  roomId: string | null;
+  qnId: string | null;
   qnHistoryId: string | null;
+  compilerResult: CompilerResult[];
   stopTime: boolean;
   setStopTime: React.Dispatch<React.SetStateAction<boolean>>;
+  resetCollab: () => void;
 };
 
 const CollabContext = createContext<CollabContextType | null>(null);
@@ -134,7 +123,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
 
-  const { matchUser, matchCriteria, getMatchId, stopMatch, questionId } = match;
+  const { matchId, matchUser, matchCriteria, questionId, stopMatch } = match;
 
   // eslint-disable-next-line
   const [_qnHistoryState, qnHistoryDispatch] = useReducer(
@@ -142,28 +131,39 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     initialQHState
   );
 
-  const [compilerResult, setCompilerResult] = useState<CompilerResult[]>([]);
-  const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
-    useState<boolean>(false);
-  const [isExitSessionModalOpen, setIsExitSessionModalOpen] =
-    useState<boolean>(false);
-  const [qnHistoryId, setQnHistoryId] = useState<string | null>(null);
-  const [stopTime, setStopTime] = useState<boolean>(true);
-  const [collabSessionData, setCollabSessionData] =
-    useState<CollabSessionData | null>(null);
-
-  // sockets
+  // Sockets
   const [collabSocket, setCollabSocket] = useState<Socket | null>(null);
   const [communicationSocket, setCommunicationSocket] = useState<Socket | null>(
     null
   );
 
-  // refs
+  // Session data
+  const [collabUser, setCollabUser] = useState<CollabUser | null>(null);
+  const [language, setLanguage] = useState<string | null>(null);
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [qnId, setQnId] = useState<string | null>(null);
+  const [qnHistoryId, setQnHistoryId] = useState<string | null>(null);
+  const [compilerResult, setCompilerResult] = useState<CompilerResult[]>([]);
+  const [stopTime, setStopTime] = useState<boolean>(true);
+  const [collabSessionData, setCollabSessionData] =
+    useState<CollabSessionData | null>(null);
+
+  // Refs
   const collabSessionDataRef = useRef<CollabSessionData | null>(null);
   const qnHistoryIdRef = useRef<string | null>(qnHistoryId);
 
+  // Modals
+  const [isEndSessionModalOpen, setIsEndSessionModalOpen] =
+    useState<boolean>(false);
+  const [isExitSessionModalOpen, setIsExitSessionModalOpen] =
+    useState<boolean>(false);
+
   useEffect(() => {
     if (matchUser) {
+      setCollabUser({
+        id: matchUser.id,
+        username: matchUser.username,
+      });
       setCollabSocket(createCollabSocket());
       setCommunicationSocket(createCommunicationSocket());
     } else {
@@ -173,12 +173,24 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   }, [matchUser]);
 
   useEffect(() => {
-    collabSessionDataRef.current = collabSessionData;
-  }, [collabSessionData]);
+    setLanguage(matchCriteria?.language || null);
+  }, [matchCriteria]);
+
+  useEffect(() => {
+    setRoomId(matchId);
+  }, [matchId]);
+
+  useEffect(() => {
+    setQnId(questionId);
+  }, [questionId]);
 
   useEffect(() => {
     qnHistoryIdRef.current = qnHistoryId;
   }, [qnHistoryId]);
+
+  useEffect(() => {
+    collabSessionDataRef.current = collabSessionData;
+  }, [collabSessionData]);
 
   const join = (uid: string, roomId: string): Promise<CollabSessionData> => {
     collabSocket?.connect();
@@ -210,6 +222,17 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         resolve({ ready: ready, doc: doc, text: text, awareness: awareness });
       });
     });
+  };
+
+  const leave = (uid: string, roomId: string, isPartnerNotified: boolean) => {
+    collabSocket?.removeAllListeners();
+    collabSocket?.io.removeListener(CollabEvents.SOCKET_RECONNECT_SUCCESS);
+    collabSocket?.io.removeListener(CollabEvents.SOCKET_RECONNECT_FAILED);
+    collabSessionDataRef.current?.doc.destroy();
+
+    if (collabSocket?.connected) {
+      collabSocket.emit(CollabEvents.LEAVE, uid, roomId, isPartnerNotified);
+    }
   };
 
   const initDocument = (
@@ -249,14 +272,81 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     });
   };
 
-  const leave = (uid: string, roomId: string, isPartnerNotified: boolean) => {
-    collabSocket?.removeAllListeners();
-    collabSocket?.io.removeListener(CollabEvents.SOCKET_RECONNECT_SUCCESS);
-    collabSocket?.io.removeListener(CollabEvents.SOCKET_RECONNECT_FAILED);
-    collabSessionDataRef.current?.doc.destroy();
+  const checkDocReady = (
+    roomId: string,
+    doc: Doc,
+    setIsDocumentLoaded: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    if (!collabSocket?.hasListeners(CollabEvents.DOCUMENT_READY)) {
+      collabSocket?.on(CollabEvents.DOCUMENT_READY, (qnHistoryId: string) => {
+        setQnHistoryId(qnHistoryId);
+      });
+    }
 
-    if (collabSocket?.connected) {
-      collabSocket.emit(CollabEvents.LEAVE, uid, roomId, isPartnerNotified);
+    if (!collabSocket?.hasListeners(CollabEvents.DOCUMENT_NOT_FOUND)) {
+      collabSocket?.on(CollabEvents.DOCUMENT_NOT_FOUND, () => {
+        toast.error(COLLAB_DOCUMENT_ERROR);
+        setIsDocumentLoaded(false);
+        setStopTime(true);
+
+        const text = doc.getText();
+        doc.transact(() => {
+          text.delete(0, text.length);
+        }, collabUser?.id);
+
+        collabSocket.once(CollabEvents.UPDATE, (update) => {
+          applyUpdateV2(doc, new Uint8Array(update), collabUser?.id);
+          toast.success(COLLAB_DOCUMENT_RESTORED);
+          setIsDocumentLoaded(true);
+          setStopTime(false);
+        });
+
+        collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
+      });
+    }
+
+    if (!collabSocket?.hasListeners(CollabEvents.SOCKET_DISCONNECT)) {
+      collabSocket?.on(CollabEvents.SOCKET_DISCONNECT, (reason) => {
+        console.log(reason);
+        if (
+          reason !== CollabEvents.SOCKET_CLIENT_DISCONNECT &&
+          reason !== CollabEvents.SOCKET_SERVER_DISCONNECT
+        ) {
+          toast.error(COLLAB_DOCUMENT_ERROR);
+          setIsDocumentLoaded(false);
+          setStopTime(true);
+        }
+      });
+    }
+
+    if (!collabSocket?.io.hasListeners(CollabEvents.SOCKET_RECONNECT_SUCCESS)) {
+      collabSocket?.io.on(CollabEvents.SOCKET_RECONNECT_SUCCESS, () => {
+        const text = doc.getText();
+        doc.transact(() => {
+          text.delete(0, text.length);
+        }, collabUser?.id);
+
+        collabSocket.once(CollabEvents.UPDATE, (update) => {
+          applyUpdateV2(doc, new Uint8Array(update), collabUser?.id);
+          toast.success(COLLAB_DOCUMENT_RESTORED);
+          setIsDocumentLoaded(true);
+          setStopTime(false);
+        });
+
+        collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
+      });
+    }
+
+    if (!collabSocket?.io.hasListeners(CollabEvents.SOCKET_RECONNECT_FAILED)) {
+      collabSocket?.io.on(CollabEvents.SOCKET_RECONNECT_FAILED, () => {
+        toast.error(COLLAB_RECONNECTION_ERROR);
+
+        if (collabUser) {
+          leave(collabUser.id, roomId, true);
+        }
+
+        handleExitSession();
+      });
     }
   };
 
@@ -287,9 +377,9 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     const code = getDocContent();
     try {
       const res = await codeExecutionClient.post("/", {
-        questionId,
+        questionId: qnId,
         code: code,
-        language: matchCriteria?.language.toLowerCase(),
+        language: language?.toLowerCase(),
       });
       setCompilerResult([...res.data.data]);
 
@@ -343,8 +433,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   ) => {
     setIsEndSessionModalOpen(false);
 
-    const roomId = getMatchId();
-    if (!matchUser || !roomId || !qnHistoryIdRef.current) {
+    if (!collabUser || !roomId || !qnHistoryIdRef.current) {
       toast.error(COLLAB_END_ERROR);
       appNavigate("/home");
       return;
@@ -382,7 +471,7 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     }
 
     // Leave collaboration room
-    leave(matchUser.id, roomId, true);
+    leave(collabUser.id, roomId, true);
   };
 
   const handleExitSession = () => {
@@ -392,84 +481,6 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
     // Reset collab state
     resetCollab();
-  };
-
-  const checkDocReady = (
-    roomId: string,
-    doc: Doc,
-    setIsDocumentLoaded: React.Dispatch<React.SetStateAction<boolean>>
-  ) => {
-    if (!collabSocket?.hasListeners(CollabEvents.DOCUMENT_READY)) {
-      collabSocket?.on(CollabEvents.DOCUMENT_READY, (qnHistoryId: string) => {
-        setQnHistoryId(qnHistoryId);
-      });
-    }
-
-    if (!collabSocket?.hasListeners(CollabEvents.DOCUMENT_NOT_FOUND)) {
-      collabSocket?.on(CollabEvents.DOCUMENT_NOT_FOUND, () => {
-        toast.error(COLLAB_DOCUMENT_ERROR);
-        setIsDocumentLoaded(false);
-        setStopTime(true);
-
-        const text = doc.getText();
-        doc.transact(() => {
-          text.delete(0, text.length);
-        }, matchUser?.id);
-
-        collabSocket.once(CollabEvents.UPDATE, (update) => {
-          applyUpdateV2(doc, new Uint8Array(update), matchUser?.id);
-          toast.success(COLLAB_DOCUMENT_RESTORED);
-          setIsDocumentLoaded(true);
-          setStopTime(false);
-        });
-
-        collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
-      });
-    }
-
-    if (!collabSocket?.hasListeners(CollabEvents.SOCKET_DISCONNECT)) {
-      collabSocket?.on(CollabEvents.SOCKET_DISCONNECT, (reason) => {
-        console.log(reason);
-        if (
-          reason !== CollabEvents.SOCKET_CLIENT_DISCONNECT &&
-          reason !== CollabEvents.SOCKET_SERVER_DISCONNECT
-        ) {
-          toast.error(COLLAB_DOCUMENT_ERROR);
-          setIsDocumentLoaded(false);
-          setStopTime(true);
-        }
-      });
-    }
-
-    if (!collabSocket?.io.hasListeners(CollabEvents.SOCKET_RECONNECT_SUCCESS)) {
-      collabSocket?.io.on(CollabEvents.SOCKET_RECONNECT_SUCCESS, () => {
-        const text = doc.getText();
-        doc.transact(() => {
-          text.delete(0, text.length);
-        }, matchUser?.id);
-
-        collabSocket.once(CollabEvents.UPDATE, (update) => {
-          applyUpdateV2(doc, new Uint8Array(update), matchUser?.id);
-          toast.success(COLLAB_DOCUMENT_RESTORED);
-          setIsDocumentLoaded(true);
-          setStopTime(false);
-        });
-
-        collabSocket.emit(CollabEvents.RECONNECT_REQUEST, roomId);
-      });
-    }
-
-    if (!collabSocket?.io.hasListeners(CollabEvents.SOCKET_RECONNECT_FAILED)) {
-      collabSocket?.io.on(CollabEvents.SOCKET_RECONNECT_FAILED, () => {
-        toast.error(COLLAB_RECONNECTION_ERROR);
-
-        if (matchUser) {
-          leave(matchUser.id, roomId, true);
-        }
-
-        handleExitSession();
-      });
-    }
   };
 
   const resetCollab = () => {
@@ -483,27 +494,37 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   return (
     <CollabContext.Provider
       value={{
+        // Sockets
         collabSocket,
         communicationSocket,
+
+        // Real-time logic
         join,
-        initDocument,
         leave,
+        initDocument,
+        checkDocReady,
         sendCursorUpdate,
         receiveCursorUpdate,
+
+        // End session logic
         handleSubmitSessionClick,
         handleEndSessionClick,
         handleRejectEndSession,
         handleConfirmEndSession,
-        isEndSessionModalOpen,
-        compilerResult,
-        setCompilerResult,
-        resetCollab,
-        checkDocReady,
         handleExitSession,
+        isEndSessionModalOpen,
         isExitSessionModalOpen,
+
+        // Collab session data
+        collabUser,
+        language,
+        roomId,
+        qnId,
         qnHistoryId,
+        compilerResult,
         stopTime,
         setStopTime,
+        resetCollab,
       }}
     >
       {children}

@@ -1,11 +1,10 @@
 import { Button, Stack } from "@mui/material";
 import Stopwatch from "../Stopwatch";
-import { CollabEvents, useCollab } from "../../contexts/CollabContext";
+import { useCollab } from "../../contexts/CollabContext";
 import {
   COLLAB_ENDED_MESSAGE,
   COLLAB_PARTNER_DISCONNECTED_MESSAGE,
   USE_COLLAB_ERROR_MESSAGE,
-  USE_MATCH_ERROR_MESSAGE,
 } from "../../utils/constants";
 import { useEffect, useReducer, useRef, useState } from "react";
 import CustomDialog from "../CustomDialog";
@@ -18,16 +17,9 @@ import reducer, {
   getQuestionById,
   initialState,
 } from "../../reducers/questionReducer";
-import { useMatch } from "../../contexts/MatchContext";
+import { CollabEvents } from "../../utils/collabSocket";
 
 const CollabSessionControls: React.FC = () => {
-  const match = useMatch();
-  if (!match) {
-    throw new Error(USE_MATCH_ERROR_MESSAGE);
-  }
-
-  const { questionId } = match;
-
   const collab = useCollab();
   if (!collab) {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
@@ -39,9 +31,10 @@ const CollabSessionControls: React.FC = () => {
     handleEndSessionClick,
     handleConfirmEndSession,
     handleRejectEndSession,
-    isEndSessionModalOpen,
     handleExitSession,
+    isEndSessionModalOpen,
     isExitSessionModalOpen,
+    qnId,
     qnHistoryId,
     stopTime,
     setStopTime,
@@ -96,11 +89,11 @@ const CollabSessionControls: React.FC = () => {
   }, [qnHistoryId]);
 
   useEffect(() => {
-    if (!questionId) {
+    if (!qnId) {
       return;
     }
-    getQuestionById(questionId, dispatch);
-  }, [questionId]);
+    getQuestionById(qnId, dispatch);
+  }, [qnId]);
 
   return (
     <Stack direction={"row"} alignItems={"center"} spacing={2}>

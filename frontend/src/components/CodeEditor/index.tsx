@@ -50,16 +50,21 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
 
-  const { matchCriteria, matchUser, partner, questionId, questionTitle } =
-    match;
+  const { partner, questionTitle } = match;
 
   const collab = useCollab();
   if (!collab) {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
-  const { checkDocReady, initDocument, sendCursorUpdate, receiveCursorUpdate } =
-    collab;
+  const {
+    collabUser,
+    qnId,
+    initDocument,
+    checkDocReady,
+    sendCursorUpdate,
+    receiveCursorUpdate,
+  } = collab;
 
   const [isEditorReady, setIsEditorReady] = useState<boolean>(false);
   const [isDocumentLoaded, setIsDocumentLoaded] = useState<boolean>(false);
@@ -76,29 +81,25 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     }
 
     const loadTemplate = async () => {
-      if (
-        matchUser &&
-        partner &&
-        matchCriteria &&
-        questionId &&
-        questionTitle
-      ) {
+      if (collabUser && partner && qnId && questionTitle) {
         checkDocReady(roomId, editorState.doc, setIsDocumentLoaded);
         try {
           await initDocument(
             uid,
             roomId,
             template,
-            matchUser.id,
+            collabUser.id,
             partner.id,
-            matchCriteria.language,
-            questionId,
+            language,
+            qnId,
             questionTitle
           );
           setIsDocumentLoaded(true);
         } catch {
           toast.error(COLLAB_DOCUMENT_INIT_ERROR);
         }
+      } else {
+        toast.error(COLLAB_DOCUMENT_INIT_ERROR);
       }
     };
     loadTemplate();
