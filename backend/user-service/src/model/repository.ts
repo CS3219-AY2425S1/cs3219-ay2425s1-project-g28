@@ -10,8 +10,6 @@ export async function connectToDB() {
       ? process.env.MONGO_CLOUD_URI
       : process.env.MONGO_LOCAL_URI;
 
-  console.log(mongoDBUri);
-
   if (!mongoDBUri) {
     throw new Error("MongoDB URI is not provided");
   }
