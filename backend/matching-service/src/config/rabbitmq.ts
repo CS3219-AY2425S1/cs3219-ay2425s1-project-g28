@@ -54,10 +54,25 @@ const setUpConsumer = async (queueName: string) => {
 
   consumerChannel.consume(queueName, (msg) => {
     if (msg !== null) {
-      const matchRequestItem = JSON.parse(msg.content.toString());
+      const matchRequestItem = JSON.parse(
+        msg.content.toString()
+      ) as MatchRequestItem;
       const waitingList = getWaitingList(queueName);
       const [complexity, category] = deconstructQueueName(queueName);
+      console.log(
+        `Consumed from ${queueName}: ${JSON.stringify(matchRequestItem)}`
+      );
+      console.log(
+        `Waiting list before matching: ${JSON.stringify([
+          ...waitingList.entries(),
+        ])}`
+      );
       matchUsers(matchRequestItem, waitingList, complexity, category);
+      console.log(
+        `Waiting list after matching: ${JSON.stringify([
+          ...waitingList.entries(),
+        ])}`
+      );
       consumerChannel.ack(msg);
     }
   });
@@ -70,13 +85,11 @@ const routeToQueue = async (
   try {
     const queueName = constructQueueName(criterias);
     const senderChannel = await mrConnection.createChannel();
-    senderChannel.sendToQueue(
-      queueName,
-      Buffer.from(JSON.stringify(requestItem)),
-      {
-        persistent: true,
-      }
-    );
+    const msg = JSON.stringify(requestItem);
+    senderChannel.sendToQueue(queueName, Buffer.from(msg), {
+      persistent: true,
+    });
+    console.log(`Sent to ${queueName}: ${msg}`);
     return true;
   } catch (error) {
     console.log(error);
