@@ -1,46 +1,24 @@
 import amqplib, { Connection } from "amqplib";
 import dotenv from "dotenv";
-import { matchUsers } from "../utils/messageQueue";
-import { MatchRequestItem } from "../handlers/matchHandler";
+import { matchUsers } from "../handlers/matchHandler";
 import { Complexities, Categories, Languages } from "../utils/constants";
+import { MatchRequest, MatchRequestItem } from "../utils/types";
 
 dotenv.config();
 
 const RABBITMQ_ADDR = process.env.RABBITMQ_ADDR || "amqp://localhost:5672";
+const QUEUE_NAME_DELIMITER = "_";
 
 let mrConnection: Connection;
-const queues: string[] = [];
-const pendingQueueRequests = new Map<string, Map<string, MatchRequestItem>>();
-
-const initQueueNames = () => {
-  for (const complexity of Object.values(Complexities)) {
-    for (const category of Object.values(Categories)) {
-      for (const language of Object.values(Languages)) {
-        queues.push(`${complexity}_${category}_${language}`);
-      }
-    }
-  }
-};
-
-const setUpQueue = async (queueName: string) => {
-  const consumerChannel = await mrConnection.createChannel();
-  await consumerChannel.assertQueue(queueName);
-
-  consumerChannel.consume(queueName, (msg) => {
-    if (msg !== null) {
-      matchUsers(queueName, msg.content.toString());
-      consumerChannel.ack(msg);
-    }
-  });
-};
+const waitingLists = new Map<string, Map<string, MatchRequestItem>>();
 
 export const connectToRabbitMq = async () => {
   try {
-    initQueueNames();
     mrConnection = await amqplib.connect(RABBITMQ_ADDR);
+    const queues = setUpQueueNames();
     for (const queue of queues) {
-      await setUpQueue(queue);
-      pendingQueueRequests.set(queue, new Map<string, MatchRequestItem>());
+      await setUpConsumer(queue);
+      getWaitingList(queue);
     }
   } catch (error) {
     console.error(error);
@@ -48,16 +26,57 @@ export const connectToRabbitMq = async () => {
   }
 };
 
-export const sendToQueue = async (
-  complexity: string,
-  category: string,
-  language: string,
-  data: MatchRequestItem
+export const sendToProducer = async (
+  matchRequest: MatchRequest,
+  requestId: string,
+  rejectedPartnerId?: string
+): Promise<boolean> => {
+  const { user, complexity, category, language, timeout } = matchRequest;
+
+  const requestItem: MatchRequestItem = {
+    id: requestId,
+    user: user,
+    sentTimestamp: Date.now(),
+    ttlInSecs: timeout,
+    rejectedPartnerId: rejectedPartnerId,
+  };
+
+  const sent = await routeToQueue(
+    [complexity, category, language],
+    requestItem
+  );
+  return sent;
+};
+
+const setUpConsumer = async (queueName: string) => {
+  const consumerChannel = await mrConnection.createChannel();
+  await consumerChannel.assertQueue(queueName, { durable: true });
+
+  consumerChannel.consume(queueName, (msg) => {
+    if (msg !== null) {
+      const matchRequestItem = JSON.parse(msg.content.toString());
+      const waitingList = getWaitingList(queueName);
+      const [complexity, category] = deconstructQueueName(queueName);
+      matchUsers(matchRequestItem, waitingList, complexity, category);
+      consumerChannel.ack(msg);
+    }
+  });
+};
+
+const routeToQueue = async (
+  criterias: string[],
+  requestItem: MatchRequestItem
 ): Promise<boolean> => {
   try {
-    const queueName = `${complexity}_${category}_${language}`;
+    const queueName = constructQueueName(criterias);
     const senderChannel = await mrConnection.createChannel();
-    senderChannel.sendToQueue(queueName, Buffer.from(JSON.stringify(data)));
+    senderChannel.sendToQueue(
+      queueName,
+      Buffer.from(JSON.stringify(requestItem)),
+      {
+        persistent: true,
+      }
+    );
     return true;
   } catch (error) {
     console.log(error);
@@ -65,8 +84,30 @@ export const sendToQueue = async (
   }
 };
 
-export const getPendingRequests = (
-  queueName: string
-): Map<string, MatchRequestItem> => {
-  return pendingQueueRequests.get(queueName)!;
+const setUpQueueNames = () => {
+  const queues = [];
+  for (const complexity of Object.values(Complexities)) {
+    for (const category of Object.values(Categories)) {
+      for (const language of Object.values(Languages)) {
+        const queueName = constructQueueName([complexity, category, language]);
+        queues.push(queueName);
+      }
+    }
+  }
+  return queues;
+};
+
+const constructQueueName = (criterias: string[]) => {
+  return criterias.join(QUEUE_NAME_DELIMITER);
+};
+
+const deconstructQueueName = (queueName: string) => {
+  return queueName.split(QUEUE_NAME_DELIMITER);
+};
+
+const getWaitingList = (queueName: string): Map<string, MatchRequestItem> => {
+  if (!waitingLists.has(queueName)) {
+    waitingLists.set(queueName, new Map<string, MatchRequestItem>());
+  }
+  return waitingLists.get(queueName)!;
 };

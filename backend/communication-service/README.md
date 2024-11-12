@@ -22,31 +22,31 @@
 
 ## After Running
 
-1. Using applications like Postman, you can interact with the Communication Service on port 3005. If you wish to change this, please update the `.env` file.
+1.  Using applications like Postman, you can interact with the Communication Service on port 3005. If you wish to change this, please update the `.env` file.
 
-2. Setting up Socket.IO connection on Postman:
+2.  Setting up Socket.IO connection on Postman:
 
-   - You should open 2 tabs on Postman to simulate 2 users in the Communication Service.
+    - You should open 2 tabs on Postman to simulate 2 users in the Communication Service.
 
-   - Select the `Socket.IO` option and set URL to `http://localhost:3005`. Click `Connect`.
+    - Select the `Socket.IO` option and set URL to `http://localhost:3005`. Click `Connect`.
 
-   ![image1.png](./docs/images/postman-setup1.png)
+      ![image1.png](./docs/images/postman-setup1.png)
 
-   - Add the following events in the `Events` tab and listen to them.
+    - Add the following events in the `Events` tab and listen to them.
 
-   ![image2.png](./docs/images/postman-setup2.png)
+      ![image2.png](./docs/images/postman-setup2.png)
 
-   - Add a valid JWT token in the `Authorization` header.
+    - Add a valid JWT token in the `Authorization` header.
 
-   ![image3.png](./docs/images/postman-setup3.png)
+      ![image3.png](./docs/images/postman-setup3.png)
 
-   - In the `Event name` input, input the correct event name. Click on `Send` to send a message.
+    - In the `Event name` input, input the correct event name. Click on `Send` to send a message.
 
-   ![image4.png](./docs/images/postman-setup4.png)
+      ![image4.png](./docs/images/postman-setup4.png)
 
-   - To send a message, go to the `Message` tab and ensure that your message is being parsed as `JSON`.
+    - To send a message, go to the `Message` tab and ensure that your message is being parsed as `JSON`.
 
-   ![image5.png](./docs/images/postman-setup5.png)
+      ![image5.png](./docs/images/postman-setup5.png)
 
 ## Events Available
 
