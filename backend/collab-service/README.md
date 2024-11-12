@@ -35,22 +35,40 @@
    - You should open 2 tabs on Postman to simulate 2 users in the Collab Service.
 
    - Select the `Socket.IO` option and set URL to `http://localhost:3003`. Click `Connect`.
-     ![image1.png](docs/image1.png)
+
+     ![image1.png](./docs/images/postman-setup1.png)
 
    - Add the following events in the `Events` tab and listen to them.
-     ![image2.png](docs/image2.png)
 
-   - To send a message, go to the `Message` tab and ensure that your message is being parsed as `JSON`.
-     ![image3.png](docs/image3.png)
+     ![image2.png](./docs/images/postman-setup2.png)
 
-   - In the `Event name` input, input the correct event name. Click on `Send` to send a message.
-     ![image4.png](docs/image4.png)
+   - In the `Headers` tab, add a valid JWT token in the `Authorization` header.
+
+     ![image3.png](./docs/images/postman-setup3.png)
+
+   - In the `Message` tab, select `JSON` in the bottom left dropdown to ensure that your message is being parsed correctly. In the `Event name` input field, enter the name of the event you would like to send a message to. Click on `Send` to send a message.
+
+     ![image4.png](./docs/images/postman-setup4.png)
 
 ## Events Available
 
-| Event Name     | Description                       | Parameters                                                                    | Response Event                                                                                                                                                                                                           |
-| -------------- | --------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **join**       | Joins a collaboration room.       | `roomId` (string): ID of the room.                                            | **room_full:** Notify the user if the room is full (only 2 users allowed).<br/>**connected:** Notify the user if successfully connected.<br/>**new_user_connected:** Notify the other user if a new user joins the room. |
-| **change**     | Sends updated code to other user. | `roomId` (string): ID of the room.<br/>`code` (string): Updated code content. | **code_change:** Notify the other user with the updated code content.                                                                                                                                                    |
-| **leave**      | Leaves the collaboration room.    | `roomId` (string): ID of the room.                                            | **partner_left:** Notify the other user when one leaves the room.                                                                                                                                                        |
-| **disconnect** | Disconnects from the server.      | None                                                                          | **partner_disconnected:** Notify the other user when one is disconnected.                                                                                                                                                |
+| Event Name                | Description                                      | Parameters                                                                                                                                                                                                                                                                                                                                                                                                  | Response Event                                                                                                                                                                    |
+| ------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **join**                  | Joins a collaboration room                       | `uid` (string): ID of the user. <br><br> `roomId` (string): ID of the room.                                                                                                                                                                                                                                                                                                                                 | **room_ready:** Notify both users in the room that the room is ready (when exactly 2 users have joined).                                                                          |
+| **init_document**         | Initializes the server document for the room     | `roomId` (string): ID of the room. <br><br> `template` (string): Document template. <br><br> `uid1` (string): ID of the first user in the room. <br><br> `uid2` (string): ID of the second user in the room. <br><br> `language` (string): Programming language selected by both users. <br><br> `qnId` (string): ID of the selected question. <br><br> `qnTitle` (string): Title of the selected question. | **document_ready:** Notify both users in the room that the server document is ready.                                                                                              |
+| **update_request**        | Sends a document update                          | `roomId` (string): ID of the room. <br><br> `update` (`Uint8Array`): Document update.                                                                                                                                                                                                                                                                                                                       | **updateV2:** Sends the updated server document to both users in the room. <br><br> **document_not_found:** Notify both users in the room that the server document was not found. |
+| **update_cursor_request** | Sends a cursor update                            | `roomId` (string): ID of the room. <br><br> `cursor` (`Cursor`): Cursor details.                                                                                                                                                                                                                                                                                                                            | **update_cursor:** Notify the partner user of the cursor update.                                                                                                                  |
+| **leave**                 | Leaves the collaboration room                    | `uid` (string): ID of the user. <br><br> `roomId` (string): ID of the room. <br><br> `isPartnerNotified` (boolean): Whether the partner user has been notified that this user has left the room.                                                                                                                                                                                                            | **partner_disconnected:** Notify the partner user that this user has disconnected from the collaboration session.                                                                 |
+| **end_session_request**   | Sends a request to end the collaboration session | `roomId` (string): ID of the room. <br><br> `sessionDuration` (number): Duration of the collaboration session.                                                                                                                                                                                                                                                                                              | **end_session:** Notify both users in the room that the collaboration session has ended.                                                                                          |
+| **reconnect_request**     | Reconnects to the collaboration session          | `roomId` (string): ID of the room.                                                                                                                                                                                                                                                                                                                                                                          | None                                                                                                                                                                              |
+
+### Event Parameter Types
+
+```typescript
+interface Cursor {
+  uid: string;
+  username: string;
+  from: number;
+  to: number;
+}
+```

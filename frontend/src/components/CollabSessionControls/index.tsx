@@ -70,6 +70,7 @@ const CollabSessionControls: React.FC = () => {
       collabSocket.off(CollabEvents.END_SESSION);
       collabSocket.off(CollabEvents.PARTNER_DISCONNECTED);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -91,6 +92,7 @@ const CollabSessionControls: React.FC = () => {
     if (qnHistoryId) {
       setStopTime(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qnHistoryId]);
 
   useEffect(() => {

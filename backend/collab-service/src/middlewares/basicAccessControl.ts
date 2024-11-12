@@ -9,7 +9,6 @@ export const verifyUserToken = (
     socket.handshake.headers.authorization || socket.handshake.auth.token;
   verifyToken(token)
     .then(() => {
-      console.log("Valid credentials");
       next();
     })
     .catch((err) => {
