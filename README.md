@@ -1,5 +1,9 @@
 # CS3219 Project (PeerPrep) - AY2425S1 Group 28
 
+## Deployment
+
+We deployed PeerPrep on AWS ECS. It is accessible [here](http://peerprep-frontend-alb-1935920115.ap-southeast-1.elb.amazonaws.com/).
+
 ## Setting up
 
 We will be using Docker to set up PeerPrep. Install Docker [here](https://docs.docker.com/get-started/get-docker).
