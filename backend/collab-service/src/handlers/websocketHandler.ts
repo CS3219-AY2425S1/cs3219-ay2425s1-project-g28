@@ -4,7 +4,7 @@ import redisClient from "../config/redis";
 import { Doc, applyUpdateV2, encodeStateAsUpdateV2 } from "yjs";
 import { createQuestionHistory } from "../api/questionHistoryService";
 
-enum CollabEvents {
+export enum CollabEvents {
   // Receive
   JOIN = "join",
   LEAVE = "leave",

@@ -80,19 +80,6 @@ export const getMatchIdByUid = (uid: string): string | null => {
   return null;
 };
 
-export const getMatchByUid = (
-  uid: string
-): { matchId: string; partner: MatchUser } | null => {
-  for (const [matchId, match] of matches) {
-    if (match.matchUser1.id === uid) {
-      return { matchId: matchId, partner: match.matchUser2 };
-    } else if (match.matchUser2.id === uid) {
-      return { matchId: matchId, partner: match.matchUser1 };
-    }
-  }
-  return null;
-};
-
 export const getMatchById = (matchId: string): Match | undefined => {
   return matches.get(matchId);
 };

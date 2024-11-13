@@ -28,28 +28,10 @@ const QuestionCategoryAutoComplete: React.FC<
       sx={{ marginTop: 2 }}
       value={selectedCategories}
       onChange={(_e, newCategoriesSelected) => {
-        // const newValue =
-        //   newCategoriesSelected[newCategoriesSelected.length - 1];
-        // if (typeof newValue === "string" && newValue.startsWith(`Add: "`)) {
-        //   const newCategory = newValue.slice(6, -1);
-        //   state.questionCategories.push(newCategory);
-        //   setSelectedCategories((prev) => [...prev, newCategory]);
-        // } else {
-        //   setSelectedCategories(newCategoriesSelected);
-        // }
         setSelectedCategories(newCategoriesSelected);
       }}
       filterOptions={(options, params) => {
         const filtered = filter(options, params);
-
-        // const { inputValue } = params;
-
-        // const isExisting = options.some((option) => inputValue === option);
-
-        // if (inputValue !== "" && !isExisting) {
-        //   filtered.push(`Add: "${inputValue}"`);
-        // }
-
         return filtered;
       }}
       renderTags={(value, getTagProps) =>

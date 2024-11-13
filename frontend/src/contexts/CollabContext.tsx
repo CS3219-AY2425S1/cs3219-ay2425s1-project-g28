@@ -260,7 +260,6 @@ const CollabProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
     if (!collabSocket.hasListeners(CollabEvents.SOCKET_DISCONNECT)) {
       collabSocket.on(CollabEvents.SOCKET_DISCONNECT, (reason) => {
-        console.log(reason);
         if (
           reason !== CollabEvents.SOCKET_CLIENT_DISCONNECT &&
           reason !== CollabEvents.SOCKET_SERVER_DISCONNECT

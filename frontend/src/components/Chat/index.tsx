@@ -60,7 +60,6 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
 
     return () => {
       communicationSocket.emit(CommunicationEvents.USER_DISCONNECT);
-      // setMessages([]); // clear the earlier messages in dev mode
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

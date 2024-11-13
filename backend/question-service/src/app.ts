@@ -21,25 +21,6 @@ const app = express();
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.options("*", cors({ origin: allowedOrigins, credentials: true }));
 
-// To handle CORS Errors
-// app.use((req: Request, res: Response, next: NextFunction) => {
-//   res.header("Access-Control-Allow-Origin", req.headers.origin); // "*" -> Allow all links to access
-
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-//   );
-
-//   // Browsers usually send this before PUT or POST Requests
-//   if (req.method === "OPTIONS") {
-//     res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH");
-//     return res.status(200).json({});
-//   }
-
-//   // Continue Route Processing
-//   next();
-// });
-
 app.use(express.json());
 app.use("/api/questions", questionRoutes);
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));

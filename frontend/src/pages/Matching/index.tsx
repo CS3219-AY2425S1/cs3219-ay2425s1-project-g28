@@ -6,7 +6,7 @@ import classes from "./index.module.css";
 import Timer from "../../components/Timer";
 import { useMatch } from "../../contexts/MatchContext";
 import {
-  minMatchTimeout,
+  MIN_MATCH_TIMEOUT,
   USE_MATCH_ERROR_MESSAGE,
 } from "../../utils/constants";
 import { Navigate } from "react-router-dom";
@@ -17,7 +17,7 @@ const Matching: React.FC = () => {
     throw new Error(USE_MATCH_ERROR_MESSAGE);
   }
   const { matchingTimeout, matchCriteria } = match;
-  const timeout = matchCriteria?.timeout || minMatchTimeout;
+  const timeout = matchCriteria?.timeout || MIN_MATCH_TIMEOUT;
 
   const [timeLeft, setTimeLeft] = useState<number>(timeout);
 

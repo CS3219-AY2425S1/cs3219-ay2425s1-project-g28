@@ -1,6 +1,5 @@
 import app from "./app";
 import connectDB from "./config/db";
-// import { seedQuestions } from "./scripts/seed";
 
 const PORT = process.env.SERVICE_PORT || 3000;
 
@@ -8,7 +7,6 @@ if (process.env.NODE_ENV !== "test") {
   connectDB()
     .then(() => {
       console.log("MongoDB Connected!");
-      // seedQuestions();
 
       const server = app.listen(PORT, () => {
         console.log(

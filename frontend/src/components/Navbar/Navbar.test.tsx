@@ -27,14 +27,13 @@ beforeEach(() => {
     retryMatch: jest.fn(),
     matchingTimeout: jest.fn(),
     matchOfferTimeout: jest.fn(),
-    verifyMatchStatus: jest.fn(),
     matchUser: null,
     matchCriteria: null,
     partner: null,
     matchPending: false,
     loading: false,
-    questionId: "123",
-    questionTitle: "Question",
+    questionId: null,
+    questionTitle: null,
   }));
 });
 

@@ -302,8 +302,6 @@ export const updateQuestionById = async (
         description: question.description,
         complexity: question.complexity,
         category: question.categories,
-        // testcaseInputFileUrl: question.testcaseInputFileUrl,
-        // testcaseOutputFileUrl: question.testcaseOutputFileUrl,
         ...urls,
         pythonTemplate: question.pythonTemplate,
         javaTemplate: question.javaTemplate,
