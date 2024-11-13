@@ -8,6 +8,31 @@ import { MemoryRouter } from "react-router-dom";
 
 jest.mock("axios");
 
+jest.mock("../../utils/api", () => ({
+  getUserUrl: jest.fn().mockReturnValue("http://localhost:3001/api"),
+  getQuestionsUrl: jest
+    .fn()
+    .mockReturnValue("http://localhost:3000/api/questions"),
+  getCodeExecutionUrl: jest
+    .fn()
+    .mockReturnValue("http://localhost:3004/api/run"),
+  getQnHistoriesUrl: jest
+    .fn()
+    .mockReturnValue("http://localhost:3006/api/qnhistories"),
+}));
+
+jest.mock("../../utils/matchSocket", () => ({
+  getMatchSocketUrl: jest.fn().mockReturnValue("http://localhost:3002"),
+}));
+
+jest.mock("../../utils/collabSocket", () => ({
+  getCollabSocketUrl: jest.fn().mockReturnValue("http://localhost:3003"),
+}));
+
+jest.mock("../../utils/communicationSocket", () => ({
+  getCommunicationSocketUrl: jest.fn().mockReturnValue("http://localhost:3005"),
+}));
+
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const mockUseNavigate = jest.fn();

@@ -38,8 +38,11 @@ export type CollabSessionData = {
   awareness: Awareness;
 };
 
-const COLLAB_SOCKET_URL =
-  import.meta.env.VITE_COLLAB_SERVICE_URL ?? "http://localhost:3003";
+const getCollabSocketUrl = () => {
+  return import.meta.env.VITE_COLLAB_SERVICE_URL ?? "http://localhost:3003";
+};
+
+const COLLAB_SOCKET_URL = getCollabSocketUrl();
 
 export const collabSocket = io(COLLAB_SOCKET_URL, {
   reconnectionAttempts: 5,
