@@ -5,7 +5,7 @@ import yaml from "yaml";
 import swaggerUi from "swagger-ui-express";
 import cors from "cors";
 
-import codeExecutionRoutes from "./src/routes/codeExecutionRoutes.ts";
+import codeExecutionRoutes from "./routes/codeExecutionRoutes";
 
 dotenv.config();
 

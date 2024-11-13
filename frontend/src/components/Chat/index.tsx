@@ -14,6 +14,7 @@ type Message = {
 
 type ChatProps = {
   isActive: boolean;
+  setHasNewMessage: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const StyledTypography = styled(Typography)(({ theme }) => ({
@@ -24,7 +25,7 @@ const StyledTypography = styled(Typography)(({ theme }) => ({
   wordBreak: "break-word",
 }));
 
-const Chat: React.FC<ChatProps> = ({ isActive }) => {
+const Chat: React.FC<ChatProps> = ({ isActive, setHasNewMessage }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
 
@@ -55,6 +56,7 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
     // initialize listener for incoming messages
     const listener = (message: Message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
+      setHasNewMessage(true);
     };
     const errorListener = () => {
       if (!errorHandledRef.current) {
@@ -83,6 +85,7 @@ const Chat: React.FC<ChatProps> = ({ isActive }) => {
         errorListener
       );
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

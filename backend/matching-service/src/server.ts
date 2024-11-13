@@ -1,9 +1,9 @@
 import http from "http";
-import app, { allowedOrigins } from "./app.ts";
-import { handleWebsocketMatchEvents } from "./handlers/websocketHandler.ts";
+import app, { allowedOrigins } from "./app";
+import { handleWebsocketMatchEvents } from "./handlers/websocketHandler";
 import { Server } from "socket.io";
-import { connectToRabbitMq } from "./config/rabbitmq.ts";
-import { verifyUserToken } from "./middlewares/basicAccessControl.ts";
+import { connectToRabbitMq } from "./config/rabbitmq";
+import { verifyUserToken } from "./middlewares/basicAccessControl";
 
 const server = http.createServer(app);
 

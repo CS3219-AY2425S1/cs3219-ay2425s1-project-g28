@@ -3,7 +3,10 @@ name: peerprep-test
 services:
   test-user-service:
     image: peerprep/user-service
-    build: ./backend/user-service
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - NODE_ENV=test
       - SERVICE_PORT=3001
@@ -32,7 +35,10 @@ services:
 
   test-question-service:
     image: peerprep/question-service
-    build: ./backend/question-service
+    build:
+      context: ./backend/question-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - NODE_ENV=test
       - SERVICE_PORT=3000
@@ -53,7 +59,10 @@ services:
 
   test-matching-service:
     image: peerprep/matching-service
-    build: ./backend/matching-service
+    build:
+      context: ./backend/matching-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - NODE_ENV=test
       - SERVICE_PORT=3002
@@ -70,7 +79,10 @@ services:
 
   test-collab-service:
     image: peerprep/collab-service
-    build: ./backend/collab-service
+    build:
+      context: ./backend/collab-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - NODE_ENV=test
       - SERVICE_PORT=3003
@@ -87,7 +99,10 @@ services:
 
   test-code-execution-service:
     image: peerprep/code-execution-service
-    build: ./backend/code-execution-service
+    build:
+      context: ./backend/code-execution-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - NODE_ENV=test
       - SERVICE_PORT=3004
@@ -102,7 +117,10 @@ services:
 
   test-communication-service:
     image: peerprep/communication-service
-    build: ./backend/communication-service
+    build:
+      context: ./backend/communication-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - NODE_ENV=test
       - SERVICE_PORT=3005
@@ -116,7 +134,10 @@ services:
 
   test-qn-history-service:
     image: peerprep/qn-history-service
-    build: ./backend/qn-history-service
+    build:
+      context: ./backend/qn-history-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - NODE_ENV=test
       - SERVICE_PORT=3006
@@ -133,7 +154,10 @@ services:
 
   test-frontend:
     image: peerprep/frontend
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
     networks:
       - peerprep-network
     volumes:

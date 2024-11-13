@@ -24,6 +24,26 @@ To stop all the services, use the following command:
 docker-compose down
 ```
 
+## Running in Production Mode
+
+1. Build all the services (without using cache).
+
+```
+docker-compose -f docker-compose-prod.yml build --no-cache
+```
+
+2. Run all the services (in detached mode).
+
+```
+docker-compose -f docker-compose-prod.yml up -d
+```
+
+To stop all the services, use the following command:
+
+```
+docker-compose -f docker-compose-prod.yml down
+```
+
 ## Useful links
 
 - User Service: http://localhost:3001

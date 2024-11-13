@@ -1,5 +1,5 @@
 import AppMargin from "../../components/AppMargin";
-import { Box, Button, Grid2, Tab, Tabs } from "@mui/material";
+import { Badge, Box, Button, Grid2, Tab, Tabs } from "@mui/material";
 import classes from "./index.module.css";
 import {
   CollabSessionData,
@@ -44,6 +44,7 @@ const CollabSandbox: React.FC = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { selectedQuestion } = state;
   const [selectedTab, setSelectedTab] = useState<"tests" | "chat">("tests");
+  const [hasNewMessage, setHasNewMessage] = useState<boolean>(false);
   const [selectedTestcase, setSelectedTestcase] = useState(0);
   const [collabSessionData, setCollabSessionData] =
     useState<CollabSessionData | null>(null);
@@ -167,7 +168,10 @@ const CollabSandbox: React.FC = () => {
           >
             <Tabs
               value={selectedTab}
-              onChange={(_, value) => setSelectedTab(value)}
+              onChange={(_, value) => {
+                setSelectedTab(value);
+                setHasNewMessage(false);
+              }}
               sx={(theme) => ({
                 position: "sticky",
                 top: 0,
@@ -177,7 +181,19 @@ const CollabSandbox: React.FC = () => {
               })}
             >
               <Tab label="Test Cases" value="tests" />
-              <Tab label="Chat" value="chat" />
+
+              <Tab
+                label={
+                  <Badge
+                    color="primary"
+                    variant="dot"
+                    invisible={!hasNewMessage || selectedTab === "chat"}
+                  >
+                    Chat
+                  </Badge>
+                }
+                value="chat"
+              />
             </Tabs>
 
             <TabPanel value={selectedTab} selected="tests">
@@ -209,7 +225,10 @@ const CollabSandbox: React.FC = () => {
               />
             </TabPanel>
             <TabPanel value={selectedTab} selected="chat">
-              <Chat isActive={selectedTab === "chat"} />
+              <Chat
+                setHasNewMessage={setHasNewMessage}
+                isActive={selectedTab === "chat"}
+              />
             </TabPanel>
           </Box>
         </Grid2>

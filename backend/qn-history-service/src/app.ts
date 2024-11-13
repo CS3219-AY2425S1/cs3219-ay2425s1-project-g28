@@ -5,7 +5,7 @@ import yaml from "yaml";
 import swaggerUi from "swagger-ui-express";
 import cors from "cors";
 
-import qnHistoryRoutes from "./routes/questionHistoryRoutes.ts";
+import qnHistoryRoutes from "./routes/questionHistoryRoutes";
 
 dotenv.config();
 

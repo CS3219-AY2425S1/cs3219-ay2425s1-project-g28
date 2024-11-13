@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import QnHistory, { IQnHistory } from "../models/QnHistory.ts";
+import QnHistory, { IQnHistory } from "../models/QnHistory";
 import {
   MONGO_OBJ_ID_FORMAT,
   MONGO_OBJ_ID_MALFORMED_MESSAGE,
@@ -10,8 +10,8 @@ import {
   QN_HIST_NOT_FOUND_MESSAGE,
   QN_HIST_RETRIEVED_MESSAGE,
   SERVER_ERROR_MESSAGE,
-} from "../utils/constants.ts";
-import { QnHistListParams } from "../utils/types.ts";
+} from "../utils/constants";
+import { QnHistListParams } from "../utils/types";
 
 export const createQnHistory = async (
   req: Request,
