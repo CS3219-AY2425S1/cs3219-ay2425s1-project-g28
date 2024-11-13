@@ -1,5 +1,7 @@
 # User Service Guide
 
+> This User Service is adapted from [PeerPrep-UserService](https://github.com/CS3219-AY2425S1/PeerPrep-UserService/tree/main/user-service).
+
 > Please ensure that you have completed the backend set-up [here](../README.md) before proceeding.
 
 ## Setting-up User Service
