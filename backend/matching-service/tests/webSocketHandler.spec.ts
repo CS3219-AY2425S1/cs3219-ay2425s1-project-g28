@@ -3,7 +3,7 @@ import { type AddressInfo } from "node:net";
 import ioc from "socket.io-client";
 import { Server, Socket } from "socket.io";
 import { MatchEvents } from "../src/handlers/websocketHandler";
-import { MatchUser } from "../src/handlers/matchHandler";
+import { MatchUser } from "../src/utils/types";
 
 describe("Matching service web socket", () => {
   let io: Server, serverSocket: Socket, clientSocket: SocketIOClient.Socket;

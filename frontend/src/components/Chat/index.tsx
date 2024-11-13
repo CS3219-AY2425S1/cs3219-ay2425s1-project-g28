@@ -92,6 +92,7 @@ const Chat: React.FC<ChatProps> = ({ isActive, setHasNewMessage }) => {
       communicationSocket.off(CommunicationEvents.DISCONNECTED, listener);
       communicationSocket.off(CommunicationEvents.CONNECT_ERROR, errorListener);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
