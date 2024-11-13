@@ -1,25 +1,24 @@
 import { Socket } from "socket.io";
 import {
-  sendMatchRequest,
   handleMatchAccept,
-  MatchRequest,
   handleMatchDelete,
   getMatchIdByUid,
-  MatchUser,
-  getMatchByUid,
+  getMatchById,
 } from "./matchHandler";
-import { io } from "../../server";
+import { io } from "../server";
 import { v4 as uuidv4 } from "uuid";
+import { getRandomQuestion } from "../api/questionService";
+import { MatchRequest, MatchUser } from "../utils/types";
+import { sendToProducer } from "../config/rabbitmq";
 
-enum MatchEvents {
+export enum MatchEvents {
   // Receive
   MATCH_REQUEST = "match_request",
-  CANCEL_MATCH_REQUEST = "cancel_match_request",
+  MATCH_CANCEL_REQUEST = "match_cancel_request",
   MATCH_ACCEPT_REQUEST = "match_accept_request",
   MATCH_DECLINE_REQUEST = "match_decline_request",
   REMATCH_REQUEST = "rematch_request",
   MATCH_END_REQUEST = "match_end_request",
-  MATCH_STATUS_REQUEST = "match_status_request",
 
   USER_CONNECTED = "user_connected",
   USER_DISCONNECTED = "user_disconnected",
@@ -30,7 +29,6 @@ enum MatchEvents {
   MATCH_FOUND = "match_found",
   MATCH_SUCCESSFUL = "match_successful",
   MATCH_UNSUCCESSFUL = "match_unsuccessful",
-  MATCH_ENDED = "match_ended",
   MATCH_REQUEST_EXISTS = "match_request_exists",
   MATCH_REQUEST_ERROR = "match_request_error",
 }
@@ -104,7 +102,7 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
         requestId: requestId,
       });
 
-      const sent = await sendMatchRequest(matchRequest, requestId);
+      const sent = await sendToProducer(matchRequest, requestId);
       if (!sent) {
         socket.emit(MatchEvents.MATCH_REQUEST_ERROR);
         userConnections.delete(uid);
@@ -114,14 +112,26 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
     }
   );
 
-  socket.on(MatchEvents.CANCEL_MATCH_REQUEST, (uid: string) => {
+  socket.on(MatchEvents.MATCH_CANCEL_REQUEST, (uid: string) => {
     userConnections.delete(uid);
   });
 
   socket.on(MatchEvents.MATCH_ACCEPT_REQUEST, (matchId: string) => {
     const partnerAccepted = handleMatchAccept(matchId);
     if (partnerAccepted) {
-      io.to(matchId).emit(MatchEvents.MATCH_SUCCESSFUL);
+      const match = getMatchById(matchId);
+      if (!match) {
+        return;
+      }
+
+      const { complexity, category } = match;
+      getRandomQuestion(complexity, category).then((res) => {
+        io.to(matchId).emit(
+          MatchEvents.MATCH_SUCCESSFUL,
+          res.data.question.id,
+          res.data.question.title
+        );
+      });
     }
   });
 
@@ -142,7 +152,7 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
       matchId: string,
       partnerId: string,
       rematchRequest: MatchRequest,
-      callback: (result: boolean) => void
+      callback: (requested: boolean) => void
     ) => {
       const matchDeleted = handleMatchDelete(matchId);
       if (matchDeleted) {
@@ -157,7 +167,7 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
         requestId: requestId,
       });
 
-      const sent = await sendMatchRequest(rematchRequest, requestId, partnerId);
+      const sent = await sendToProducer(rematchRequest, requestId, partnerId);
       if (!sent) {
         socket.emit(MatchEvents.MATCH_REQUEST_ERROR);
       }
@@ -167,22 +177,8 @@ export const handleWebsocketMatchEvents = (socket: Socket) => {
 
   socket.on(MatchEvents.MATCH_END_REQUEST, (uid: string, matchId: string) => {
     userConnections.delete(uid);
-    const matchDeleted = handleMatchDelete(matchId);
-    if (matchDeleted) {
-      socket.to(matchId).emit(MatchEvents.MATCH_ENDED);
-    }
+    handleMatchDelete(matchId);
   });
-
-  socket.on(
-    MatchEvents.MATCH_STATUS_REQUEST,
-    (
-      uid: string,
-      callback: (match: { matchId: string; partner: MatchUser } | null) => void
-    ) => {
-      const match = getMatchByUid(uid);
-      callback(match);
-    }
-  );
 
   socket.on(MatchEvents.SOCKET_DISCONNECT, () => {
     for (const [uid, userConnection] of userConnections) {
@@ -224,8 +220,7 @@ const endMatchOnUserDisconnect = (socket: Socket, uid: string) => {
   if (matchId) {
     const matchDeleted = handleMatchDelete(matchId);
     if (matchDeleted) {
-      socket.to(matchId).emit(MatchEvents.MATCH_UNSUCCESSFUL); // on matching page
-      socket.to(matchId).emit(MatchEvents.MATCH_ENDED); // on collab page
+      socket.to(matchId).emit(MatchEvents.MATCH_UNSUCCESSFUL);
     }
   }
 };

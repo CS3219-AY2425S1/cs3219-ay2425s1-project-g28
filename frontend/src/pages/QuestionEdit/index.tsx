@@ -28,6 +28,9 @@ import QuestionMarkdown from "../../components/QuestionMarkdown";
 import QuestionImageContainer from "../../components/QuestionImageContainer";
 import QuestionCategoryAutoComplete from "../../components/QuestionCategoryAutoComplete";
 import QuestionDetail from "../../components/QuestionDetail";
+import QuestionTestCasesFileUpload from "../../components/QuestionTestCasesFileUpload";
+import QuestionCodeTemplates from "../../components/QuestionCodeTemplates";
+import { convertFileToTestCaseFormat } from "../NewQuestion";
 
 const QuestionEdit = () => {
   const navigate = useNavigate();
@@ -37,12 +40,27 @@ const QuestionEdit = () => {
 
   const [title, setTitle] = useState<string>("");
   const [markdownText, setMarkdownText] = useState<string>("");
-  const [selectedComplexity, setselectedComplexity] = useState<string | null>(
+  const [selectedComplexity, setSelectedComplexity] = useState<string | null>(
     null
   );
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [testcaseInputFile, setTestcaseInputFile] = useState<File | null>(null);
+  const [testcaseOutputFile, setTestcaseOutputFile] = useState<File | null>(
+    null
+  );
+
+  const [codeTemplates, setCodeTemplates] = useState<{ [key: string]: string }>(
+    {
+      python: "",
+      java: "",
+      c: "",
+    }
+  );
   const [uploadedImagesUrl, setUploadedImagesUrl] = useState<string[]>([]);
   const [isPreviewQuestion, setIsPreviewQuestion] = useState<boolean>(false);
+
+  const [inputTestCases, setInputTestCases] = useState<string[]>([]);
+  const [outputTestCases, setOutputTestCases] = useState<string[]>([]);
 
   useEffect(() => {
     if (!questionId) {
@@ -56,10 +74,32 @@ const QuestionEdit = () => {
     if (state.selectedQuestion) {
       setTitle(state.selectedQuestion.title);
       setMarkdownText(state.selectedQuestion.description);
-      setselectedComplexity(state.selectedQuestion.complexity);
+      setSelectedComplexity(state.selectedQuestion.complexity);
       setSelectedCategories(state.selectedQuestion.categories);
+      setCodeTemplates({
+        python: state.selectedQuestion.pythonTemplate,
+        java: state.selectedQuestion.javaTemplate,
+        c: state.selectedQuestion.cTemplate,
+      });
+      setInputTestCases(state.selectedQuestion.inputs);
+      setOutputTestCases(state.selectedQuestion.outputs);
     }
   }, [state.selectedQuestion]);
+
+  useEffect(() => {
+    const loadTestCases = async () => {
+      if (testcaseInputFile) {
+        setInputTestCases(await convertFileToTestCaseFormat(testcaseInputFile));
+      }
+      if (testcaseOutputFile) {
+        setOutputTestCases(
+          await convertFileToTestCaseFormat(testcaseOutputFile)
+        );
+      }
+    };
+
+    loadTestCases();
+  }, [testcaseInputFile, testcaseOutputFile]);
 
   const handleBack = () => {
     if (!confirm(ABORT_CREATE_OR_EDIT_QUESTION_CONFIRMATION_MESSAGE)) {
@@ -77,7 +117,12 @@ const QuestionEdit = () => {
       title === state.selectedQuestion.title &&
       markdownText === state.selectedQuestion.description &&
       selectedComplexity === state.selectedQuestion.complexity &&
-      selectedCategories === state.selectedQuestion.categories
+      selectedCategories === state.selectedQuestion.categories &&
+      codeTemplates.python === state.selectedQuestion.pythonTemplate &&
+      codeTemplates.java === state.selectedQuestion.javaTemplate &&
+      codeTemplates.c === state.selectedQuestion.cTemplate &&
+      testcaseInputFile === null &&
+      testcaseOutputFile === null
     ) {
       toast.error(NO_QUESTION_CHANGES);
       return;
@@ -87,7 +132,8 @@ const QuestionEdit = () => {
       !title ||
       !markdownText ||
       !selectedComplexity ||
-      selectedCategories.length === 0
+      selectedCategories.length === 0 ||
+      Object.values(codeTemplates).some((value) => value === "")
     ) {
       toast.error(FILL_ALL_FIELDS);
       return;
@@ -100,6 +146,13 @@ const QuestionEdit = () => {
         description: markdownText,
         complexity: selectedComplexity,
         categories: selectedCategories,
+        pythonTemplate: codeTemplates.python,
+        javaTemplate: codeTemplates.java,
+        cTemplate: codeTemplates.c,
+      },
+      {
+        testcaseInputFile: testcaseInputFile,
+        testcaseOutputFile: testcaseOutputFile,
       },
       dispatch
     );
@@ -124,6 +177,13 @@ const QuestionEdit = () => {
           complexity={selectedComplexity}
           categories={selectedCategories}
           description={markdownText}
+          cTemplate={codeTemplates.c}
+          javaTemplate={codeTemplates.java}
+          pythonTemplate={codeTemplates.python}
+          inputTestCases={inputTestCases}
+          outputTestCases={outputTestCases}
+          showCodeTemplate={true}
+          showTestCases={true}
         />
       ) : (
         <>
@@ -142,7 +202,7 @@ const QuestionEdit = () => {
             sx={{ marginTop: 2 }}
             value={selectedComplexity}
             onChange={(_e, newcomplexitySelected) => {
-              setselectedComplexity(newcomplexitySelected);
+              setSelectedComplexity(newcomplexitySelected);
             }}
             renderInput={(params) => (
               <TextField {...params} label="Complexity" />
@@ -162,6 +222,19 @@ const QuestionEdit = () => {
           <QuestionMarkdown
             markdownText={markdownText}
             setMarkdownText={setMarkdownText}
+          />
+
+          <QuestionTestCasesFileUpload
+            testcaseInputFile={testcaseInputFile}
+            setTestcaseInputFile={setTestcaseInputFile}
+            testcaseOutputFile={testcaseOutputFile}
+            setTestcaseOutputFile={setTestcaseOutputFile}
+          />
+
+          <QuestionCodeTemplates
+            codeTemplates={codeTemplates}
+            setCodeTemplates={setCodeTemplates}
+            isEditable={true}
           />
         </>
       )}

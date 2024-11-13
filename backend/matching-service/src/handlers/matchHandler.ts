@@ -1,71 +1,60 @@
 import { v4 as uuidv4 } from "uuid";
-import { sendToQueue } from "../../config/rabbitmq";
-import { sendMatchFound } from "./websocketHandler";
+import {
+  isActiveRequest,
+  isUserConnected,
+  sendMatchFound,
+} from "./websocketHandler";
+import { MatchRequestItem, MatchUser } from "../utils/types";
 
 interface Match {
   matchUser1: MatchUser;
   matchUser2: MatchUser;
   accepted: boolean;
-}
-
-export interface MatchUser {
-  id: string;
-  username: string;
-  profile?: string;
-}
-
-export interface MatchRequest {
-  user: MatchUser;
   complexity: string;
   category: string;
-  language: string;
-  timeout: number;
-}
-
-export interface MatchRequestItem {
-  id: string;
-  user: MatchUser;
-  sentTimestamp: number;
-  ttlInSecs: number;
-  rejectedPartnerId?: string;
 }
 
 const matches = new Map<string, Match>();
 
-export const sendMatchRequest = async (
-  matchRequest: MatchRequest,
-  requestId: string,
-  rejectedPartnerId?: string
-): Promise<boolean> => {
-  const { user, complexity, category, language, timeout } = matchRequest;
-
-  const matchItem: MatchRequestItem = {
-    id: requestId,
-    user: user,
-    sentTimestamp: Date.now(),
-    ttlInSecs: timeout,
-    rejectedPartnerId: rejectedPartnerId,
-  };
-
-  const sent = await sendToQueue(complexity, category, language, matchItem);
-  return sent;
-};
-
-export const createMatch = (
-  requestItem1: MatchRequestItem,
-  requestItem2: MatchRequestItem
+export const matchUsers = (
+  newRequest: MatchRequestItem,
+  waitingList: Map<string, MatchRequestItem>,
+  complexity: string,
+  category: string
 ) => {
-  const matchId = uuidv4();
-  const matchUser1 = requestItem1.user;
-  const matchUser2 = requestItem2.user;
+  const newRequestUid = newRequest.user.id;
 
-  matches.set(matchId, {
-    matchUser1: matchUser1,
-    matchUser2: matchUser2,
-    accepted: false,
-  });
+  for (const [uid, waitListRequest] of waitingList) {
+    if (
+      isExpired(waitListRequest) ||
+      !isUserConnected(uid) ||
+      !isActiveRequest(uid, waitListRequest.id) ||
+      uid === newRequestUid
+    ) {
+      waitingList.delete(uid);
+      continue;
+    }
 
-  sendMatchFound(matchId, matchUser1, matchUser2);
+    if (
+      isExpired(newRequest) ||
+      !isUserConnected(newRequestUid) ||
+      !isActiveRequest(newRequestUid, newRequest.id)
+    ) {
+      return;
+    }
+
+    if (
+      uid === newRequest.rejectedPartnerId ||
+      newRequestUid === waitListRequest.rejectedPartnerId
+    ) {
+      continue;
+    }
+
+    waitingList.delete(uid);
+    createMatch(waitListRequest.user, newRequest.user, complexity, category);
+    return;
+  }
+  waitingList.set(newRequestUid, newRequest);
 };
 
 export const handleMatchAccept = (matchId: string): boolean => {
@@ -91,15 +80,29 @@ export const getMatchIdByUid = (uid: string): string | null => {
   return null;
 };
 
-export const getMatchByUid = (
-  uid: string
-): { matchId: string; partner: MatchUser } | null => {
-  for (const [matchId, match] of matches) {
-    if (match.matchUser1.id === uid) {
-      return { matchId: matchId, partner: match.matchUser2 };
-    } else if (match.matchUser2.id === uid) {
-      return { matchId: matchId, partner: match.matchUser1 };
-    }
-  }
-  return null;
+export const getMatchById = (matchId: string): Match | undefined => {
+  return matches.get(matchId);
+};
+
+const createMatch = (
+  matchUser1: MatchUser,
+  matchUser2: MatchUser,
+  complexity: string,
+  category: string
+) => {
+  const matchId = uuidv4();
+
+  matches.set(matchId, {
+    matchUser1: matchUser1,
+    matchUser2: matchUser2,
+    accepted: false,
+    complexity,
+    category,
+  });
+
+  sendMatchFound(matchId, matchUser1, matchUser2);
+};
+
+const isExpired = (data: MatchRequestItem): boolean => {
+  return Date.now() - data.sentTimestamp >= data.ttlInSecs * 1000;
 };

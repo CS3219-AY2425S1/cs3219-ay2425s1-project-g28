@@ -20,7 +20,7 @@ import { Navigate } from "react-router-dom";
 import Loader from "../../components/Loader";
 import { CheckCircleOutlineRounded } from "@mui/icons-material";
 
-const acceptanceTimeout = 10;
+const acceptanceTimeout = 15;
 
 const Matched: React.FC = () => {
   const match = useMatch();

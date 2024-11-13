@@ -3,8 +3,10 @@ name: peerprep-test
 services:
   test-user-service:
     image: peerprep/user-service
-    build: ./backend/user-service
-    # env_file: ./backend/user-service/.env
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - NODE_ENV=test
       - SERVICE_PORT=3001
@@ -33,8 +35,10 @@ services:
 
   test-question-service:
     image: peerprep/question-service
-    build: ./backend/question-service
-    # env_file: ./backend/question-service/.env
+    build:
+      context: ./backend/question-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - NODE_ENV=test
       - SERVICE_PORT=3000
@@ -55,11 +59,13 @@ services:
 
   test-matching-service:
     image: peerprep/matching-service
-    build: ./backend/matching-service
-    # env_file: ./backend/matching-service/.env
+    build:
+      context: ./backend/matching-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - NODE_ENV=test
-      - PORT=3002
+      - SERVICE_PORT=3002
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=password
       - RABBITMQ_ADDR=amqp://admin:password@rabbitmq:5672
@@ -71,9 +77,87 @@ services:
     restart: on-failure
     command: ["npm", "test"]
 
+  test-collab-service:
+    image: peerprep/collab-service
+    build:
+      context: ./backend/collab-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3003
+      - REDIS_URI_TEST=redis://test-redis:6379
+    depends_on:
+      - test-redis
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/collab-service:/collab-service
+      - /collab-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
+  test-code-execution-service:
+    image: peerprep/code-execution-service
+    build:
+      context: ./backend/code-execution-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3004
+      - ONE_COMPILER_KEY
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/code-execution-service:/code-execution-service
+      - /code-execution-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
+  test-communication-service:
+    image: peerprep/communication-service
+    build:
+      context: ./backend/communication-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3005
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/communication-service:/communication-service
+      - /communication-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
+  test-qn-history-service:
+    image: peerprep/qn-history-service
+    build:
+      context: ./backend/qn-history-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3006
+      - MONGO_URI_TEST=mongodb://mongo:mongo@test-mongo:27017/
+    depends_on:
+      - test-mongo
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/qn-history-service:/qn-history-service
+      - /qn-history-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
   test-frontend:
     image: peerprep/frontend
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
     networks:
       - peerprep-network
     volumes:
@@ -87,8 +171,6 @@ services:
     restart: always
     networks:
       - peerprep-network
-    # env_file:
-    #   - ./backend/.env
     environment:
       - MONGO_INITDB_ROOT_USERNAME=mongo
       - MONGO_INITDB_ROOT_PASSWORD=mongo

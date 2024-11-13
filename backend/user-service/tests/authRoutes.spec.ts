@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import { faker } from "@faker-js/faker";
 import supertest from "supertest";
-import app from "../app";
-import UserModel from "../model/user-model";
+import app from "../src/app";
+import UserModel from "../src/model/user-model";
 
 jest.setTimeout(10000);
 
@@ -101,10 +101,6 @@ describe("Auth routes", () => {
     expect(res.status).toBe(401);
   });
 
-  it("Verify token but users not found", async () => {
-    // TODO
-  });
-
   it("Verify token", async () => {
     const { email, password } = await insertNonAdminUser();
 
@@ -163,9 +159,5 @@ describe("Auth routes", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(403);
-  });
-
-  it("Verify if user is owner or admin", async () => {
-    // TODO
   });
 });

@@ -1,4 +1,6 @@
-import { useState, useReducer } from "react";
+/* eslint-disable react-refresh/only-export-components */
+
+import { useEffect, useState, useReducer } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Autocomplete,
@@ -16,9 +18,12 @@ import { toast } from "react-toastify";
 
 import {
   ABORT_CREATE_OR_EDIT_QUESTION_CONFIRMATION_MESSAGE,
+  C_CODE_TEMPLATE,
   complexityList,
   FAILED_QUESTION_CREATE,
   FILL_ALL_FIELDS,
+  JAVA_CODE_TEMPLATE,
+  PYTHON_CODE_TEMPLATE,
   SUCCESS_QUESTION_CREATE,
 } from "../../utils/constants";
 import AppMargin from "../../components/AppMargin";
@@ -26,6 +31,29 @@ import QuestionMarkdown from "../../components/QuestionMarkdown";
 import QuestionImageContainer from "../../components/QuestionImageContainer";
 import QuestionCategoryAutoComplete from "../../components/QuestionCategoryAutoComplete";
 import QuestionDetail from "../../components/QuestionDetail";
+import QuestionTestCasesFileUpload from "../../components/QuestionTestCasesFileUpload";
+import QuestionCodeTemplates from "../../components/QuestionCodeTemplates";
+
+export const convertFileToTestCaseFormat = async (
+  file: File | null
+): Promise<string[]> => {
+  if (!file) return [];
+
+  return new Promise((resolve, reject) => {
+    const fileReader = new FileReader();
+
+    fileReader.onload = (e) => {
+      const fileContent = (e.target?.result as string) || "";
+      resolve(fileContent.replace(/\r\n/g, "\n").split("\n\n"));
+    };
+
+    fileReader.onerror = () => {
+      reject(new Error("Error reading file"));
+    };
+
+    fileReader.readAsText(file);
+  });
+};
 
 const NewQuestion = () => {
   const navigate = useNavigate();
@@ -41,12 +69,48 @@ const NewQuestion = () => {
   const [uploadedImagesUrl, setUploadedImagesUrl] = useState<string[]>([]);
   const [isPreviewQuestion, setIsPreviewQuestion] = useState<boolean>(false);
 
+  const [testcaseInputFile, setTestcaseInputFile] = useState<File | null>(null);
+  const [testcaseOutputFile, setTestcaseOutputFile] = useState<File | null>(
+    null
+  );
+
+  const [inputTestCases, setInputTestCases] = useState<string[]>([]);
+  const [outputTestCases, setOutputTestCases] = useState<string[]>([]);
+
+  const [codeTemplates, setCodeTemplates] = useState<{ [key: string]: string }>(
+    {
+      python: PYTHON_CODE_TEMPLATE,
+      java: JAVA_CODE_TEMPLATE,
+      c: C_CODE_TEMPLATE,
+    }
+  );
+
+  useEffect(() => {
+    const loadTestCases = async () => {
+      if (testcaseInputFile) {
+        setInputTestCases(await convertFileToTestCaseFormat(testcaseInputFile));
+      }
+      if (testcaseOutputFile) {
+        setOutputTestCases(
+          await convertFileToTestCaseFormat(testcaseOutputFile)
+        );
+      }
+    };
+
+    loadTestCases();
+  }, [testcaseInputFile, testcaseOutputFile]);
+
   const handleBack = () => {
     if (
       title ||
       markdownText ||
       selectedComplexity ||
-      selectedCategories.length > 0
+      selectedCategories.length > 0 ||
+      testcaseInputFile ||
+      testcaseOutputFile ||
+      codeTemplates.python !== PYTHON_CODE_TEMPLATE ||
+      codeTemplates.java !== JAVA_CODE_TEMPLATE ||
+      codeTemplates.c !== C_CODE_TEMPLATE
     ) {
       if (!confirm(ABORT_CREATE_OR_EDIT_QUESTION_CONFIRMATION_MESSAGE)) {
         return;
@@ -60,7 +124,10 @@ const NewQuestion = () => {
       !title ||
       !markdownText ||
       !selectedComplexity ||
-      selectedCategories.length === 0
+      selectedCategories.length === 0 ||
+      testcaseInputFile === null ||
+      testcaseOutputFile === null ||
+      Object.values(codeTemplates).some((value) => value === "")
     ) {
       toast.error(FILL_ALL_FIELDS);
       return;
@@ -72,6 +139,13 @@ const NewQuestion = () => {
         description: markdownText,
         complexity: selectedComplexity,
         categories: selectedCategories,
+        pythonTemplate: codeTemplates.python,
+        javaTemplate: codeTemplates.java,
+        cTemplate: codeTemplates.c,
+      },
+      {
+        testcaseInputFile: testcaseInputFile,
+        testcaseOutputFile: testcaseOutputFile,
       },
       dispatch
     );
@@ -96,6 +170,13 @@ const NewQuestion = () => {
           complexity={selectedComplexity}
           categories={selectedCategories}
           description={markdownText}
+          cTemplate={codeTemplates.c}
+          javaTemplate={codeTemplates.java}
+          pythonTemplate={codeTemplates.python}
+          inputTestCases={inputTestCases}
+          outputTestCases={outputTestCases}
+          showCodeTemplate={true}
+          showTestCases={true}
         />
       ) : (
         <>
@@ -134,6 +215,19 @@ const NewQuestion = () => {
             markdownText={markdownText}
             setMarkdownText={setMarkdownText}
           />
+
+          <QuestionTestCasesFileUpload
+            testcaseInputFile={testcaseInputFile}
+            setTestcaseInputFile={setTestcaseInputFile}
+            testcaseOutputFile={testcaseOutputFile}
+            setTestcaseOutputFile={setTestcaseOutputFile}
+          />
+
+          <QuestionCodeTemplates
+            codeTemplates={codeTemplates}
+            setCodeTemplates={setCodeTemplates}
+            isEditable={true}
+          />
         </>
       )}
 
@@ -149,7 +243,12 @@ const NewQuestion = () => {
             !title &&
             !markdownText &&
             !selectedComplexity &&
-            selectedCategories.length === 0
+            selectedCategories.length === 0 &&
+            !testcaseInputFile &&
+            !testcaseOutputFile &&
+            !(codeTemplates.python === PYTHON_CODE_TEMPLATE) &&
+            !(codeTemplates.java === JAVA_CODE_TEMPLATE) &&
+            !(codeTemplates.c === C_CODE_TEMPLATE)
           }
           onClick={() => setIsPreviewQuestion((prev) => !prev)}
         >

@@ -7,8 +7,10 @@ import {
   readQuestionsList,
   readQuestionIndiv,
   readCategories,
-} from "../controllers/questionController.ts";
-import { verifyAdminToken } from "../middlewares/basicAccessControl.ts";
+  readRandomQuestion,
+  createFileLink,
+} from "../controllers/questionController";
+import { verifyAdminToken } from "../middlewares/basicAccessControl";
 
 const router = express.Router();
 
@@ -16,11 +18,15 @@ router.post("/", verifyAdminToken, createQuestion);
 
 router.post("/images", verifyAdminToken, createImageLink);
 
+router.post("/tcfiles", verifyAdminToken, createFileLink);
+
 router.put("/:id", verifyAdminToken, updateQuestion);
 
 router.get("/categories", readCategories);
 
 router.get("/", readQuestionsList);
+
+router.get("/random", readRandomQuestion);
 
 router.get("/:id", readQuestionIndiv);
 

@@ -10,7 +10,6 @@ const Layout: React.FC = () => {
         flexDirection: "column",
         minHeight: "100vh",
         minWidth: "755px",
-        // minInlineSize: "100vw",
       }}
     >
       <Navbar />

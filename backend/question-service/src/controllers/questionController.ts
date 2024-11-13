@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
-import Question, { IQuestion } from "../models/Question.ts";
-import { checkIsExistingQuestion, sortAlphabetically } from "../utils/utils.ts";
+import Question, { IQuestion } from "../models/Question";
+import {
+  checkIsExistingQuestion,
+  getFileContent,
+  sortAlphabetically,
+} from "../utils/utils";
 import {
   DUPLICATE_QUESTION_MESSAGE,
   QN_DESC_EXCEED_CHAR_LIMIT_MESSAGE,
@@ -15,17 +19,35 @@ import {
   CATEGORIES_RETRIEVED_MESSAGE,
   MONGO_OBJ_ID_FORMAT,
   MONGO_OBJ_ID_MALFORMED_MESSAGE,
-} from "../utils/constants.ts";
+} from "../utils/constants";
 
-import { upload } from "../../config/multer";
+import { upload, uploadTestcaseFiles } from "../config/multer";
 import { uploadFileToFirebase } from "../utils/utils";
+import { QnListSearchFilterParams, RandomQnCriteria } from "../utils/types";
+
+const FIREBASE_TESTCASE_FILES_FOLDER_NAME = "testcaseFiles/";
+
+enum TestcaseFilesUploadRequestTypes {
+  CREATE = "create",
+  UPDATE = "update",
+}
 
 export const createQuestion = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
   try {
-    const { title, description, complexity, category } = req.body;
+    const {
+      title,
+      description,
+      complexity,
+      category,
+      testcaseInputFileUrl,
+      testcaseOutputFileUrl,
+      pythonTemplate,
+      javaTemplate,
+      cTemplate,
+    } = req.body;
 
     const existingQuestion = await checkIsExistingQuestion(title);
     if (existingQuestion) {
@@ -47,15 +69,21 @@ export const createQuestion = async (
       description,
       complexity,
       category,
+      testcaseInputFileUrl,
+      testcaseOutputFileUrl,
+      pythonTemplate,
+      javaTemplate,
+      cTemplate,
     });
 
     await newQuestion.save();
 
     res.status(201).json({
       message: QN_CREATED_MESSAGE,
-      question: formatQuestionResponse(newQuestion),
+      question: await formatQuestionIndivResponse(newQuestion),
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
   }
 };
@@ -80,10 +108,75 @@ export const createImageLink = async (
 
       const uploadPromises = files.map((file) => uploadFileToFirebase(file));
       const imageUrls = await Promise.all(uploadPromises);
-      console.log(imageUrls);
       return res
         .status(200)
         .json({ message: "Images uploaded successfully", imageUrls });
+    } catch (error) {
+      return res.status(500).json({ message: "Server error", error });
+    }
+  });
+};
+
+export const createFileLink = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  uploadTestcaseFiles(req, res, async (err) => {
+    if (err) {
+      return res.status(500).json({
+        message: "Failed to upload testcase files",
+        error: err.message,
+      });
+    }
+
+    const isQuestionCreation =
+      req.body.requestType === TestcaseFilesUploadRequestTypes.CREATE;
+
+    const tcFiles = req.files as {
+      testcaseInputFile?: Express.Multer.File[];
+      testcaseOutputFile?: Express.Multer.File[];
+    };
+
+    if (
+      isQuestionCreation &&
+      (!tcFiles || !tcFiles.testcaseInputFile || !tcFiles.testcaseOutputFile)
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Missing one or both testcase file(s)" });
+    }
+
+    try {
+      const uploadPromises = [];
+
+      if (tcFiles.testcaseInputFile) {
+        const inputFile = tcFiles.testcaseInputFile[0] as Express.Multer.File;
+        uploadPromises.push(
+          uploadFileToFirebase(inputFile, FIREBASE_TESTCASE_FILES_FOLDER_NAME),
+        );
+      } else {
+        uploadPromises.push(Promise.resolve(null));
+      }
+
+      if (tcFiles.testcaseOutputFile) {
+        const outputFile = tcFiles.testcaseOutputFile[0] as Express.Multer.File;
+        uploadPromises.push(
+          uploadFileToFirebase(outputFile, FIREBASE_TESTCASE_FILES_FOLDER_NAME),
+        );
+      } else {
+        uploadPromises.push(Promise.resolve(null));
+      }
+
+      const [tcInputFileUrl, tcOutputFileUrl] =
+        await Promise.all(uploadPromises);
+
+      return res.status(200).json({
+        message: "Files uploaded successfully",
+        urls: {
+          testcaseInputFileUrl: tcInputFileUrl || "",
+          testcaseOutputFileUrl: tcOutputFileUrl || "",
+        },
+      });
     } catch (error) {
       return res.status(500).json({ message: "Server error", error });
     }
@@ -96,6 +189,7 @@ export const updateQuestion = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
+
     const { title, description } = req.body;
 
     if (!id.match(MONGO_OBJ_ID_FORMAT)) {
@@ -131,7 +225,7 @@ export const updateQuestion = async (
 
     res.status(200).json({
       message: "Question updated successfully",
-      question: formatQuestionResponse(updatedQuestion as IQuestion),
+      question: await formatQuestionIndivResponse(updatedQuestion as IQuestion),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -151,19 +245,12 @@ export const deleteQuestion = async (
     }
 
     await Question.findByIdAndDelete(id);
+
     res.status(200).json({ message: QN_DELETED_MESSAGE });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
   }
 };
-
-interface QnListSearchFilterParams {
-  page: string;
-  qnLimit: string;
-  title?: string;
-  complexities?: string | string[];
-  categories?: string | string[];
-}
 
 export const readQuestionsList = async (
   req: Request<unknown, unknown, unknown, QnListSearchFilterParams>,
@@ -239,7 +326,38 @@ export const readQuestionIndiv = async (
 
     res.status(200).json({
       message: QN_RETRIEVED_MESSAGE,
-      question: formatQuestionResponse(questionDetails),
+      question: await formatQuestionIndivResponse(questionDetails),
+    });
+  } catch (error) {
+    res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
+  }
+};
+
+export const readRandomQuestion = async (
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+  req: Request<any, any, any, RandomQnCriteria>,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { category, complexity } = req.query;
+
+    const randomQuestion = await Question.aggregate([
+      {
+        $match: { $and: [{ category }, { complexity: { $in: [complexity] } }] },
+      },
+      { $sample: { size: 1 } },
+    ]);
+
+    if (!randomQuestion) {
+      res.status(404).json({ message: QN_NOT_FOUND_MESSAGE });
+      return;
+    }
+
+    const chosenQuestion = randomQuestion[0];
+
+    res.status(200).json({
+      message: QN_RETRIEVED_MESSAGE,
+      question: await formatQuestionIndivResponse(chosenQuestion),
     });
   } catch (error) {
     res.status(500).json({ message: SERVER_ERROR_MESSAGE, error });
@@ -251,12 +369,6 @@ export const readCategories = async (
   res: Response,
 ): Promise<void> => {
   try {
-    // const uniqueCats = await Question.distinct("category");
-
-    // res.status(200).json({
-    //   message: CATEGORIES_RETRIEVED_MESSAGE,
-    //   categories: sortAlphabetically(uniqueCats),
-    // });
     res.status(200).json({
       message: CATEGORIES_RETRIEVED_MESSAGE,
       categories: sortAlphabetically([
@@ -282,5 +394,27 @@ const formatQuestionResponse = (question: IQuestion) => {
     description: question.description,
     complexity: question.complexity,
     categories: question.category,
+  };
+};
+
+const formatQuestionIndivResponse = async (question: IQuestion) => {
+  const testcaseDelimiter = "\n\n";
+  const inputs = (await getFileContent(question.testcaseInputFileUrl))
+    .replace(/\r\n/g, "\n")
+    .split(testcaseDelimiter);
+  const outputs = (await getFileContent(question.testcaseOutputFileUrl))
+    .replace(/\r\n/g, "\n")
+    .split(testcaseDelimiter);
+  return {
+    id: question._id,
+    title: question.title,
+    description: question.description,
+    complexity: question.complexity,
+    categories: question.category,
+    inputs,
+    outputs,
+    pythonTemplate: question.pythonTemplate,
+    javaTemplate: question.javaTemplate,
+    cTemplate: question.cTemplate,
   };
 };

@@ -1,8 +1,32 @@
 import { Dispatch } from "react";
 import { questionClient } from "../utils/api";
 import { isString, isStringArray } from "../utils/typeChecker";
+import { getToken } from "../utils/token";
+
+type TestcaseFiles = {
+  testcaseInputFile: File | null;
+  testcaseOutputFile: File | null;
+};
+
+export const enum TestcaseFilesUploadRequestTypes {
+  CREATE = "create",
+  UPDATE = "update",
+}
 
 type QuestionDetail = {
+  id: string;
+  title: string;
+  description: string;
+  complexity: string;
+  categories: Array<string>;
+  pythonTemplate: string;
+  javaTemplate: string;
+  cTemplate: string;
+  inputs: string[];
+  outputs: string[];
+};
+
+type QuestionListDetail = {
   id: string;
   title: string;
   description: string;
@@ -11,7 +35,7 @@ type QuestionDetail = {
 };
 
 type QuestionList = {
-  questions: Array<QuestionDetail>;
+  questions: Array<QuestionListDetail>;
   questionCount: number;
 };
 
@@ -35,7 +59,7 @@ type QuestionActions = {
 
 type QuestionsState = {
   questionCategories: Array<string>;
-  questions: Array<QuestionDetail>;
+  questions: Array<QuestionListDetail>;
   questionCount: number;
   selectedQuestion: QuestionDetail | null;
   questionCategoriesError: string | null;
@@ -82,11 +106,56 @@ export const initialState: QuestionsState = {
   selectedQuestionError: null,
 };
 
+export const uploadTestcaseFiles = async (
+  data: TestcaseFiles,
+  requestType: TestcaseFilesUploadRequestTypes
+): Promise<{
+  message: string;
+  urls: {
+    testcaseInputFileUrl: string;
+    testcaseOutputFileUrl: string;
+  };
+} | null> => {
+  const formData = new FormData();
+  formData.append("testcaseInputFile", data.testcaseInputFile ?? "");
+  formData.append("testcaseOutputFile", data.testcaseOutputFile ?? "");
+  formData.append("requestType", requestType);
+
+  try {
+    const accessToken = getToken();
+    const res = await questionClient.post("/tcfiles", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: accessToken,
+      },
+    });
+    return res.data;
+  } catch {
+    return null;
+  }
+};
+
 export const createQuestion = async (
-  question: Omit<QuestionDetail, "id">,
+  question: Omit<QuestionDetail, "id" | "inputs" | "outputs">,
+  testcaseFiles: TestcaseFiles,
   dispatch: Dispatch<QuestionActions>
 ): Promise<boolean> => {
-  const accessToken = localStorage.getItem("token");
+  const uploadResult = await uploadTestcaseFiles(
+    testcaseFiles,
+    TestcaseFilesUploadRequestTypes.CREATE
+  );
+
+  if (!uploadResult) {
+    dispatch({
+      type: QuestionActionTypes.ERROR_CREATING_QUESTION,
+      payload: "Failed to upload test case files.",
+    });
+    return false;
+  }
+
+  const { testcaseInputFileUrl, testcaseOutputFileUrl } = uploadResult.urls;
+
+  const accessToken = getToken();
   return questionClient
     .post(
       "/",
@@ -95,10 +164,15 @@ export const createQuestion = async (
         description: question.description,
         complexity: question.complexity,
         category: question.categories,
+        testcaseInputFileUrl,
+        testcaseOutputFileUrl,
+        pythonTemplate: question.pythonTemplate,
+        cTemplate: question.cTemplate,
+        javaTemplate: question.javaTemplate,
       },
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: accessToken,
         },
       }
     )
@@ -110,6 +184,8 @@ export const createQuestion = async (
       return true;
     })
     .catch((err) => {
+      console.log(err.response?.data.message || err.message);
+
       dispatch({
         type: QuestionActionTypes.ERROR_CREATING_QUESTION,
         payload: err.response?.data.message || err.message,
@@ -189,10 +265,35 @@ export const getQuestionById = (
 
 export const updateQuestionById = async (
   questionId: string,
-  question: Omit<QuestionDetail, "id">,
+  question: Omit<QuestionDetail, "id" | "inputs" | "outputs">,
+  testcaseFiles: TestcaseFiles,
   dispatch: Dispatch<QuestionActions>
 ): Promise<boolean> => {
-  const accessToken = localStorage.getItem("token");
+  let urls = {};
+
+  if (Object.values(testcaseFiles).some((file) => file !== null)) {
+    const uploadResult = await uploadTestcaseFiles(
+      testcaseFiles,
+      TestcaseFilesUploadRequestTypes.UPDATE
+    );
+
+    if (!uploadResult) {
+      dispatch({
+        type: QuestionActionTypes.ERROR_CREATING_QUESTION,
+        payload: "Failed to upload test case file(s).",
+      });
+      return false;
+    }
+
+    const { testcaseInputFileUrl, testcaseOutputFileUrl } = uploadResult.urls;
+
+    urls = {
+      ...(testcaseInputFileUrl ? { testcaseInputFileUrl } : {}),
+      ...(testcaseOutputFileUrl ? { testcaseOutputFileUrl } : {}),
+    };
+  }
+
+  const accessToken = getToken();
   return questionClient
     .put(
       `/${questionId}`,
@@ -201,10 +302,14 @@ export const updateQuestionById = async (
         description: question.description,
         complexity: question.complexity,
         category: question.categories,
+        ...urls,
+        pythonTemplate: question.pythonTemplate,
+        javaTemplate: question.javaTemplate,
+        cTemplate: question.cTemplate,
       },
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: accessToken,
         },
       }
     )
@@ -226,10 +331,10 @@ export const updateQuestionById = async (
 
 export const deleteQuestionById = async (questionId: string) => {
   try {
-    const accessToken = localStorage.getItem("token");
+    const accessToken = getToken();
     await questionClient.delete(`/${questionId}`, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: accessToken,
       },
     });
     return true;
@@ -252,11 +357,11 @@ export const createImageUrls = async (
   formData: FormData
 ): Promise<{ imageUrls: string[]; message: string } | null> => {
   try {
-    const accessToken = localStorage.getItem("token");
+    const accessToken = getToken();
     const response = await questionClient.post("/images", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: accessToken,
       },
     });
     return response.data;

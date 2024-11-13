@@ -1,4 +1,4 @@
-import grey from "@mui/material/colors/grey";
+import { grey } from "@mui/material/colors";
 import { createTheme } from "@mui/material/styles";
 
 const theme = createTheme({
@@ -47,13 +47,13 @@ const theme = createTheme({
         },
       },
     },
-      MuiListItemText: {
-        styleOverrides: {
-          primary: {
-            fontSize: "14px",
-          },
+    MuiListItemText: {
+      styleOverrides: {
+        primary: {
+          fontSize: "14px",
         },
-      }
+      },
+    },
   },
 });
 

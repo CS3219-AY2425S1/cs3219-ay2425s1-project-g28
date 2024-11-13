@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import Loader from "../components/Loader";
 import { SUCCESS_LOG_OUT } from "../utils/constants";
 import { User } from "../types/types";
+import { getToken, removeToken, setToken } from "../utils/token";
 
 type AuthContextType = {
   signup: (
@@ -32,11 +33,11 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("token");
+    const accessToken = getToken();
     if (accessToken) {
       userClient
         .get("/auth/verify-token", {
-          headers: { Authorization: `Bearer ${accessToken}` },
+          headers: { Authorization: accessToken },
         })
         .then((res) => setUser(res.data.data))
         .catch(() => setUser(null))
@@ -66,7 +67,7 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       })
       .then(() => userClient.post("users/send-verification-email", { email }))
       .then((res) => {
-        navigate(`/auth/verifyEmail/${res.data.data.id}`);
+        navigate(`/auth/verify-email/${res.data.data.id}`);
       })
       .catch((err) => {
         setUser(null);
@@ -82,13 +83,13 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       })
       .then((res) => {
         const { accessToken, user } = res.data.data;
-        localStorage.setItem("token", accessToken);
+        setToken(accessToken);
         setUser(user);
         navigate("/home");
       })
       .catch((err) => {
         if (err.response?.data.message === "User not verified.") {
-          navigate(`/auth/verifyEmail`);
+          navigate(`/auth/verify-email`);
         }
         setUser(null);
         toast.error(err.response?.data.message || err.message);
@@ -96,7 +97,7 @@ const AuthProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
+    removeToken();
     setUser(null);
     navigate("/");
     toast.success(SUCCESS_LOG_OUT);

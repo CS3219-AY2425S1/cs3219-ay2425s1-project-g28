@@ -8,6 +8,37 @@ import { MemoryRouter } from "react-router-dom";
 
 jest.mock("axios");
 
+jest.mock("../../utils/api", () => ({
+  getUserUrl: jest.fn().mockReturnValue("http://localhost:3001/api"),
+  getQuestionsUrl: jest
+    .fn()
+    .mockReturnValue("http://localhost:3000/api/questions"),
+  getCodeExecutionUrl: jest
+    .fn()
+    .mockReturnValue("http://localhost:3004/api/run"),
+  getQnHistoriesUrl: jest
+    .fn()
+    .mockReturnValue("http://localhost:3006/api/qnhistories"),
+}));
+
+jest.mock("../../utils/matchSocket", () => ({
+  getMatchSocketUrl: jest.fn().mockReturnValue("http://localhost:3002"),
+}));
+
+jest.mock("../../utils/collabSocket", () => ({
+  getCollabSocketUrl: jest.fn().mockReturnValue("http://localhost:3003"),
+}));
+
+jest.mock("../../utils/communicationSocket", () => ({
+  getCommunicationSocketUrl: jest.fn().mockReturnValue("http://localhost:3005"),
+}));
+
+jest.mock("y-protocols/awareness.js", () => {
+  return {
+    Awareness: jest.fn(),
+  };
+});
+
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const mockUseNavigate = jest.fn();
@@ -21,17 +52,20 @@ beforeEach(() => {
   jest.spyOn(matchHooks, "useMatch").mockImplementation(() => ({
     findMatch: jest.fn(),
     stopMatch: () => mockUseNavigate("/home"),
+    getMatchId: jest.fn(),
     acceptMatch: jest.fn(),
     rematch: jest.fn(),
     retryMatch: jest.fn(),
     matchingTimeout: jest.fn(),
     matchOfferTimeout: jest.fn(),
-    verifyMatchStatus: jest.fn(),
+    matchId: null,
     matchUser: null,
     matchCriteria: null,
     partner: null,
     matchPending: false,
     loading: false,
+    questionId: null,
+    questionTitle: null,
   }));
 });
 

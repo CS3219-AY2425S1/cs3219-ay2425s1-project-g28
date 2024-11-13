@@ -2,6 +2,11 @@
   flex: 1;
 }
 
+.flex {
+  display: flex;
+  flex-direction: column;
+}
+
 .center {
   display: flex;
   flex-direction: column;

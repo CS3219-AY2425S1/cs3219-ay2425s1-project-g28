@@ -1,7 +1,10 @@
 services:
   user-service:
     image: peerprep/user-service
-    build: ./backend/user-service
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - CHOKIDAR_USEPOLLING=true
     env_file: ./backend/user-service/.env
@@ -9,7 +12,7 @@ services:
       - 3001:3001
     depends_on:
       - user-service-mongo
-      - redis
+      - user-service-redis
     networks:
       - peerprep-network
     volumes:
@@ -19,7 +22,10 @@ services:
 
   question-service:
     image: peerprep/question-service
-    build: ./backend/question-service
+    build:
+      context: ./backend/question-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - CHOKIDAR_USEPOLLING=true
     env_file: ./backend/question-service/.env
@@ -37,7 +43,10 @@ services:
 
   matching-service:
     image: peerprep/matching-service
-    build: ./backend/matching-service
+    build:
+      context: ./backend/matching-service
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - CHOKIDAR_USEPOLLING=true
     env_file: ./backend/matching-service/.env
@@ -55,9 +64,92 @@ services:
       - /matching-service/node_modules
     restart: on-failure
 
+  collab-service:
+    image: peerprep/collab-service
+    build:
+      context: ./backend/collab-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    env_file: ./backend/collab-service/.env
+    ports:
+      - 3003:3003
+    depends_on:
+      - collab-service-redis
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/collab-service:/collab-service
+      - /collab-service/node_modules
+    restart: on-failure
+
+  code-execution-service:
+    image: peerprep/code-execution-service
+    build:
+      context: ./backend/code-execution-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    env_file: ./backend/code-execution-service/.env
+    ports:
+      - 3004:3004
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/code-execution-service:/code-execution-service
+      - /code-execution-service/node_modules
+    restart: on-failure
+
+  communication-service:
+    image: peerprep/communication-service
+    build:
+      context: ./backend/communication-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    env_file: ./backend/communication-service/.env
+    ports:
+      - 3005:3005
+    depends_on:
+      - user-service
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/communication-service:/communication-service
+      - /communication-service/node_modules
+    restart: on-failure
+
+  qn-history-service:
+    image: peerprep/qn-history-service
+    build:
+      context: ./backend/qn-history-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    env_file: ./backend/qn-history-service/.env
+    ports:
+      - 3006:3006
+    depends_on:
+      - qn-history-service-mongo
+      - user-service
+      - question-service
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/qn-history-service:/qn-history-service
+      - /qn-history-service/node_modules
+    restart: on-failure
+
   frontend:
     image: peerprep/frontend
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - CHOKIDAR_USEPOLLING=true
     ports:
@@ -65,6 +157,11 @@ services:
     depends_on:
       - user-service
       - question-service
+      - matching-service
+      - collab-service
+      - code-execution-service
+      - communication-service
+      - qn-history-service
     networks:
       - peerprep-network
     volumes:
@@ -118,6 +215,29 @@ services:
       - user-service-mongo
     env_file: ./backend/user-service/.env
 
+  qn-history-service-mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27019:27017
+    networks:
+      - peerprep-network
+    volumes:
+      - qn-history-service-mongo-data:/data/db
+    env_file:
+      - ./backend/qn-history-service/.env
+
+  qn-history-service-mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8083:8081
+    networks:
+      - peerprep-network
+    depends_on:
+      - qn-history-service-mongo
+    env_file: ./backend/qn-history-service/.env
+
   rabbitmq:
     image: rabbitmq:4.0-management
     container_name: rabbitmq
@@ -134,15 +254,31 @@ services:
       timeout: 10s
       retries: 10
 
-  redis:
+  user-service-redis:
     image: redis:8.0-M01
-    container_name: redis
+    container_name: user-service-redis
     ports:
       - 6379:6379
     networks:
       - peerprep-network
     volumes:
-      - redis-data:/data
+      - user-service-redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    command: ["redis-server"]
+
+  collab-service-redis:
+    image: redis:8.0-M01
+    container_name: collab-service-redis
+    ports:
+      - 6380:6379
+    networks:
+      - peerprep-network
+    volumes:
+      - collab-service-redis-data:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
       interval: 10s
@@ -159,15 +295,13 @@ services:
       - peerprep-network
     volumes:
       - redis-insight-data:/data
-    depends_on:
-      redis:
-        condition: service_healthy
-        restart: true
 
 volumes:
   question-service-mongo-data:
   user-service-mongo-data:
-  redis-data:
+  qn-history-service-mongo-data:
+  user-service-redis-data:
+  collab-service-redis-data:
   redis-insight-data:
 
 networks:

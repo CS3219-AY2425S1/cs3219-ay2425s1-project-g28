@@ -17,8 +17,8 @@ import AppMargin from "../../components/AppMargin";
 import {
   complexityList,
   languageList,
-  maxMatchTimeout,
-  minMatchTimeout,
+  MAX_MATCH_TIMEOUT,
+  MIN_MATCH_TIMEOUT,
   QUESTION_DOES_NOT_EXIST_ERROR,
   USE_MATCH_ERROR_MESSAGE,
 } from "../../utils/constants";
@@ -64,6 +64,7 @@ const Home: React.FC = () => {
       }
     }
     setIsQueryingQnDB(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.questions]);
 
   if (loading) {
@@ -257,11 +258,11 @@ const Home: React.FC = () => {
                 const newTimeout = value ? parseInt(value, 10) : undefined;
                 setTimeout(newTimeout);
               }}
-              helperText={`Set a timeout between ${minMatchTimeout} to ${maxMatchTimeout} seconds`}
+              helperText={`Set a timeout between ${MIN_MATCH_TIMEOUT} to ${MAX_MATCH_TIMEOUT} seconds`}
               error={
                 !timeout ||
-                timeout < minMatchTimeout ||
-                timeout > maxMatchTimeout
+                timeout < MIN_MATCH_TIMEOUT ||
+                timeout > MAX_MATCH_TIMEOUT
               }
               sx={{
                 backgroundColor: "white",
@@ -282,8 +283,8 @@ const Home: React.FC = () => {
           sx={{ marginTop: 2 }}
           disabled={
             !timeout ||
-            timeout < minMatchTimeout ||
-            timeout > maxMatchTimeout ||
+            timeout < MIN_MATCH_TIMEOUT ||
+            timeout > MAX_MATCH_TIMEOUT ||
             !complexity ||
             !category ||
             !language

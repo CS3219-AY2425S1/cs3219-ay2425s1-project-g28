@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "seed": "tsx src/scripts/seed.ts",
-    "start": "tsx server.ts",
-    "dev": "tsx watch server.ts",
+    "start": "tsx dist/src/server.js",
+    "build": "tsc",
+    "dev": "tsx watch src/server.ts",
     "test": "cross-env NODE_ENV=test && jest",
     "test:watch": "cross-env NODE_ENV=test && jest --watch",
     "lint": "eslint ."
