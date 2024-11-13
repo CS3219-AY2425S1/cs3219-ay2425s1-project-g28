@@ -21,12 +21,12 @@ beforeEach(() => {
   jest.spyOn(matchHooks, "useMatch").mockImplementation(() => ({
     findMatch: jest.fn(),
     stopMatch: () => mockUseNavigate("/home"),
+    getMatchId: jest.fn(),
     acceptMatch: jest.fn(),
     rematch: jest.fn(),
     retryMatch: jest.fn(),
     matchingTimeout: jest.fn(),
     matchOfferTimeout: jest.fn(),
-    getMatchId: jest.fn(),
     matchUser: null,
     matchCriteria: null,
     partner: null,

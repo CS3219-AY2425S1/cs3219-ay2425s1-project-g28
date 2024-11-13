@@ -1,5 +1,5 @@
 import { ExtendedError, Socket } from "socket.io";
-import { verifyToken } from "../api/userService.ts";
+import { verifyToken } from "../api/userService";
 
 export const verifyUserToken = (
   socket: Socket,
