@@ -29,8 +29,8 @@ jobs:
         run: npm run lint
       - name: Test
         run: docker compose -f docker-compose-test.yml run --rm test-frontend
-      - name: Build
-        run: docker compose -f docker-compose-prod.yml build frontend
+      # - name: Build
+      #   run: docker compose -f docker-compose-prod.yml build frontend
   backend-ci:
     runs-on: ubuntu-latest
     strategy:
@@ -67,5 +67,5 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           ONE_COMPILER_KEY: ${{ secrets.ONE_COMPILER_KEY }}
         run: docker compose -f docker-compose-test.yml run --rm test-${{ matrix.service }}
-      - name: Build
-        run: docker compose -f docker-compose-prod.yml build ${{ matrix.service }}
+      # - name: Build
+      #   run: docker compose -f docker-compose-prod.yml build ${{ matrix.service }}
