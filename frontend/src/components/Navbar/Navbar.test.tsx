@@ -33,6 +33,12 @@ jest.mock("../../utils/communicationSocket", () => ({
   getCommunicationSocketUrl: jest.fn().mockReturnValue("http://localhost:3005"),
 }));
 
+jest.mock("y-protocols/awareness.js", () => {
+  return {
+    Awareness: jest.fn(),
+  };
+});
+
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const mockUseNavigate = jest.fn();
@@ -52,6 +58,7 @@ beforeEach(() => {
     retryMatch: jest.fn(),
     matchingTimeout: jest.fn(),
     matchOfferTimeout: jest.fn(),
+    matchId: null,
     matchUser: null,
     matchCriteria: null,
     partner: null,

@@ -22,11 +22,12 @@ const getCommunicationSocketUrl = () => {
 
 const COMMUNICATION_SOCKET_URL = getCommunicationSocketUrl();
 
-export const communicationSocket = io(COMMUNICATION_SOCKET_URL, {
-  reconnectionAttempts: 3,
-  autoConnect: false,
-  withCredentials: true,
-  auth: {
-    token: getToken(),
-  },
-});
+export const createCommunicationSocket = () =>
+  io(COMMUNICATION_SOCKET_URL, {
+    reconnectionAttempts: 3,
+    autoConnect: false,
+    withCredentials: true,
+    auth: {
+      token: getToken(),
+    },
+  });

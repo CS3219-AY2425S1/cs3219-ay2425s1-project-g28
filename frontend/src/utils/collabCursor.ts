@@ -5,7 +5,6 @@ import {
   WidgetType,
 } from "@codemirror/view";
 import { StateField, StateEffect } from "@codemirror/state";
-import { receiveCursorUpdate, sendCursorUpdate } from "./collabSocket";
 
 // Adapted from https://github.com/BjornTheProgrammer/react-codemirror-collab-sockets
 
@@ -133,7 +132,9 @@ const cursorBaseTheme = EditorView.baseTheme({
 export const cursorExtension = (
   roomId: string,
   uid: string,
-  username: string
+  username: string,
+  sendCursorUpdate: (roomId: string, cursor: Cursor) => void,
+  receiveCursorUpdate: (view: EditorView) => void
 ) => {
   return [
     cursorStateField(uid), // handles cursor positions and highlights

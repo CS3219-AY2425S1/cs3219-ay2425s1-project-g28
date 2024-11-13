@@ -5,7 +5,6 @@ import {
   COLLAB_ENDED_MESSAGE,
   COLLAB_PARTNER_DISCONNECTED_MESSAGE,
   USE_COLLAB_ERROR_MESSAGE,
-  USE_MATCH_ERROR_MESSAGE,
 } from "../../utils/constants";
 import { useEffect, useReducer, useRef, useState } from "react";
 import CustomDialog from "../CustomDialog";
@@ -13,35 +12,29 @@ import {
   extractMinutesFromTime,
   extractSecondsFromTime,
 } from "../../utils/sessionTime";
-import { CollabEvents, collabSocket } from "../../utils/collabSocket";
 import { toast } from "react-toastify";
 import reducer, {
   getQuestionById,
   initialState,
 } from "../../reducers/questionReducer";
-import { useMatch } from "../../contexts/MatchContext";
+import { CollabEvents } from "../../utils/collabSocket";
 
 const CollabSessionControls: React.FC = () => {
-  const match = useMatch();
-  if (!match) {
-    throw new Error(USE_MATCH_ERROR_MESSAGE);
-  }
-
-  const { questionId } = match;
-
   const collab = useCollab();
   if (!collab) {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
   const {
+    collabSocket,
     handleSubmitSessionClick,
     handleEndSessionClick,
     handleConfirmEndSession,
-    isEndSessionModalOpen,
     handleRejectEndSession,
     handleExitSession,
+    isEndSessionModalOpen,
     isExitSessionModalOpen,
+    qnId,
     qnHistoryId,
     stopTime,
     setStopTime,
@@ -54,21 +47,21 @@ const CollabSessionControls: React.FC = () => {
   const { selectedQuestion } = state;
 
   useEffect(() => {
-    collabSocket.once(CollabEvents.END_SESSION, (sessionDuration: number) => {
+    collabSocket?.once(CollabEvents.END_SESSION, (sessionDuration: number) => {
       collabSocket.off(CollabEvents.PARTNER_DISCONNECTED);
       toast.info(COLLAB_ENDED_MESSAGE);
       handleConfirmEndSession(timeRef.current, setTime, true, sessionDuration);
     });
 
-    collabSocket.once(CollabEvents.PARTNER_DISCONNECTED, () => {
+    collabSocket?.once(CollabEvents.PARTNER_DISCONNECTED, () => {
       collabSocket.off(CollabEvents.END_SESSION);
       toast.error(COLLAB_PARTNER_DISCONNECTED_MESSAGE);
       handleConfirmEndSession(timeRef.current, setTime, true);
     });
 
     return () => {
-      collabSocket.off(CollabEvents.END_SESSION);
-      collabSocket.off(CollabEvents.PARTNER_DISCONNECTED);
+      collabSocket?.off(CollabEvents.END_SESSION);
+      collabSocket?.off(CollabEvents.PARTNER_DISCONNECTED);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -96,11 +89,11 @@ const CollabSessionControls: React.FC = () => {
   }, [qnHistoryId]);
 
   useEffect(() => {
-    if (!questionId) {
+    if (!qnId) {
       return;
     }
-    getQuestionById(questionId, dispatch);
-  }, [questionId]);
+    getQuestionById(qnId, dispatch);
+  }, [qnId]);
 
   return (
     <Stack direction={"row"} alignItems={"center"} spacing={2}>

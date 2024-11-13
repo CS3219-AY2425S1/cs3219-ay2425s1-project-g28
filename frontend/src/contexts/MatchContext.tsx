@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { matchSocket } from "../utils/matchSocket";
+import { createMatchSocket, MatchEvents } from "../utils/matchSocket";
 import {
   ABORT_COLLAB_SESSION_CONFIRMATION_MESSAGE,
   ABORT_MATCH_PROCESS_CONFIRMATION_MESSAGE,
@@ -18,6 +18,7 @@ import { toast } from "react-toastify";
 import useAppNavigate from "../hooks/useAppNavigate";
 import { UNSAFE_NavigationContext } from "react-router-dom";
 import { Action, type History, type Transition } from "history";
+import { Socket } from "socket.io-client";
 
 type MatchUser = {
   id: string;
@@ -31,32 +32,6 @@ type MatchCriteria = {
   language: string;
   timeout: number;
 };
-
-enum MatchEvents {
-  // Send
-  MATCH_REQUEST = "match_request",
-  MATCH_CANCEL_REQUEST = "match_cancel_request",
-  MATCH_ACCEPT_REQUEST = "match_accept_request",
-  MATCH_DECLINE_REQUEST = "match_decline_request",
-  REMATCH_REQUEST = "rematch_request",
-  MATCH_END_REQUEST = "match_end_request",
-
-  USER_CONNECTED = "user_connected",
-  USER_DISCONNECTED = "user_disconnected",
-
-  // Receive
-  MATCH_FOUND = "match_found",
-  MATCH_SUCCESSFUL = "match_successful",
-  MATCH_UNSUCCESSFUL = "match_unsuccessful",
-  MATCH_REQUEST_EXISTS = "match_request_exists",
-  MATCH_REQUEST_ERROR = "match_request_error",
-
-  SOCKET_DISCONNECT = "disconnect",
-  SOCKET_CLIENT_DISCONNECT = "io client disconnect",
-  SOCKET_SERVER_DISCONNECT = "io server disconnect",
-  SOCKET_RECONNECT_SUCCESS = "reconnect",
-  SOCKET_RECONNECT_FAILED = "reconnect_failed",
-}
 
 enum MatchPaths {
   HOME = "/home",
@@ -79,7 +54,7 @@ type MatchContextType = {
   retryMatch: () => void;
   matchingTimeout: () => void;
   matchOfferTimeout: () => void;
-  getMatchId: () => string | null;
+  matchId: string | null;
   matchUser: MatchUser | null;
   matchCriteria: MatchCriteria | null;
   partner: MatchUser | null;
@@ -103,6 +78,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   }
   const { user } = auth;
 
+  const [matchSocket, setMatchSocket] = useState<Socket | null>(null);
   const [matchUser, setMatchUser] = useState<MatchUser | null>(null);
   const [matchCriteria, setMatchCriteria] = useState<MatchCriteria | null>(
     null
@@ -123,8 +99,10 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         username: user.username,
         profile: user.profilePictureUrl,
       });
+      setMatchSocket(createMatchSocket());
     } else {
       setMatchUser(null);
+      setMatchSocket(null);
     }
   }, [user]);
 
@@ -139,7 +117,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
     }
 
     openSocketConnection();
-    matchSocket.emit(MatchEvents.USER_CONNECTED, matchUser?.id);
+    matchSocket?.emit(MatchEvents.USER_CONNECTED, matchUser?.id);
 
     const message = isMatchPage
       ? ABORT_MATCH_PROCESS_CONFIRMATION_MESSAGE
@@ -187,19 +165,19 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const openSocketConnection = () => {
-    matchSocket.connect();
+    matchSocket?.connect();
     initListeners();
   };
 
   const closeSocketConnection = () => {
-    matchSocket.emit(MatchEvents.USER_DISCONNECTED, matchUser?.id);
+    matchSocket?.emit(MatchEvents.USER_DISCONNECTED, matchUser?.id);
     removeListeners();
   };
 
   const removeListeners = () => {
-    matchSocket.removeAllListeners();
-    matchSocket.io.removeListener(MatchEvents.SOCKET_RECONNECT_SUCCESS);
-    matchSocket.io.removeListener(MatchEvents.SOCKET_RECONNECT_FAILED);
+    matchSocket?.removeAllListeners();
+    matchSocket?.io.removeListener(MatchEvents.SOCKET_RECONNECT_SUCCESS);
+    matchSocket?.io.removeListener(MatchEvents.SOCKET_RECONNECT_FAILED);
   };
 
   const initListeners = () => {
@@ -222,8 +200,8 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
   const initConnectionStatusListeners = () => {
     let connectionLost = false;
-    if (!matchSocket.hasListeners(MatchEvents.SOCKET_DISCONNECT)) {
-      matchSocket.on(MatchEvents.SOCKET_DISCONNECT, (reason) => {
+    if (!matchSocket?.hasListeners(MatchEvents.SOCKET_DISCONNECT)) {
+      matchSocket?.on(MatchEvents.SOCKET_DISCONNECT, (reason) => {
         if (
           reason !== MatchEvents.SOCKET_CLIENT_DISCONNECT &&
           reason !== MatchEvents.SOCKET_SERVER_DISCONNECT
@@ -233,8 +211,8 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       });
     }
 
-    if (!matchSocket.io.hasListeners(MatchEvents.SOCKET_RECONNECT_SUCCESS)) {
-      matchSocket.io.on(MatchEvents.SOCKET_RECONNECT_SUCCESS, () => {
+    if (!matchSocket?.io.hasListeners(MatchEvents.SOCKET_RECONNECT_SUCCESS)) {
+      matchSocket?.io.on(MatchEvents.SOCKET_RECONNECT_SUCCESS, () => {
         if (connectionLost) {
           closeSocketConnection();
           toast.error(MATCH_CONNECTION_ERROR);
@@ -243,8 +221,8 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       });
     }
 
-    if (!matchSocket.io.hasListeners(MatchEvents.SOCKET_RECONNECT_FAILED)) {
-      matchSocket.io.on(MatchEvents.SOCKET_RECONNECT_FAILED, () => {
+    if (!matchSocket?.io.hasListeners(MatchEvents.SOCKET_RECONNECT_FAILED)) {
+      matchSocket?.io.on(MatchEvents.SOCKET_RECONNECT_FAILED, () => {
         matchSocket.close();
         toast.error(MATCH_CONNECTION_ERROR);
         appNavigate(MatchPaths.HOME);
@@ -253,27 +231,27 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const initMatchRequestListeners = () => {
-    matchSocket.on(MatchEvents.MATCH_FOUND, ({ matchId, user1, user2 }) => {
+    matchSocket?.on(MatchEvents.MATCH_FOUND, ({ matchId, user1, user2 }) => {
       handleMatchFound(matchId, user1, user2);
     });
 
-    matchSocket.on(MatchEvents.MATCH_REQUEST_EXISTS, () => {
+    matchSocket?.on(MatchEvents.MATCH_REQUEST_EXISTS, () => {
       toast.error(MATCH_REQUEST_EXISTS_MESSAGE);
     });
 
-    matchSocket.on(MatchEvents.MATCH_REQUEST_ERROR, () => {
+    matchSocket?.on(MatchEvents.MATCH_REQUEST_ERROR, () => {
       toast.error(FAILED_MATCH_REQUEST_MESSAGE);
     });
   };
 
   const initMatchingListeners = () => {
-    matchSocket.on(MatchEvents.MATCH_FOUND, ({ matchId, user1, user2 }) => {
+    matchSocket?.on(MatchEvents.MATCH_FOUND, ({ matchId, user1, user2 }) => {
       handleMatchFound(matchId, user1, user2);
     });
   };
 
   const initMatchedListeners = () => {
-    matchSocket.on(
+    matchSocket?.on(
       MatchEvents.MATCH_SUCCESSFUL,
       (qnId: string, title: string) => {
         setMatchPending(false);
@@ -283,16 +261,16 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       }
     );
 
-    matchSocket.on(MatchEvents.MATCH_UNSUCCESSFUL, () => {
+    matchSocket?.on(MatchEvents.MATCH_UNSUCCESSFUL, () => {
       toast.error(MATCH_UNSUCCESSFUL_MESSAGE);
       setMatchPending(false);
     });
 
-    matchSocket.on(MatchEvents.MATCH_FOUND, ({ matchId, user1, user2 }) => {
+    matchSocket?.on(MatchEvents.MATCH_FOUND, ({ matchId, user1, user2 }) => {
       handleMatchFound(matchId, user1, user2);
     });
 
-    matchSocket.on(MatchEvents.MATCH_REQUEST_ERROR, () => {
+    matchSocket?.on(MatchEvents.MATCH_REQUEST_ERROR, () => {
       toast.error(FAILED_MATCH_REQUEST_MESSAGE);
     });
   };
@@ -330,7 +308,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
     setLoading(true);
     openSocketConnection();
-    matchSocket.emit(
+    matchSocket?.emit(
       MatchEvents.MATCH_REQUEST,
       {
         user: matchUser,
@@ -364,11 +342,11 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         appNavigate(MatchPaths.HOME);
         return;
       case MatchPaths.MATCHING:
-        matchSocket.emit(MatchEvents.MATCH_CANCEL_REQUEST, matchUser?.id);
+        matchSocket?.emit(MatchEvents.MATCH_CANCEL_REQUEST, matchUser?.id);
         appNavigate(MatchPaths.HOME);
         return;
       case MatchPaths.MATCHED:
-        matchSocket.emit(
+        matchSocket?.emit(
           MatchEvents.MATCH_DECLINE_REQUEST,
           matchUser?.id,
           matchId,
@@ -377,7 +355,11 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         appNavigate(MatchPaths.HOME);
         return;
       case MatchPaths.COLLAB:
-        matchSocket.emit(MatchEvents.MATCH_END_REQUEST, matchUser?.id, matchId);
+        matchSocket?.emit(
+          MatchEvents.MATCH_END_REQUEST,
+          matchUser?.id,
+          matchId
+        );
         return;
       default:
         return;
@@ -390,7 +372,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       return;
     }
 
-    matchSocket.emit(MatchEvents.MATCH_ACCEPT_REQUEST, matchId);
+    matchSocket?.emit(MatchEvents.MATCH_ACCEPT_REQUEST, matchId);
   };
 
   const rematch = () => {
@@ -414,7 +396,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
       language: matchCriteria.language,
       timeout: matchCriteria.timeout,
     };
-    matchSocket.emit(
+    matchSocket?.emit(
       MatchEvents.REMATCH_REQUEST,
       matchId,
       partner?.id,
@@ -445,22 +427,18 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
   };
 
   const matchingTimeout = () => {
-    matchSocket.emit(MatchEvents.MATCH_CANCEL_REQUEST, matchUser?.id);
+    matchSocket?.emit(MatchEvents.MATCH_CANCEL_REQUEST, matchUser?.id);
     appNavigate(MatchPaths.TIMEOUT);
   };
 
   const matchOfferTimeout = () => {
-    matchSocket.emit(
+    matchSocket?.emit(
       MatchEvents.MATCH_DECLINE_REQUEST,
       matchUser?.id,
       matchId,
       true
     );
     appNavigate(MatchPaths.HOME);
-  };
-
-  const getMatchId = () => {
-    return matchId;
   };
 
   return (
@@ -473,7 +451,7 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
         retryMatch,
         matchingTimeout,
         matchOfferTimeout,
-        getMatchId,
+        matchId,
         matchUser,
         matchCriteria,
         partner,

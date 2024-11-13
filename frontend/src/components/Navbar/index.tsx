@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import AppMargin from "../AppMargin";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useState } from "react";
 import {
@@ -93,8 +93,9 @@ const Navbar: React.FC<NavbarProps> = (props) => {
                 .filter((item) => !item.needsLogin || (item.needsLogin && user))
                 .map((item) => (
                   <Link
+                    component={RouterLink}
+                    to={item.link}
                     key={item.label}
-                    href={item.link}
                     underline="none"
                     sx={{ color: "common.black" }}
                   >
