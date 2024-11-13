@@ -391,9 +391,9 @@ const MatchProvider: React.FC<{ children?: React.ReactNode }> = (props) => {
 
     const rematchRequest = {
       user: matchUser,
-      complexities: matchCriteria.complexity,
-      categories: matchCriteria.category,
-      languages: matchCriteria.language,
+      complexity: matchCriteria.complexity,
+      category: matchCriteria.category,
+      language: matchCriteria.language,
       timeout: matchCriteria.timeout,
     };
     matchSocket?.emit(

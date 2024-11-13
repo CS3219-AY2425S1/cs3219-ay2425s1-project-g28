@@ -3,7 +3,6 @@ import {
   handleMatchAccept,
   handleMatchDelete,
   getMatchIdByUid,
-  getMatchByUid,
   getMatchById,
 } from "./matchHandler";
 import { io } from "../server";
@@ -12,7 +11,7 @@ import { getRandomQuestion } from "../api/questionService";
 import { MatchRequest, MatchUser } from "../utils/types";
 import { sendToProducer } from "../config/rabbitmq";
 
-enum MatchEvents {
+export enum MatchEvents {
   // Receive
   MATCH_REQUEST = "match_request",
   MATCH_CANCEL_REQUEST = "match_cancel_request",
