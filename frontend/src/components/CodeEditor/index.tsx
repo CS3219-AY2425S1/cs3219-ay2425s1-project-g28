@@ -5,25 +5,21 @@ import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { indentUnit } from "@codemirror/language";
 import { useEffect, useState } from "react";
-import { initDocument } from "../../utils/collabSocket";
 import { cursorExtension } from "../../utils/collabCursor";
 import { yCollab } from "y-codemirror.next";
 import { Doc, Text } from "yjs";
 import { Awareness } from "y-protocols/awareness";
 import { useCollab } from "../../contexts/CollabContext";
 import {
+  COLLAB_DOCUMENT_INIT_ERROR,
   USE_COLLAB_ERROR_MESSAGE,
-  USE_MATCH_ERROR_MESSAGE,
 } from "../../utils/constants";
-import { useMatch } from "../../contexts/MatchContext";
+import { toast } from "react-toastify";
 
 interface CodeEditorProps {
   editorState?: { doc: Doc; text: Text; awareness: Awareness };
-  uid?: string;
-  username?: string;
   language: string;
   template?: string;
-  roomId?: string;
   isReadOnly?: boolean;
 }
 
@@ -34,30 +30,24 @@ const languageSupport = {
 };
 
 const CodeEditor: React.FC<CodeEditorProps> = (props) => {
-  const {
-    editorState,
-    uid = "",
-    username = "",
-    language,
-    template = "",
-    roomId = "",
-    isReadOnly = false,
-  } = props;
-
-  const match = useMatch();
-  if (!match) {
-    throw new Error(USE_MATCH_ERROR_MESSAGE);
-  }
-
-  const { matchCriteria, matchUser, partner, questionId, questionTitle } =
-    match;
+  const { editorState, language, template = "", isReadOnly = false } = props;
 
   const collab = useCollab();
   if (!collab) {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
-  const { checkDocReady } = collab;
+  const {
+    collabUser,
+    collabPartner,
+    roomId,
+    qnId,
+    qnTitle,
+    initDocument,
+    checkDocReady,
+    sendCursorUpdate,
+    receiveCursorUpdate,
+  } = collab;
 
   const [isEditorReady, setIsEditorReady] = useState<boolean>(false);
   const [isDocumentLoaded, setIsDocumentLoaded] = useState<boolean>(false);
@@ -74,25 +64,24 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     }
 
     const loadTemplate = async () => {
-      if (
-        matchUser &&
-        partner &&
-        matchCriteria &&
-        questionId &&
-        questionTitle
-      ) {
+      if (collabUser && collabPartner && roomId && qnId && qnTitle) {
         checkDocReady(roomId, editorState.doc, setIsDocumentLoaded);
-        await initDocument(
-          uid,
-          roomId,
-          template,
-          matchUser.id,
-          partner.id,
-          matchCriteria.language,
-          questionId,
-          questionTitle
-        );
-        setIsDocumentLoaded(true);
+        try {
+          await initDocument(
+            roomId,
+            template,
+            collabUser.id,
+            collabPartner.id,
+            language,
+            qnId,
+            qnTitle
+          );
+          setIsDocumentLoaded(true);
+        } catch {
+          toast.error(COLLAB_DOCUMENT_INIT_ERROR);
+        }
+      } else {
+        toast.error(COLLAB_DOCUMENT_INIT_ERROR);
       }
     };
     loadTemplate();
@@ -111,10 +100,16 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
         indentUnit.of("\t"),
         basicSetup(),
         languageSupport[language as keyof typeof languageSupport],
-        ...(!isReadOnly && editorState
+        ...(!isReadOnly && editorState && roomId && collabUser
           ? [
               yCollab(editorState.text, editorState.awareness),
-              cursorExtension(roomId, uid, username),
+              cursorExtension(
+                roomId,
+                collabUser.id,
+                collabUser.username,
+                sendCursorUpdate,
+                receiveCursorUpdate
+              ),
             ]
           : []),
         EditorView.lineWrapping,

@@ -1,12 +1,14 @@
 import AppMargin from "../../components/AppMargin";
 import { Badge, Box, Button, Grid2, Tab, Tabs } from "@mui/material";
 import classes from "./index.module.css";
-import { CompilerResult, useCollab } from "../../contexts/CollabContext";
-import { useMatch } from "../../contexts/MatchContext";
+import {
+  CollabSessionData,
+  CompilerResult,
+  useCollab,
+} from "../../contexts/CollabContext";
 import {
   COLLAB_CONNECTION_ERROR,
   USE_COLLAB_ERROR_MESSAGE,
-  USE_MATCH_ERROR_MESSAGE,
 } from "../../utils/constants";
 import { useEffect, useReducer, useState } from "react";
 import Loader from "../../components/Loader";
@@ -20,39 +22,38 @@ import Chat from "../../components/Chat";
 import TabPanel from "../../components/TabPanel";
 import TestCase from "../../components/TestCase";
 import CodeEditor from "../../components/CodeEditor";
-import { CollabSessionData, join, leave } from "../../utils/collabSocket";
 import { toast } from "react-toastify";
 
 const CollabSandbox: React.FC = () => {
-  const match = useMatch();
-  if (!match) {
-    throw new Error(USE_MATCH_ERROR_MESSAGE);
-  }
-
-  const { getMatchId, matchUser, matchCriteria, questionId } = match;
-
   const collab = useCollab();
   if (!collab) {
     throw new Error(USE_COLLAB_ERROR_MESSAGE);
   }
 
-  const { compilerResult, resetCollab } = collab;
+  const {
+    join,
+    leave,
+    resetCollab,
+    collabUser,
+    language,
+    roomId,
+    qnId,
+    compilerResult,
+  } = collab;
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const { selectedQuestion } = state;
   const [selectedTab, setSelectedTab] = useState<"tests" | "chat">("tests");
   const [hasNewMessage, setHasNewMessage] = useState<boolean>(false);
   const [selectedTestcase, setSelectedTestcase] = useState(0);
-  const [editorState, setEditorState] = useState<CollabSessionData | null>(
-    null
-  );
+  const [collabSessionData, setCollabSessionData] =
+    useState<CollabSessionData | null>(null);
   const [isConnecting, setIsConnecting] = useState<boolean>(true);
-  const matchId = getMatchId();
 
   useEffect(() => {
     resetCollab();
 
-    if (!matchUser || !matchId) {
+    if (!collabUser || !roomId) {
       toast.error(COLLAB_CONNECTION_ERROR);
       setIsConnecting(false);
       return;
@@ -60,9 +61,9 @@ const CollabSandbox: React.FC = () => {
 
     const connectToCollabSession = async () => {
       try {
-        const editorState = await join(matchUser.id, matchId);
-        if (editorState.ready) {
-          setEditorState(editorState);
+        const collabSessionData = await join(collabUser.id, roomId);
+        if (collabSessionData.ready) {
+          setCollabSessionData(collabSessionData);
         } else {
           toast.error(COLLAB_CONNECTION_ERROR);
           setIsConnecting(false);
@@ -77,12 +78,12 @@ const CollabSandbox: React.FC = () => {
 
     // handle page refresh / tab closure
     const handleUnload = () => {
-      leave(matchUser.id, matchId, false);
+      leave(collabUser.id, roomId, false);
     };
     window.addEventListener("unload", handleUnload);
 
     return () => {
-      leave(matchUser.id, matchId, false);
+      leave(collabUser.id, roomId, false);
       window.removeEventListener("unload", handleUnload);
     };
 
@@ -90,17 +91,17 @@ const CollabSandbox: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!questionId) {
+    if (!qnId) {
       return;
     }
-    getQuestionById(questionId, dispatch);
-  }, [questionId]);
+    getQuestionById(qnId, dispatch);
+  }, [qnId]);
 
-  if (!matchUser || !matchCriteria || !matchId || !isConnecting) {
+  if (!collabUser || !language || !roomId || !isConnecting) {
     return <Navigate to="/home" replace />;
   }
 
-  if (!selectedQuestion || !editorState || !compilerResult) {
+  if (!selectedQuestion || !collabSessionData || !compilerResult) {
     return <Loader />;
   }
 
@@ -143,20 +144,17 @@ const CollabSandbox: React.FC = () => {
             })}
           >
             <CodeEditor
-              editorState={editorState}
-              uid={matchUser.id}
-              username={matchUser.username}
-              language={matchCriteria.language}
+              editorState={collabSessionData}
+              language={language}
               template={
-                matchCriteria.language === "Python"
+                language === "Python"
                   ? selectedQuestion.pythonTemplate
-                  : matchCriteria.language === "Java"
+                  : language === "Java"
                   ? selectedQuestion.javaTemplate
-                  : matchCriteria.language === "C"
+                  : language === "C"
                   ? selectedQuestion.cTemplate
                   : ""
               }
-              roomId={matchId}
             />
           </Box>
           <Box

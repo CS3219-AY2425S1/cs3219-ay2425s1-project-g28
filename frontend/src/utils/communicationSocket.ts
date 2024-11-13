@@ -19,11 +19,12 @@ export enum CommunicationEvents {
 const COMMUNICATION_SOCKET_URL =
   import.meta.env.VITE_COMM_SERVICE_URL ?? "http://localhost:3005";
 
-export const communicationSocket = io(COMMUNICATION_SOCKET_URL, {
-  reconnectionAttempts: 3,
-  autoConnect: false,
-  withCredentials: true,
-  auth: {
-    token: getToken(),
-  },
-});
+export const createCommunicationSocket = () =>
+  io(COMMUNICATION_SOCKET_URL, {
+    reconnectionAttempts: 3,
+    autoConnect: false,
+    withCredentials: true,
+    auth: {
+      token: getToken(),
+    },
+  });

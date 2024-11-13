@@ -27,6 +27,7 @@ beforeEach(() => {
     retryMatch: jest.fn(),
     matchingTimeout: jest.fn(),
     matchOfferTimeout: jest.fn(),
+    matchId: null,
     matchUser: null,
     matchCriteria: null,
     partner: null,
