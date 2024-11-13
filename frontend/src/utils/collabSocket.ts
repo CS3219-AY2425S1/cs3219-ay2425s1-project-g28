@@ -27,8 +27,11 @@ export enum CollabEvents {
   SOCKET_RECONNECT_FAILED = "reconnect_failed",
 }
 
-const COLLAB_SOCKET_URL =
-  import.meta.env.VITE_COLLAB_SERVICE_URL ?? "http://localhost:3003";
+const getCollabSocketUrl = () => {
+  return import.meta.env.VITE_COLLAB_SERVICE_URL ?? "http://localhost:3003";
+};
+
+const COLLAB_SOCKET_URL = getCollabSocketUrl();
 
 export const createCollabSocket = () =>
   io(COLLAB_SOCKET_URL, {

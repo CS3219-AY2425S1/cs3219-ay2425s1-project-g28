@@ -27,8 +27,11 @@ export enum MatchEvents {
   SOCKET_RECONNECT_FAILED = "reconnect_failed",
 }
 
-const MATCH_SOCKET_URL =
-  import.meta.env.VITE_MATCH_SERVICE_URL ?? "http://localhost:3002";
+const getMatchSocketUrl = () => {
+  return import.meta.env.VITE_MATCH_SERVICE_URL ?? "http://localhost:3002";
+};
+
+const MATCH_SOCKET_URL = getMatchSocketUrl();
 
 export const createMatchSocket = () =>
   io(MATCH_SOCKET_URL, {

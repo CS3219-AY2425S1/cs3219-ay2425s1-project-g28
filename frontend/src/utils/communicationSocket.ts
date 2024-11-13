@@ -16,8 +16,11 @@ export enum CommunicationEvents {
   DISCONNECTED = "disconnected",
 }
 
-const COMMUNICATION_SOCKET_URL =
-  import.meta.env.VITE_COMM_SERVICE_URL ?? "http://localhost:3005";
+const getCommunicationSocketUrl = () => {
+  return import.meta.env.VITE_COMM_SERVICE_URL ?? "http://localhost:3005";
+};
+
+const COMMUNICATION_SOCKET_URL = getCommunicationSocketUrl();
 
 export const createCommunicationSocket = () =>
   io(COMMUNICATION_SOCKET_URL, {
