@@ -1,5 +1,5 @@
 import supertest from "supertest";
-import app from "../app";
+import app from "../src/app";
 import {
   ERROR_MISSING_REQUIRED_FIELDS_MESSAGE,
   ERROR_UNSUPPORTED_LANGUAGE_MESSAGE,
