@@ -4,7 +4,7 @@
   "main": "server.ts",
   "type": "module",
   "scripts": {
-    "start": "tsx dist/server.js",
+    "start": "tsx dist/src/server.js",
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "test": "cross-env NODE_ENV=test && jest",
