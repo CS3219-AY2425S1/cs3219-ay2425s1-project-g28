@@ -2,7 +2,7 @@
 
 ## Deployment
 
-We deployed PeerPrep on AWS ECS. It is accessible [here](http://peerprep-frontend-alb-1935920115.ap-southeast-1.elb.amazonaws.com/).
+We deployed PeerPrep on AWS ECS. It is accessible [here](http://peerprep-frontend-alb-1935920115.ap-southeast-1.elb.amazonaws.com/) (deprecated).
 
 ## Setting up
 
