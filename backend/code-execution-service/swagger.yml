@@ -1,0 +1,111 @@
+openapi: 3.0.0
+
+info:
+  title: Code Execution Service
+  version: 1.0.0
+
+definitions:
+  CodeExecutionOutput:
+    properties:
+      stdin:
+        type: string
+        required: true
+      stdout:
+        type: string
+        required: true
+      expectedResult:
+        type: string
+        required: true
+      actualResult:
+        type: string
+      isMatch:
+        type: boolean
+      status:
+        type: string
+      exception:
+        type: string
+        nullable: true
+      stderr:
+        type: string
+        nullable: true
+      executionTime:
+        type: integer
+
+components:
+  schemas:
+    CodeExecutionResponse:
+      properties:
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/definitions/CodeExecutionOutput"
+    ErrorResponse:
+      properties:
+        message:
+          type: string
+
+paths:
+  /:
+    get:
+      tags:
+        - root
+      summary: Root
+      description: Ping the server
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Server is running"
+
+  /api/run:
+    post:
+      tags:
+        - Code Execution
+      summary: Execute Code
+      description: Executes code in a specified language with given input and expected output.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                language:
+                  type: string
+                  description: The programming language to execute the code in.
+                  example: "python"
+                code:
+                  type: string
+                  description: The source code to execute.
+                  example: "a=input()\nb=input()\nc=input()\nd=input()\n\nprint(int(a)+int(b)+int(c)+int(d))"
+                questionId:
+                  type: string
+                  description: Question ID.
+                  example: "123456789"
+      responses:
+        200:
+          description: Execution Result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodeExecutionResponse"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"

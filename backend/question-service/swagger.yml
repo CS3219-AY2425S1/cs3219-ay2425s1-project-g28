@@ -1,0 +1,509 @@
+openapi: 3.0.0
+
+info:
+  title: Question Service
+  version: 1.0.0
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Question:
+      properties:
+        title:
+          type: string
+          description: Title
+        description:
+          type: string
+          description: Description
+        complexity:
+          type: string
+          description: Complexity - Easy, Medium, Hard
+        category:
+          type: array
+          items:
+            type: string
+          description: Categories
+
+    QuestionIndiv:
+      properties:
+        title:
+          type: string
+          description: Title
+        description:
+          type: string
+          description: Description
+        complexity:
+          type: string
+          description: Complexity - Easy, Medium, Hard
+        category:
+          type: array
+          items:
+            type: string
+          description: Categories
+        testcaseInputFileUrl:
+          type: string
+          description: URL of the test case input file
+        testcaseOutputFileUrl:
+          type: string
+          description: URL of the test case output file
+        pythonTemplate:
+          type: string
+          description: Code template in Python
+        javaTemplate:
+          type: string
+          description: Code template in Java
+        cTemplate:
+          type: string
+          description: Code template in C
+
+definitions:
+  Question:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: Question id
+      title:
+        type: string
+        description: Title
+      description:
+        type: string
+        description: Description
+      complexity:
+        type: string
+        description: Complexity - Easy, Medium, Hard
+      category:
+        type: array
+        items:
+          type: string
+        description: Categories
+      createdAt:
+        type: string
+        description: Date of creation
+      updatedAt:
+        type: string
+        description: Latest update
+      __v:
+        type: string
+        description: Document version
+  QuestionIndiv:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: Question id
+      title:
+        type: string
+        description: Title
+      description:
+        type: string
+        description: Description
+      complexity:
+        type: string
+        description: Complexity - Easy, Medium, Hard
+      category:
+        type: array
+        items:
+          type: string
+        description: Categories
+      pythonTemplate:
+        type: string
+        description: Code template in Python
+      javaTemplate:
+        type: string
+        description: Code template in Java
+      cTemplate:
+        type: string
+        description: Code template in C
+      createdAt:
+        type: string
+        description: Date of creation
+      updatedAt:
+        type: string
+        description: Latest update
+      __v:
+        type: string
+        description: Document version
+  Error:
+    type: object
+    properties:
+      message:
+        type: string
+        description: Message
+  ServerError:
+    type: object
+    properties:
+      message:
+        type: string
+        description: Message
+      error:
+        type: string
+        description: Error
+
+paths:
+  /:
+    get:
+      tags:
+        - root
+      summary: Root
+      description: Ping the server
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message
+  /api/questions:
+    post:
+      tags:
+        - questions
+      summary: Creates a question
+      description: Creates a question
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuestionIndiv"
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message
+                  question:
+                    $ref: "#/definitions/QuestionIndiv"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/Error"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/ServerError"
+    get:
+      tags:
+        - questions
+      summary: Reads a list of questions
+      description: Reads a limited list of questions based on current page and question limit per page, taking into account search and filter conditions (if any).
+      parameters:
+        - in: query
+          name: page
+          type: integer
+          required: true
+          default: 1
+          description: Page of questions to return
+        - in: query
+          name: qnLimit
+          type: integer
+          required: true
+          default: 10
+          description: Limit on number of questions to return
+        - in: query
+          name: title
+          type: string
+          required: false
+          description: Question title search keywords
+        - in: query
+          name: complexities
+          schema:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+          required: false
+          description: Question complexity filters
+        - in: query
+          name: categories
+          schema:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+          required: false
+          description: Question category filters
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message
+                  questionCount:
+                    type: integer
+                    description: Total number of questions
+                  questions:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Question"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/Error"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/ServerError"
+  /api/questions/random:
+    get:
+      tags:
+        - questions
+      summary: Get a random question based on specified criteria
+      description: Get a random question based on specified criteria
+      parameters:
+        - in: query
+          name: complexity
+          schema:
+            type: string
+          required: true
+          description: Question complexity filter
+        - in: query
+          name: category
+          schema:
+            type: string
+          required: true
+          description: Question category filter
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message
+                  question:
+                    $ref: "#/definitions/Question"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/Error"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/ServerError"
+  /api/questions/{id}:
+    put:
+      tags:
+        - questions
+      summary: Updates a question
+      description: Updates a question
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: Question id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuestionIndiv"
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message
+                  question:
+                    $ref: "#/definitions/QuestionIndiv"
+        404:
+          description: Question Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/Error"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/ServerError"
+    delete:
+      tags:
+        - questions
+      summary: Deletes a question
+      security:
+        - bearerAuth: []
+      description: Deletes a question
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: Question id
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message
+        404:
+          description: Question Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/Error"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/ServerError"
+    get:
+      tags:
+        - questions
+      summary: Reads a question
+      description: Reads a question
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: Question id
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message
+                  question:
+                    $ref: "#/definitions/QuestionIndiv"
+        404:
+          description: Question Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/Error"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/ServerError"
+  /api/questions/categories:
+    get:
+      tags:
+        - questions
+      summary: Returns question categories
+      description: Returns list of unique question categories sorted alphabetically
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message
+                  categories:
+                    type: array
+                    items:
+                      type: string
+                    description: Categories
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/ServerError"
+  /api/questions/images:
+    post:
+      summary: Publish image to firebase storage
+      tags:
+        - questions
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profilePic:
+                  type: string
+                  format: binary
+                  required: true
+      responses:
+        200:
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message
+                  imageUrl:
+                    type: string
+                    description: image url
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerErrorResponse"

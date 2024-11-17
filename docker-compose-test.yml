@@ -1,0 +1,192 @@
+name: peerprep-test
+
+services:
+  test-user-service:
+    image: peerprep/user-service
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3001
+      - JWT_SECRET
+      - ADMIN_FIRST_NAME=Admin
+      - ADMIN_LAST_NAME=User
+      - ADMIN_USERNAME=administrator
+      - ADMIN_EMAIL=admin@gmail.com
+      - ADMIN_PASSWORD=Admin@123
+      - FIREBASE_PROJECT_ID
+      - FIREBASE_PRIVATE_KEY
+      - FIREBASE_CLIENT_EMAIL
+      - FIREBASE_STORAGE_BUCKET
+      - MONGO_URI_TEST=mongodb://mongo:mongo@test-mongo:27017/
+      - REDIS_URI_TEST=redis://test-redis:6379
+    depends_on:
+      - test-mongo
+      - test-redis
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/user-service:/user-service
+      - /user-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
+  test-question-service:
+    image: peerprep/question-service
+    build:
+      context: ./backend/question-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3000
+      - FIREBASE_PROJECT_ID
+      - FIREBASE_PRIVATE_KEY
+      - FIREBASE_CLIENT_EMAIL
+      - FIREBASE_STORAGE_BUCKET
+      - MONGO_URI_TEST=mongodb://mongo:mongo@test-mongo:27017/
+    depends_on:
+      - test-mongo
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/question-service:/question-service
+      - /question-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
+  test-matching-service:
+    image: peerprep/matching-service
+    build:
+      context: ./backend/matching-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3002
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=password
+      - RABBITMQ_ADDR=amqp://admin:password@rabbitmq:5672
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/matching-service:/matching-service
+      - /matching-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
+  test-collab-service:
+    image: peerprep/collab-service
+    build:
+      context: ./backend/collab-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3003
+      - REDIS_URI_TEST=redis://test-redis:6379
+    depends_on:
+      - test-redis
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/collab-service:/collab-service
+      - /collab-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
+  test-code-execution-service:
+    image: peerprep/code-execution-service
+    build:
+      context: ./backend/code-execution-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3004
+      - ONE_COMPILER_KEY
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/code-execution-service:/code-execution-service
+      - /code-execution-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
+  test-communication-service:
+    image: peerprep/communication-service
+    build:
+      context: ./backend/communication-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3005
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/communication-service:/communication-service
+      - /communication-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
+  test-qn-history-service:
+    image: peerprep/qn-history-service
+    build:
+      context: ./backend/qn-history-service
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      - NODE_ENV=test
+      - SERVICE_PORT=3006
+      - MONGO_URI_TEST=mongodb://mongo:mongo@test-mongo:27017/
+    depends_on:
+      - test-mongo
+    networks:
+      - peerprep-network
+    volumes:
+      - ./backend/qn-history-service:/qn-history-service
+      - /qn-history-service/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
+  test-frontend:
+    image: peerprep/frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    networks:
+      - peerprep-network
+    volumes:
+      - ./frontend:/frontend
+      - /frontend/node_modules
+    restart: on-failure
+    command: ["npm", "test"]
+
+  test-mongo:
+    image: mongo
+    restart: always
+    networks:
+      - peerprep-network
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo
+      - MONGO_INITDB_ROOT_PASSWORD=mongo
+
+  test-redis:
+    image: redis:8.0-M01
+    container_name: test-redis
+    networks:
+      - peerprep-network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    command: ["redis-server"]
+
+networks:
+  peerprep-network:
+    driver: bridge

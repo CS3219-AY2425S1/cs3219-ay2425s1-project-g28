@@ -1,0 +1,269 @@
+services:
+  user-service:
+    image: peerprep/user-service
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+      target: prod
+    env_file: ./backend/user-service/.env
+    ports:
+      - 3001:3001
+    depends_on:
+      - user-service-mongo
+      - user-service-redis
+    networks:
+      - peerprep-network
+    restart: on-failure
+
+  question-service:
+    image: peerprep/question-service
+    build:
+      context: ./backend/question-service
+      dockerfile: Dockerfile
+      target: prod
+    env_file: ./backend/question-service/.env
+    ports:
+      - 3000:3000
+    depends_on:
+      - question-service-mongo
+      - user-service
+    networks:
+      - peerprep-network
+    restart: on-failure
+
+  matching-service:
+    image: peerprep/matching-service
+    build:
+      context: ./backend/matching-service
+      dockerfile: Dockerfile
+      target: prod
+    env_file: ./backend/matching-service/.env
+    ports:
+      - 3002:3002
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    networks:
+      - peerprep-network
+    restart: on-failure
+
+  collab-service:
+    image: peerprep/collab-service
+    build:
+      context: ./backend/collab-service
+      dockerfile: Dockerfile
+      target: prod
+    env_file: ./backend/collab-service/.env
+    ports:
+      - 3003:3003
+    depends_on:
+      - collab-service-redis
+    networks:
+      - peerprep-network
+    restart: on-failure
+
+  code-execution-service:
+    image: peerprep/code-execution-service
+    build:
+      context: ./backend/code-execution-service
+      dockerfile: Dockerfile
+      target: prod
+    env_file: ./backend/code-execution-service/.env
+    ports:
+      - 3004:3004
+    networks:
+      - peerprep-network
+    restart: on-failure
+
+  communication-service:
+    image: peerprep/communication-service
+    build:
+      context: ./backend/communication-service
+      dockerfile: Dockerfile
+      target: prod
+    env_file: ./backend/communication-service/.env
+    ports:
+      - 3005:3005
+    depends_on:
+      - user-service
+    networks:
+      - peerprep-network
+    restart: on-failure
+
+  qn-history-service:
+    image: peerprep/qn-history-service
+    build:
+      context: ./backend/qn-history-service
+      dockerfile: Dockerfile
+      target: prod
+    env_file: ./backend/qn-history-service/.env
+    ports:
+      - 3006:3006
+    depends_on:
+      - qn-history-service-mongo
+      - user-service
+      - question-service
+    networks:
+      - peerprep-network
+    restart: on-failure
+
+  frontend:
+    image: peerprep/frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: prod
+    ports:
+      - 5173:4173
+    depends_on:
+      - user-service
+      - question-service
+      - matching-service
+      - collab-service
+      - code-execution-service
+      - communication-service
+      - qn-history-service
+    networks:
+      - peerprep-network
+    restart: on-failure
+
+  question-service-mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    networks:
+      - peerprep-network
+    volumes:
+      - question-service-mongo-data:/data/db
+    env_file:
+      - ./backend/question-service/.env
+
+  question-service-mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    networks:
+      - peerprep-network
+    depends_on:
+      - question-service-mongo
+    env_file: ./backend/question-service/.env
+
+  user-service-mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27018:27017
+    networks:
+      - peerprep-network
+    volumes:
+      - user-service-mongo-data:/data/db
+    env_file:
+      - ./backend/user-service/.env
+
+  user-service-mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8082:8081
+    networks:
+      - peerprep-network
+    depends_on:
+      - user-service-mongo
+    env_file: ./backend/user-service/.env
+
+  qn-history-service-mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27019:27017
+    networks:
+      - peerprep-network
+    volumes:
+      - qn-history-service-mongo-data:/data/db
+    env_file:
+      - ./backend/qn-history-service/.env
+
+  qn-history-service-mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8083:8081
+    networks:
+      - peerprep-network
+    depends_on:
+      - qn-history-service-mongo
+    env_file: ./backend/qn-history-service/.env
+
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - peerprep-network
+    env_file: ./backend/matching-service/.env
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 20s
+      timeout: 10s
+      retries: 10
+
+  user-service-redis:
+    image: redis:8.0-M01
+    container_name: user-service-redis
+    ports:
+      - 6379:6379
+    networks:
+      - peerprep-network
+    volumes:
+      - user-service-redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    command: ["redis-server"]
+
+  collab-service-redis:
+    image: redis:8.0-M01
+    container_name: collab-service-redis
+    ports:
+      - 6380:6379
+    networks:
+      - peerprep-network
+    volumes:
+      - collab-service-redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    command: ["redis-server"]
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - 5540:5540
+    networks:
+      - peerprep-network
+    volumes:
+      - redis-insight-data:/data
+
+volumes:
+  question-service-mongo-data:
+  user-service-mongo-data:
+  qn-history-service-mongo-data:
+  user-service-redis-data:
+  collab-service-redis-data:
+  redis-insight-data:
+
+networks:
+  peerprep-network:
+    driver: bridge
